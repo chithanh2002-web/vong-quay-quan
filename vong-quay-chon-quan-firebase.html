@@ -155,9 +155,16 @@
   .congrats-card .server-title{ font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:var(--chalk-cream-dim); margin-bottom:4px; }
   .congrats-card .server-line{ font-weight:800; font-size:19px; color:var(--marigold); margin-bottom:8px; }
   .congrats-card .server-msg{ font-size:13.5px; color:var(--chalk-cream); line-height:1.4; font-style:italic; margin-bottom:14px; }
+  
+  .voice-btn{
+    width: 100%; margin-bottom: 8px; padding: 10px; border-radius: 999px; border: 1.5px solid var(--gold);
+    background: rgba(227,192,105,0.2); color: var(--gold); font-family: inherit; font-weight: 700; font-size: 13px; cursor: pointer;
+  }
+  .voice-btn:hover{ background: rgba(227,192,105,0.35); }
+
   .congrats-close{
-    padding:9px 22px; border-radius:999px; border:none; background:var(--brick);
-    color:var(--chalk-cream); font-family:inherit; font-weight:700; font-size:13px; cursor:pointer;
+    width: 100%; padding: 10px 22px; border-radius: 999px; border: none; background: var(--brick);
+    color: var(--chalk-cream); font-family: inherit; font-weight: 700; font-size: 13px; cursor: pointer;
   }
 </style>
 </head>
@@ -205,6 +212,8 @@
     <div class="server-title">Quán chiến thắng</div>
     <div class="congrats-server" id="congratsServer"></div>
     <div class="congrats-msg" id="congratsMsg"></div>
+    <!-- Thêm nút bấm phát giọng đọc trực tiếp -->
+    <button class="voice-btn" id="voiceBtn">🔊 Nghe giọng đọc kết quả</button>
     <button class="congrats-close" id="congratsClose">Đã rõ, cảm ơn! 🎉</button>
   </div>
 </div>
@@ -224,6 +233,7 @@ let spinning = false;
 let currentRotation = 0;
 let celebrated = false;
 let audioCtx = null;
+let lastSpeechText = "";
 
 function initAudio(){
   if(!audioCtx){
@@ -276,11 +286,11 @@ function speakResult(text){
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'vi-VN';
-    utterance.rate = 1.0;
-    utterance.pitch = 1.2;
+    utterance.rate = 0.95;
+    utterance.pitch = 1.25; // Giọng nữ cao
     
     const voices = window.speechSynthesis.getVoices();
-    const viVoice = voices.find(v => v.lang.includes('vi') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('hoang') || v.name.toLowerCase().includes('linh') || v.name.toLowerCase().includes('Google')));
+    const viVoice = voices.find(v => v.lang.includes('vi') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('hoang') || v.name.toLowerCase().includes('linh') || v.name.toLowerCase().includes('google')));
     if(viVoice) utterance.voice = viVoice;
 
     window.speechSynthesis.speak(utterance);
@@ -296,8 +306,12 @@ const congratsOverlay = document.getElementById('congratsOverlay');
 const congratsEmoji = document.getElementById('congratsEmoji');
 const congratsServer = document.getElementById('congratsServer');
 const congratsMsg = document.getElementById('congratsMsg');
+const voiceBtn = document.getElementById('voiceBtn');
 const congratsClose = document.getElementById('congratsClose');
+
 congratsClose.addEventListener('click', ()=>{ congratsOverlay.style.display = 'none'; });
+voiceBtn.addEventListener('click', ()=>{ speakResult(lastSpeechText); });
+
 const hint = document.getElementById('hint');
 const errBox = document.getElementById('errBox');
 const barsEl = document.getElementById('bars');
@@ -333,12 +347,15 @@ function showCongrats(winnerOption){
   congratsEmoji.textContent = server.emoji;
   congratsServer.textContent = winnerOption + " · " + server.name;
   congratsMsg.textContent = server.messages[0];
+  
+  lastSpeechText = `Xin chúc mừng! Quán chiến thắng là ${winnerOption}, do đại diện ${server.name} đề cử. ${server.messages[0]}`;
+  
   congratsOverlay.style.display = 'flex';
 
-  const speechText = `Quán chiến thắng là ${winnerOption}, đại diện ${server.name}. ${server.messages[0]}`;
+  // Thử tự động phát giọng đọc ngay khi mở bảng
   setTimeout(()=>{
-    speakResult(speechText);
-  }, 300);
+    speakResult(lastSpeechText);
+  }, 400);
 }
 
 function celebrateWin(winnerOption){
@@ -422,7 +439,6 @@ function renderResults(){
       NAMES.forEach(n=>{
         const opt = document.createElement('option');
         opt.value = n;
-        // Bỏ chữ cũ ở đây, chỉ hiển thị tên thành viên sạch sẽ
         opt.textContent = n;
         tieSelect.appendChild(opt);
       });
