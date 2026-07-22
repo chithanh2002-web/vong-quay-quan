@@ -34,21 +34,21 @@
     color:var(--chalk-cream);
     display:flex;
     justify-content:center;
-    padding:28px 16px 60px;
+    padding:24px 16px 50px;
   }
   .board{ width:100%; max-width:480px; }
-  .eyebrow{ text-align:center; font-size:12px; letter-spacing:0.28em; text-transform:uppercase; color:var(--marigold); font-weight:600; margin-bottom:6px; }
-  h1{ text-align:center; font-size:28px; font-weight:800; margin:0 0 4px; }
-  .sub{ text-align:center; color:var(--chalk-cream-dim); font-size:14px; margin-bottom:26px; line-height:1.5; }
-  .chalk-line{ border:none; border-top:1.5px dashed rgba(242,236,216,0.25); margin:22px 0; }
+  .eyebrow{ text-align:center; font-size:12px; letter-spacing:0.28em; text-transform:uppercase; color:var(--marigold); font-weight:600; margin-bottom:4px; }
+  h1{ text-align:center; font-size:26px; font-weight:800; margin:0 0 4px; }
+  .sub{ text-align:center; color:var(--chalk-cream-dim); font-size:13.5px; margin-bottom:18px; line-height:1.4; }
+  .chalk-line{ border:none; border-top:1.5px dashed rgba(242,236,216,0.25); margin:18px 0; }
 
-  .names{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:8px; }
+  .names{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
   .name-btn{
     position:relative;
-    padding:14px 8px; border-radius:12px; border:1.5px solid rgba(227,192,105,0.35);
+    padding:12px 6px; border-radius:12px; border:1.5px solid rgba(227,192,105,0.35);
     background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.12));
     color:var(--chalk-cream); font-family:inherit;
-    font-weight:700; font-size:14.5px; cursor:pointer; transition:all 0.18s ease;
+    font-weight:700; font-size:14px; cursor:pointer; transition:all 0.18s ease;
   }
   .name-btn:hover:not(:disabled){ border-color:var(--gold); background:rgba(227,192,105,0.1); }
   .name-btn.selected{
@@ -57,28 +57,28 @@
     box-shadow:0 0 0 1px rgba(227,192,105,0.4) inset, 0 0 14px rgba(227,192,105,0.25);
   }
   .name-btn.selected::after{
-    content:"✓"; position:absolute; top:-8px; right:-8px; width:22px; height:22px;
+    content:"✓"; position:absolute; top:-8px; right:-8px; width:20px; height:20px;
     border-radius:50%; background:linear-gradient(180deg, var(--gold), var(--gold-deep));
-    color:#3a2a1c; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center;
+    color:#3a2a1c; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center;
     box-shadow:0 2px 6px rgba(0,0,0,0.4); border:1.5px solid rgba(255,255,255,0.5);
   }
   .name-btn:disabled{ opacity:0.4; cursor:not-allowed; text-decoration:line-through; }
-  .name-btn .tag{ display:block; font-size:10px; font-weight:500; letter-spacing:0.04em; color:var(--paddy); margin-top:3px; text-decoration:none; }
+  .name-btn .tag{ display:block; font-size:10px; font-weight:500; letter-spacing:0.04em; color:var(--paddy); margin-top:2px; text-decoration:none; }
 
-  .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin:30px 0 10px; }
-  .wheel-frame{ position:relative; width:310px; height:310px; }
+  .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin:10px 0 10px; }
+  .wheel-frame{ position:relative; width:290px; height:290px; }
   
-  /* Mũi tên chỉ định phía trên */
   .pointer{
-    position:absolute; top:-12px; left:50%; transform:translateX(-50%);
+    position:absolute; top:-14px; left:50%; transform:translateX(-50%);
     width:0; height:0; border-left:12px solid transparent; border-right:12px solid transparent;
     border-top:22px solid #c1442e; z-index:20; filter:drop-shadow(0 2px 2px rgba(0,0,0,0.4));
   }
   
-  /* Vòng quay chứa ảnh gốc xoay mượt mà */
   .wheel-container{
     width:100%; height:100%; border-radius:50%; overflow:hidden; position:relative;
-    box-shadow:0 14px 34px rgba(0,0,0,0.5);
+    border:4px solid #e3c069;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.4);
+    background: #1f3d2b;
     transition:transform 4.2s cubic-bezier(0.12,0.85,0.15,1);
   }
   .wheel-container img {
@@ -90,7 +90,7 @@
   }
 
   .spin-btn{
-    margin-top:24px; width:100%; padding:17px; border-radius:14px;
+    margin-top:18px; width:100%; padding:16px; border-radius:14px;
     border:1.5px solid rgba(227,192,105,0.55);
     background:linear-gradient(180deg, var(--wood-light), var(--wood));
     color:var(--gold); font-family:inherit; font-weight:800;
@@ -101,30 +101,30 @@
   .spin-btn:active:not(:disabled){ transform:translateY(3px); box-shadow:0 2px 0 #241a10; }
   .spin-btn:disabled{ background:#453e33; color:#8a8270; box-shadow:0 5px 0 #2a251d; cursor:not-allowed; opacity:0.8; }
   
-  .hint{ text-align:center; font-size:13px; color:var(--chalk-cream-dim); margin-top:10px; min-height:18px; }
+  .hint{ text-align:center; font-size:13px; color:var(--chalk-cream-dim); margin-top:8px; min-height:18px; }
   .fair-note{ text-align:center; font-size:11.5px; color:rgba(242,236,216,0.45); margin-top:2px; }
 
-  .results-title{ font-size:12px; letter-spacing:0.24em; text-transform:uppercase; color:var(--marigold); font-weight:600; margin-bottom:12px; }
-  .bars{ display:flex; flex-direction:column; gap:14px; margin-bottom:16px; }
-  .bar-label{ display:flex; justify-content:space-between; font-size:14px; font-weight:700; margin-bottom:6px; }
-  .bar-track{ height:14px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden; }
+  .results-title{ font-size:12px; letter-spacing:0.24em; text-transform:uppercase; color:var(--marigold); font-weight:600; margin-bottom:10px; }
+  .bars{ display:flex; flex-direction:column; gap:12px; margin-bottom:14px; }
+  .bar-label{ display:flex; justify-content:space-between; font-size:13.5px; font-weight:700; margin-bottom:4px; }
+  .bar-track{ height:12px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden; }
   .bar-fill{ height:100%; border-radius:999px; transition:width 0.5s ease; }
   .bar-fill.a{ background:var(--marigold); }
   .bar-fill.b{ background:var(--paddy); }
 
-  .tickets{ display:flex; flex-direction:column; gap:8px; }
-  .ticket{ display:flex; align-items:center; justify-content:space-between; padding:11px 14px; border-radius:9px; background:rgba(255,255,255,0.03); border:1px solid rgba(242,236,216,0.15); font-size:14px; }
+  .tickets{ display:flex; flex-direction:column; gap:6px; }
+  .ticket{ display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:9px; background:rgba(255,255,255,0.03); border:1px solid rgba(242,236,216,0.15); font-size:13.5px; }
   .ticket .who{ font-weight:700; }
-  .ticket .what{ font-weight:600; padding:4px 10px; border-radius:999px; font-size:12.5px; }
+  .ticket .what{ font-weight:600; padding:3px 8px; border-radius:999px; font-size:12px; }
   .what.pending{ color:var(--chalk-cream-dim); font-weight:500; background:none; }
   .what.a{ background:rgba(232,163,61,0.18); color:var(--marigold); }
   .what.b{ background:rgba(127,166,92,0.2); color:var(--paddy); }
 
-  .tally{ margin-top:20px; text-align:center; font-size:14px; color:var(--chalk-cream-dim); }
+  .tally{ margin-top:16px; text-align:center; font-size:13.5px; color:var(--chalk-cream-dim); }
   .tally b{ color:var(--chalk-cream); }
-  .tally.winner{ font-size:17px; font-weight:800; color:var(--chalk-cream); }
-  .footnote{ margin-top:26px; text-align:center; font-size:12px; color:rgba(242,236,216,0.4); line-height:1.6; }
-  .err{ text-align:center; font-size:12.5px; color:#e8a33d; margin-top:8px; display:none; }
+  .tally.winner{ font-size:16px; font-weight:800; color:var(--chalk-cream); }
+  .footnote{ margin-top:20px; text-align:center; font-size:11.5px; color:rgba(242,236,216,0.4); line-height:1.5; }
+  .err{ text-align:center; font-size:12px; color:#e8a33d; margin-top:6px; display:none; }
 
   .confetti-layer{ position:fixed; inset:0; pointer-events:none; z-index:999; overflow:hidden; }
   .confetti-piece{ position:absolute; top:-20px; width:9px; height:14px; opacity:0.9; animation:confetti-fall linear forwards; }
@@ -132,23 +132,23 @@
 
   .congrats-overlay{
     position:fixed; inset:0; z-index:1000; display:none;
-    align-items:center; justify-content:center; padding:24px;
+    align-items:center; justify-content:center; padding:20px;
     background:rgba(10,20,14,0.72); backdrop-filter:blur(2px);
   }
   .congrats-card{
-    width:100%; max-width:360px; padding:30px 24px 26px;
-    border-radius:20px; text-align:center;
+    width:100%; max-width:340px; padding:26px 20px 22px;
+    border-radius:18px; text-align:center;
     background:linear-gradient(180deg, #2a4a35, #1f3d2b);
     border:2px solid var(--marigold);
     box-shadow:0 20px 50px rgba(0,0,0,0.5), 0 0 0 6px rgba(232,163,61,0.12);
   }
-  .congrats-card .server-emoji{ font-size:52px; display:block; margin-bottom:8px; }
-  .congrats-card .server-title{ font-size:12px; letter-spacing:0.22em; text-transform:uppercase; color:var(--chalk-cream-dim); margin-bottom:6px; }
-  .congrats-card .server-line{ font-weight:800; font-size:22px; color:var(--marigold); margin-bottom:14px; }
-  .congrats-card .server-msg{ font-size:15px; color:var(--chalk-cream); line-height:1.6; font-style:italic; margin-bottom:20px; }
+  .congrats-card .server-emoji{ font-size:48px; display:block; margin-bottom:6px; }
+  .congrats-card .server-title{ font-size:11.5px; letter-spacing:0.22em; text-transform:uppercase; color:var(--chalk-cream-dim); margin-bottom:4px; }
+  .congrats-card .server-line{ font-weight:800; font-size:20px; color:var(--marigold); margin-bottom:10px; }
+  .congrats-card .server-msg{ font-size:14px; color:var(--chalk-cream); line-height:1.5; font-style:italic; margin-bottom:16px; }
   .congrats-close{
-    padding:12px 28px; border-radius:999px; border:none; background:var(--brick);
-    color:var(--chalk-cream); font-family:inherit; font-weight:700; font-size:14px; cursor:pointer;
+    padding:10px 24px; border-radius:999px; border:none; background:var(--brick);
+    color:var(--chalk-cream); font-family:inherit; font-weight:700; font-size:13.5px; cursor:pointer;
   }
 </style>
 </head>
@@ -156,14 +156,13 @@
 <div class="board">
   <div class="eyebrow">Nhóm ăn trưa</div>
   <h1>Vòng Quay Chọn Quán</h1>
-  <div class="sub">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chỉ được quay <b>1 lần duy nhất</b>, tỉ lệ ra mỗi quán luôn là 50/50 để công bằng tuyệt đối.</div>
+  <div class="sub">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chỉ được quay <b>1 lần duy nhất</b>, tỉ lệ 50/50.</div>
 
   <div class="names" id="nameGrid"></div>
 
   <div class="wheel-wrap">
     <div class="wheel-frame">
       <div class="pointer"></div>
-      <!-- Hiển thị trọn vẹn ảnh gốc vongquay.PNG không bị đè lệch -->
       <div class="wheel-container" id="wheelElement">
         <img src="vongquay.PNG" alt="Vòng Quay Chọn Quán">
       </div>
@@ -173,7 +172,7 @@
   <button class="spin-btn" id="spinBtn" disabled>Chọn tên trước đã</button>
   <div class="hint" id="hint">Đang tải trạng thái của nhóm...</div>
   <div class="err" id="errBox"></div>
-  <div class="fair-note">⚖️ Mỗi lượt quay độc lập, tỉ lệ luôn 50/50 — công bằng là ưu tiên hàng đầu</div>
+  <div class="fair-note">⚖️ Tỉ lệ quay luôn độc lập và công bằng tuyệt đối</div>
 
   <hr class="chalk-line">
 
@@ -190,7 +189,7 @@
     <span class="server-emoji" id="congratsEmoji"></span>
     <div class="server-title">Quán chiến thắng</div>
     <div class="server-line" id="congratsServer"></div>
-    <div class="server-msg" id="congratsMsg"></div>
+    <div class="congrats-msg" id="congratsMsg"></div>
     <button class="congrats-close" id="congratsClose">Đã rõ, cảm ơn! 🎉</button>
   </div>
 </div>
@@ -364,7 +363,6 @@ function spin(){
   updateSpinButton();
 
   const winner = pickWinner();
-  // Căn chỉnh góc quay khớp với vị trí ô trên ảnh mẫu
   const segCenter = winner === OPTIONS[0] ? 90 : 270;
   let targetMod = ((360 - segCenter) % 360 + 360) % 360;
   const finalRotation = currentRotation - (currentRotation % 360) + 6*360 + targetMod;
