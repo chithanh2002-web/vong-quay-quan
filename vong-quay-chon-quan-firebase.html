@@ -66,8 +66,6 @@
   .name-btn .tag{ display:block; font-size:9px; font-weight:500; letter-spacing:0.04em; color:var(--paddy); margin-top:2px; text-decoration:none; }
 
   .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin:10px 0 8px; }
-  
-  /* Khung vòng quay chỉ dùng duy nhất ảnh gốc, không bị đè thêm mũi tên giả nào nữa */
   .wheel-frame{ 
     position:relative; 
     width:250px; 
@@ -98,7 +96,7 @@
     text-shadow:0 1px 2px rgba(0,0,0,0.5);
   }
   .spin-btn:active:not(:disabled){ transform:translateY(3px); box-shadow:0 1px 0 #241a10; }
-  .spin-btn:disabled{ background:#453e33; color:#8a8270; box-shadow:0 4px 0 #2a251d; cursor:not-allowed; opacity:0.8; }
+  .spin-btn:disabled{ background:#453e33; color:#8a8270; box-shadow:0 5px 0 #2a251d; cursor:not-allowed; opacity:0.8; }
   
   .hint{ text-align:center; font-size:12px; color:var(--chalk-cream-dim); margin-top:5px; min-height:16px; }
   .fair-note{ text-align:center; font-size:10.5px; color:rgba(242,236,216,0.45); margin-top:2px; }
@@ -206,6 +204,55 @@ let state = {};
 let spinning = false;
 let currentRotation = 0;
 let celebrated = false;
+let audioCtx = null;
+
+function initAudio(){
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+
+// Tạo hiệu ứng tiếng lạch cạch khi vòng quay chạy
+function playTickSound(){
+  try{
+    initAudio();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.04);
+    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.04);
+  }catch(e){}
+}
+
+// Tạo hiệu ứng tiếng chuông reo vui mừng khi có kết quả
+function playWinSound(){
+  try{
+    initAudio();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const notes = [523.25, 659.25, 783.99, 1046.50]; // Đồ, Mi, Sô, Đố
+    notes.forEach((freq, idx)=>{
+      setTimeout(()=>{
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      }, idx * 120);
+    });
+  }catch(e){}
+}
 
 const nameGrid = document.getElementById('nameGrid');
 const spinBtn = document.getElementById('spinBtn');
@@ -256,6 +303,7 @@ function showCongrats(winnerOption){
 function celebrateWin(winnerOption){
   if(celebrated) return;
   celebrated = true;
+  playWinSound();
   launchConfetti();
   showCongrats(winnerOption);
 }
@@ -270,6 +318,7 @@ function renderNames(){
     if(selectedName === name) btn.classList.add('selected');
     btn.innerHTML = name + (spun ? '<span class="tag">đã quay</span>' : '');
     btn.onclick = ()=>{
+      initAudio();
       if(spinning || spun) return;
       selectedName = name;
       renderNames();
@@ -359,6 +408,15 @@ function spin(){
   if(spinning || !selectedName || state[selectedName]) return;
   spinning = true;
   updateSpinButton();
+  initAudio();
+
+  // Phát tiếng tạch tạch liên tục khi quay
+  let tickInterval = setInterval(()=>{
+    playTickSound();
+  }, 120);
+  setTimeout(()=>{
+    clearInterval(tickInterval);
+  }, 4100);
 
   const winner = pickWinner();
   const segCenter = winner === OPTIONS[0] ? 90 : 270;
