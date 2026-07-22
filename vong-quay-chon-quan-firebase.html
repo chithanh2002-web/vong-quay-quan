@@ -180,7 +180,7 @@
 <div class="board">
   <div class="eyebrow">Nhóm ăn trưa</div>
   <h1>Vòng Quay Chọn Quán</h1>
-  <div class="sub">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chỉ được quay <b>1 lần duy nhất</b>, tỉ lệ ra mỗi quán luôn là 50/50 để công bằng tuyệt đối. Nếu hoà, hệ thống random chọn 1 người trong nhóm quay phân định.</div>
+  <div class="sub">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chỉ được quay <b>1 lần duy nhất</b>, tỉ lệ ra mỗi quán luôn là 50/50 để công bằng tuyệt đối. Nếu hoà, hệ thống random chọn 1 người trong nhóm quay chọn Oanh hay Tiên.</div>
 
   <div class="names" id="nameGrid"></div>
 
@@ -207,8 +207,8 @@
   <div class="bars" id="bars"></div>
   <div class="tickets" id="tickets"></div>
   <div class="tally" id="tally"></div>
-  <button class="spin-btn tie-btn" id="pickBtn" style="display:none;">🎲 Random chọn người quay phân định</button>
-  <button class="spin-btn tie-btn" id="tieBtn" style="display:none;">🎲 Quay phân định thắng thua</button>
+  <button class="spin-btn tie-btn" id="pickBtn" style="display:none;">🎲 Random chọn người quay chọn Oanh hay Tiên</button>
+  <button class="spin-btn tie-btn" id="tieBtn" style="display:none;">🎲 Quay chọn Oanh hay Tiên</button>
 
   <div class="footnote">Mỗi người tự mở link này, chọn đúng tên mình và quay. Hệ thống tự khoá lại sau khi đã quay — không cần đăng nhập gì cả.</div>
 </div>
@@ -666,18 +666,18 @@ function renderResults(){
     tally.className = 'tally winner';
     if(countA === countB){
       if(tiebreak){
-        tally.innerHTML = "Hoà " + countA + " - " + countB + " → 🎲 " + (tiebreakPicker||"") + " đã quay phân định ra: <b>" + tiebreak.result + "</b> 🏆";
+        tally.innerHTML = "Hoà " + countA + " - " + countB + " → 🎲 " + (tiebreakPicker||"") + " đã quay chọn ra: <b>" + tiebreak.result + "</b> 🏆";
         celebrateWin(tiebreak.result);
       } else if(tiebreakPicker){
-        tally.innerHTML = "Hoà! " + countA + " - " + countB + " 🎲 <b>" + tiebreakPicker + "</b> được chọn để quay phân định.";
+        tally.innerHTML = "Hoà! " + countA + " - " + countB + " 🎲 <b>" + tiebreakPicker + "</b> được chọn để quay chọn Oanh hay Tiên.";
         tieBtn.style.display = 'block';
         tieBtn.disabled = tiebreaking;
         tieBtn.textContent = tiebreaking ? "Đang quay..." : "🎲 " + tiebreakPicker + ", bấm vào đây để quay";
       } else {
-        tally.innerHTML = "Hoà! " + countA + " - " + countB + " 🤝 Bấm nút bên dưới để random chọn người quay phân định.";
+        tally.innerHTML = "Hoà! " + countA + " - " + countB + " 🤝 Bấm nút bên dưới để random chọn người quay chọn Oanh hay Tiên.";
         pickBtn.style.display = 'block';
         pickBtn.disabled = pickerLoading;
-        pickBtn.textContent = pickerLoading ? "Đang chọn..." : "🎲 Random chọn người quay phân định";
+        pickBtn.textContent = pickerLoading ? "Đang chọn..." : "🎲 Random chọn người quay chọn Oanh hay Tiên";
       }
     } else {
       const winner = countA > countB ? OPTIONS[0] : OPTIONS[1];
@@ -709,8 +709,8 @@ async function ensureTiebreakPicker(){
       tiebreakPicker = chosen;
     }
   }catch(e){
-    console.error("Lỗi chọn người quay phân định", e);
-    showError("Không chọn được người quay phân định. Thử tải lại trang.");
+    console.error("Lỗi chọn người quay chọn Oanh hay Tiên", e);
+    showError("Không chọn được người quay chọn Oanh hay Tiên. Thử tải lại trang.");
   }
   pickerLoading = false;
   renderResults();
@@ -737,7 +737,7 @@ async function loadState(){
 
 function tieSpin(){
   if(tiebreaking || tiebreak || !tiebreakPicker) return;
-  const confirmed = confirm("Xác nhận: bạn có phải là " + tiebreakPicker + " không? Chỉ " + tiebreakPicker + " mới được quay lượt phân định này.");
+  const confirmed = confirm("Xác nhận: bạn có phải là " + tiebreakPicker + " không? Chỉ " + tiebreakPicker + " mới được quay lượt này.");
   if(!confirmed) return;
   tiebreaking = true;
   tieBtn.disabled = true;
@@ -770,8 +770,8 @@ function tieSpin(){
         tiebreak = record;
       }
     }catch(e){
-      console.error("Lỗi lưu kết quả phân định", e);
-      showError("Không lưu được kết quả phân định. Thử lại nhé.");
+      console.error("Lỗi lưu kết quả quay chọn Oanh hay Tiên", e);
+      showError("Không lưu được kết quả. Thử lại nhé.");
     }
     tiebreaking = false;
     renderResults();
