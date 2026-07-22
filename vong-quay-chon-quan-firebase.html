@@ -271,16 +271,14 @@ function playWinSound(){
   }catch(e){}
 }
 
-// Hàm dùng giọng nữ trình duyệt đọc kết quả
 function speakResult(text){
   if('speechSynthesis' in window){
-    window.speechSynthesis.cancel(); // Dừng các giọng đọc cũ nếu có
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'vi-VN';
-    utterance.rate = 1.0; // Tốc độ đọc
-    utterance.pitch = 1.2; // Tone giọng cao hơn một chút thành giọng nữ/trẻ trung
+    utterance.rate = 1.0;
+    utterance.pitch = 1.2;
     
-    // Tìm giọng nữ tiếng Việt nếu thiết bị hỗ trợ
     const voices = window.speechSynthesis.getVoices();
     const viVoice = voices.find(v => v.lang.includes('vi') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('hoang') || v.name.toLowerCase().includes('linh') || v.name.toLowerCase().includes('Google')));
     if(viVoice) utterance.voice = viVoice;
@@ -337,7 +335,6 @@ function showCongrats(winnerOption){
   congratsMsg.textContent = server.messages[0];
   congratsOverlay.style.display = 'flex';
 
-  // Gọi giọng nữ đọc to kết quả
   const speechText = `Quán chiến thắng là ${winnerOption}, đại diện ${server.name}. ${server.messages[0]}`;
   setTimeout(()=>{
     speakResult(speechText);
@@ -425,7 +422,8 @@ function renderResults(){
       NAMES.forEach(n=>{
         const opt = document.createElement('option');
         opt.value = n;
-        opt.textContent = n + " (" + state[n].result + " cũ)";
+        // Bỏ chữ cũ ở đây, chỉ hiển thị tên thành viên sạch sẽ
+        opt.textContent = n;
         tieSelect.appendChild(opt);
       });
     } else {
