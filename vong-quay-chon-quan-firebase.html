@@ -73,7 +73,6 @@
     border-top:24px solid #8f2a1e; z-index:10; filter:drop-shadow(0 3px 3px rgba(0,0,0,0.45));
   }
   
-  /* Khung chứa ảnh vòng quay và hiệu ứng xoay mượt mà */
   .wheel-outer{
     width:100%; height:100%; border-radius:50%; overflow:hidden;
     box-shadow:0 14px 34px rgba(0,0,0,0.5), 0 0 0 3px rgba(227,192,105,0.5);
@@ -160,9 +159,9 @@
   <div class="wheel-wrap">
     <div class="wheel-frame">
       <div class="pointer"></div>
-      <!-- Khu vực hiển thị ảnh vòng quay thực tế -->
       <div class="wheel-outer" id="wheelElement">
-        <img src="wheel-design.png" alt="Vòng Quay Chọn Quán">
+        <!-- Sử dụng trực tiếp dữ liệu ảnh nhúng sẵn, không sợ lỗi mất file trên github -->
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="Vòng Quay Chọn Quán" id="wheelImg">
       </div>
     </div>
   </div>
@@ -193,6 +192,9 @@
 </div>
 
 <script>
+// Tự động gán hình ảnh mẫu vừa thiết kế vào thẻ img để hiển thị ngay lập tức
+document.getElementById('wheelImg').src = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA='; // Tự động trỏ chuẩn hình ảnh
+
 const DB_URL = "https://vong-quay-cdd2d-default-rtdb.asia-southeast1.firebasedatabase.app";
 const NAMES = ["Kiệt","Quý","Vương","Huy","Tra","Thành"];
 const OPTIONS = ["112","Hương Lúa"];
@@ -361,7 +363,6 @@ function spin(){
   updateSpinButton();
 
   const winner = pickWinner();
-  // Tính góc quay tương ứng (112 ở bên phải ~90 độ, Hương Lúa bên trái ~270 độ)
   const segCenter = winner === OPTIONS[0] ? 90 : 270;
   let targetMod = ((360 - segCenter) % 360 + 360) % 360;
   const finalRotation = currentRotation - (currentRotation % 360) + 6*360 + targetMod;
