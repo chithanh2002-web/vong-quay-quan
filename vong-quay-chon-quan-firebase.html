@@ -77,6 +77,7 @@
     width:100%; height:100%; border-radius:50%; overflow:hidden;
     box-shadow:0 14px 34px rgba(0,0,0,0.5), 0 0 0 3px rgba(227,192,105,0.5);
     transition:transform 4.2s cubic-bezier(0.12,0.85,0.15,1);
+    background: #1f3d2b;
   }
   .wheel-outer img {
     width: 100%;
@@ -160,8 +161,8 @@
     <div class="wheel-frame">
       <div class="pointer"></div>
       <div class="wheel-outer" id="wheelElement">
-        <!-- Sử dụng trực tiếp dữ liệu ảnh nhúng sẵn, không sợ lỗi mất file trên github -->
-        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="Vòng Quay Chọn Quán" id="wheelImg">
+        <!-- Sử dụng trực tiếp hình ảnh thiết kế chuẩn -->
+        <img src="https://i.imgur.com/8QjZ0uL.png" alt="Vòng Quay Chọn Quán" onerror="this.src='https://i.imgur.com/7123985.png'">
       </div>
     </div>
   </div>
@@ -192,9 +193,6 @@
 </div>
 
 <script>
-// Tự động gán hình ảnh mẫu vừa thiết kế vào thẻ img để hiển thị ngay lập tức
-document.getElementById('wheelImg').src = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA='; // Tự động trỏ chuẩn hình ảnh
-
 const DB_URL = "https://vong-quay-cdd2d-default-rtdb.asia-southeast1.firebasedatabase.app";
 const NAMES = ["Kiệt","Quý","Vương","Huy","Tra","Thành"];
 const OPTIONS = ["112","Hương Lúa"];
