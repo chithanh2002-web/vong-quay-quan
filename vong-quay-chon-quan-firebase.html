@@ -207,6 +207,7 @@
   <div class="bars" id="bars"></div>
   <div class="tickets" id="tickets"></div>
   <div class="tally" id="tally"></div>
+  <button class="spin-btn tie-btn" id="pickBtn" style="display:none;">🎲 Random chọn người quay phân định</button>
   <button class="spin-btn tie-btn" id="tieBtn" style="display:none;">🎲 Quay phân định thắng thua</button>
 
   <div class="footnote">Mỗi người tự mở link này, chọn đúng tên mình và quay. Hệ thống tự khoá lại sau khi đã quay — không cần đăng nhập gì cả.</div>
@@ -254,6 +255,7 @@ let celebratedWinner = null;
 const nameGrid = document.getElementById('nameGrid');
 const spinBtn = document.getElementById('spinBtn');
 const tieBtn = document.getElementById('tieBtn');
+const pickBtn = document.getElementById('pickBtn');
 const congratsOverlay = document.getElementById('congratsOverlay');
 const congratsEmoji = document.getElementById('congratsEmoji');
 const congratsServer = document.getElementById('congratsServer');
@@ -655,6 +657,7 @@ function renderResults(){
     '<div class="bar-row"><div class="bar-label"><span>'+OPTIONS[1]+'</span><span>'+countB+' lượt</span></div><div class="bar-track"><div class="bar-fill b" style="width:'+pctB+'%"></div></div></div>';
 
   tieBtn.style.display = 'none';
+  pickBtn.style.display = 'none';
 
   if(doneCount === 0){
     tally.className = 'tally';
@@ -666,13 +669,15 @@ function renderResults(){
         tally.innerHTML = "Hoà " + countA + " - " + countB + " → 🎲 " + (tiebreakPicker||"") + " đã quay phân định ra: <b>" + tiebreak.result + "</b> 🏆";
         celebrateWin(tiebreak.result);
       } else if(tiebreakPicker){
-        tally.innerHTML = "Hoà! " + countA + " - " + countB + " 🎲 <b>" + tiebreakPicker + "</b> được chọn ngẫu nhiên để quay phân định.";
+        tally.innerHTML = "Hoà! " + countA + " - " + countB + " 🎲 <b>" + tiebreakPicker + "</b> được chọn để quay phân định.";
         tieBtn.style.display = 'block';
         tieBtn.disabled = tiebreaking;
         tieBtn.textContent = tiebreaking ? "Đang quay..." : "🎲 " + tiebreakPicker + ", bấm vào đây để quay";
       } else {
-        tally.innerHTML = "Hoà! " + countA + " - " + countB + " 🎲 Đang chọn ngẫu nhiên người quay phân định...";
-        ensureTiebreakPicker();
+        tally.innerHTML = "Hoà! " + countA + " - " + countB + " 🤝 Bấm nút bên dưới để random chọn người quay phân định.";
+        pickBtn.style.display = 'block';
+        pickBtn.disabled = pickerLoading;
+        pickBtn.textContent = pickerLoading ? "Đang chọn..." : "🎲 Random chọn người quay phân định";
       }
     } else {
       const winner = countA > countB ? OPTIONS[0] : OPTIONS[1];
@@ -824,6 +829,7 @@ function spin(){
 
 spinBtn.addEventListener('click', spin);
 tieBtn.addEventListener('click', tieSpin);
+pickBtn.addEventListener('click', ensureTiebreakPicker);
 
 loadState();
 </script>
