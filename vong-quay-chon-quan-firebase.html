@@ -180,7 +180,7 @@
 <div class="board">
   <div class="eyebrow">Nhóm ăn trưa</div>
   <h1>Vòng Quay Chọn Quán</h1>
-  <div class="sub">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chỉ được quay <b>1 lần duy nhất</b>, tỉ lệ ra mỗi quán luôn là 50/50 để công bằng tuyệt đối. Nếu hoà, cả nhóm quay thêm 1 lần để phân định.</div>
+  <div class="sub">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chỉ được quay <b>1 lần duy nhất</b>, tỉ lệ ra mỗi quán luôn là 50/50 để công bằng tuyệt đối. Nếu hoà, hệ thống random chọn 1 người trong nhóm quay phân định.</div>
 
   <div class="names" id="nameGrid"></div>
 
@@ -244,6 +244,8 @@ let selectedName = null;
 let state = {};
 let tiebreak = null;
 let tiebreaking = false;
+let tiebreakPicker = null;
+let pickerLoading = false;
 let spinning = false;
 let currentRotation = 0;
 let celebrated = false;
@@ -457,7 +459,7 @@ function drawWheel(){
   ctx.textBaseline = "middle";
 
   // icon con cua (nửa "112")
-  drawCrab(cx + r*0.56, cy - 78, 30, "#7a1f16", "#3a1610");
+  drawCrab(cx + r*0.5, cy - 88, 42, "#8f2a1e", "#4a1a12");
 
   // "112" - chữ đậm, có đổ bóng nhẹ
   ctx.save();
@@ -467,12 +469,12 @@ function drawWheel(){
   ctx.shadowBlur = 4;
   ctx.shadowOffsetY = 2;
   ctx.fillStyle = "#3a2a1c";
-  ctx.font = "800 46px 'Playfair Display', serif";
+  ctx.font = "800 40px 'Playfair Display', serif";
   ctx.fillText("112", 0, 0);
   ctx.restore();
 
   // icon con ốc (nửa "Hương Lúa")
-  drawSnail(cx - r*0.54, cy - 78, 30, "#f2ecd8", "#22331c");
+  drawSnail(cx - r*0.5, cy - 88, 42, "#fffaea", "#1a2814");
 
   // "Hương Lúa" - chữ script, chia 2 dòng
   ctx.save();
@@ -482,7 +484,7 @@ function drawWheel(){
   ctx.shadowBlur = 4;
   ctx.shadowOffsetY = 2;
   ctx.fillStyle = "#22331c";
-  ctx.font = "700 36px 'Dancing Script', cursive";
+  ctx.font = "700 32px 'Dancing Script', cursive";
   ctx.fillText("Hương", 0, -18);
   ctx.fillText("Lúa", 0, 18);
   ctx.restore();
@@ -661,13 +663,16 @@ function renderResults(){
     tally.className = 'tally winner';
     if(countA === countB){
       if(tiebreak){
-        tally.innerHTML = "Hoà " + countA + " - " + countB + " → 🎲 Quay phân định ra: <b>" + tiebreak.result + "</b> 🏆";
+        tally.innerHTML = "Hoà " + countA + " - " + countB + " → 🎲 " + (tiebreakPicker||"") + " đã quay phân định ra: <b>" + tiebreak.result + "</b> 🏆";
         celebrateWin(tiebreak.result);
-      } else {
-        tally.innerHTML = "Hoà! " + countA + " - " + countB + " 🤝 Quay thêm 1 lần để phân định nhé.";
+      } else if(tiebreakPicker){
+        tally.innerHTML = "Hoà! " + countA + " - " + countB + " 🎲 <b>" + tiebreakPicker + "</b> được chọn ngẫu nhiên để quay phân định.";
         tieBtn.style.display = 'block';
         tieBtn.disabled = tiebreaking;
-        tieBtn.textContent = tiebreaking ? "Đang quay..." : "🎲 Quay phân định thắng thua";
+        tieBtn.textContent = tiebreaking ? "Đang quay..." : "🎲 " + tiebreakPicker + ", bấm vào đây để quay";
+      } else {
+        tally.innerHTML = "Hoà! " + countA + " - " + countB + " 🎲 Đang chọn ngẫu nhiên người quay phân định...";
+        ensureTiebreakPicker();
       }
     } else {
       const winner = countA > countB ? OPTIONS[0] : OPTIONS[1];
@@ -680,6 +685,32 @@ function renderResults(){
   }
 }
 
+async function ensureTiebreakPicker(){
+  if(pickerLoading || tiebreakPicker) return;
+  pickerLoading = true;
+  try{
+    const check = await fetch(DB_URL + "/tiebreak_picker.json");
+    const existing = check.ok ? await check.json() : null;
+    if(existing){
+      tiebreakPicker = existing;
+    } else {
+      const chosen = NAMES[Math.floor(Math.random() * NAMES.length)];
+      const putRes = await fetch(DB_URL + "/tiebreak_picker.json", {
+        method: "PUT",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(chosen)
+      });
+      if(!putRes.ok) throw new Error("HTTP " + putRes.status);
+      tiebreakPicker = chosen;
+    }
+  }catch(e){
+    console.error("Lỗi chọn người quay phân định", e);
+    showError("Không chọn được người quay phân định. Thử tải lại trang.");
+  }
+  pickerLoading = false;
+  renderResults();
+}
+
 async function loadState(){
   try{
     const res = await fetch(DB_URL + "/spins.json");
@@ -688,6 +719,8 @@ async function loadState(){
     state = data || {};
     const tbRes = await fetch(DB_URL + "/tiebreak.json");
     tiebreak = tbRes.ok ? await tbRes.json() : null;
+    const pickRes = await fetch(DB_URL + "/tiebreak_picker.json");
+    tiebreakPicker = pickRes.ok ? await pickRes.json() : null;
   }catch(e){
     console.error("Lỗi tải dữ liệu", e);
     showError("Không tải được dữ liệu nhóm. Kiểm tra kết nối mạng và thử tải lại trang.");
@@ -698,7 +731,9 @@ async function loadState(){
 }
 
 function tieSpin(){
-  if(tiebreaking || tiebreak) return;
+  if(tiebreaking || tiebreak || !tiebreakPicker) return;
+  const confirmed = confirm("Xác nhận: bạn có phải là " + tiebreakPicker + " không? Chỉ " + tiebreakPicker + " mới được quay lượt phân định này.");
+  if(!confirmed) return;
   tiebreaking = true;
   tieBtn.disabled = true;
   tieBtn.textContent = "Đang quay...";
