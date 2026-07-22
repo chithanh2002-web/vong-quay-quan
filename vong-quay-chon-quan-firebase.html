@@ -73,7 +73,6 @@
     border-top:24px solid #8f2a1e; z-index:10; filter:drop-shadow(0 3px 3px rgba(0,0,0,0.45));
   }
   
-  /* Khung vòng quay chứa ảnh chụp thật */
   .wheel-outer{
     width:100%; height:100%; border-radius:50%; padding:10px;
     background: conic-gradient(from 0deg, #f3c464, #b4893a, #f3c464, #b4893a, #f3c464);
@@ -86,7 +85,6 @@
     background: #1f3d2b;
   }
   
-  /* Lớp ảnh vòng quay thực tế khớp với ảnh bạn gửi */
   .wheel-real-image {
     width: 100%;
     height: 100%;
@@ -178,11 +176,10 @@
       <div class="pointer"></div>
       <div class="wheel-outer">
         <div class="wheel-inner-ring">
-          <!-- Sử dụng trực tiếp bức ảnh chụp cua và ốc hương chân thực bạn vừa gửi -->
-          <img id="wheelImg" class="wheel-real-image" src="" alt="Vòng Quay Chọn Quán">
+          <!-- Trỏ chính xác tên file vongquay.PNG bạn đang tải lên GitHub -->
+          <img id="wheelImg" class="wheel-real-image" src="vongquay.PNG" alt="Vòng Quay Chọn Quán">
         </div>
       </div>
-      <!-- Ly bia chuẩn xác ở chính giữa tâm -->
       <svg class="hub-beer" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
         <ellipse cx="50" cy="112" rx="22" ry="5" fill="rgba(0,0,0,0.4)"/>
         <path d="M30 35 C30 25, 70 25, 70 35 L66 100 C66 106, 34 106, 34 100 Z" fill="rgba(255,255,255,0.15)" stroke="#e3c069" stroke-width="2"/>
@@ -219,9 +216,6 @@
 </div>
 
 <script>
-// Tự động gán hình ảnh thực tế bạn gửi vào vòng quay
-document.getElementById('wheelImg').src = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA="; 
-
 const DB_URL = "https://vong-quay-cdd2d-default-rtdb.asia-southeast1.firebasedatabase.app";
 const NAMES = ["Kiệt","Quý","Vương","Huy","Tra","Thành"];
 const OPTIONS = ["112","Hương Lúa"];
