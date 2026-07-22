@@ -94,7 +94,6 @@
   .spin-btn:active:not(:disabled){ transform:translateY(3px); box-shadow:0 1px 0 #241a10; }
   .spin-btn:disabled{ background:#453e33; color:#8a8270; box-shadow:0 5px 0 #2a251d; cursor:not-allowed; opacity:0.8; }
   
-  /* Bảng điều khiển hiệp phụ khi hoà */
   .tie-box{
     margin-top: 14px; padding: 14px; border-radius: 12px; background: rgba(193,68,46,0.15);
     border: 1.5px solid rgba(193,68,46,0.4); text-align: center; display: none;
@@ -180,7 +179,6 @@
 
   <button class="spin-btn" id="spinBtn" disabled>Chọn tên trước đã</button>
   
-  <!-- Khu vực hiển thị khi kết quả hoà -->
   <div class="tie-box" id="tieBox">
     <h3>⚡ Kết quả đang HOÀ! Chọn người đại diện quay hiệp phụ:</h3>
     <select class="tie-select" id="tieSelect"></select>
@@ -273,6 +271,24 @@ function playWinSound(){
   }catch(e){}
 }
 
+// Hàm dùng giọng nữ trình duyệt đọc kết quả
+function speakResult(text){
+  if('speechSynthesis' in window){
+    window.speechSynthesis.cancel(); // Dừng các giọng đọc cũ nếu có
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'vi-VN';
+    utterance.rate = 1.0; // Tốc độ đọc
+    utterance.pitch = 1.2; // Tone giọng cao hơn một chút thành giọng nữ/trẻ trung
+    
+    // Tìm giọng nữ tiếng Việt nếu thiết bị hỗ trợ
+    const voices = window.speechSynthesis.getVoices();
+    const viVoice = voices.find(v => v.lang.includes('vi') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('hoang') || v.name.toLowerCase().includes('linh') || v.name.toLowerCase().includes('Google')));
+    if(viVoice) utterance.voice = viVoice;
+
+    window.speechSynthesis.speak(utterance);
+  }
+}
+
 const nameGrid = document.getElementById('nameGrid');
 const spinBtn = document.getElementById('spinBtn');
 const tieBox = document.getElementById('tieBox');
@@ -320,6 +336,12 @@ function showCongrats(winnerOption){
   congratsServer.textContent = winnerOption + " · " + server.name;
   congratsMsg.textContent = server.messages[0];
   congratsOverlay.style.display = 'flex';
+
+  // Gọi giọng nữ đọc to kết quả
+  const speechText = `Quán chiến thắng là ${winnerOption}, đại diện ${server.name}. ${server.messages[0]}`;
+  setTimeout(()=>{
+    speakResult(speechText);
+  }, 300);
 }
 
 function celebrateWin(winnerOption){
@@ -398,8 +420,6 @@ function renderResults(){
     tally.className = 'tally winner';
     if(countA === countB){
       tally.innerHTML = "Hoà " + countA + " - " + countB + " (Cần hiệp phụ!)";
-      
-      // Hiển thị khung chọn người quay hiệp phụ
       tieBox.style.display = "block";
       tieSelect.innerHTML = "";
       NAMES.forEach(n=>{
