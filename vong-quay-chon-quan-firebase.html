@@ -73,7 +73,6 @@
     border-top:24px solid #8f2a1e; z-index:10; filter:drop-shadow(0 3px 3px rgba(0,0,0,0.45));
   }
   
-  /* Khung vòng quay phong cách Gold sang trọng */
   .wheel-outer{
     width:100%; height:100%; border-radius:50%; padding:10px;
     background: conic-gradient(from 0deg, #f3c464, #b4893a, #f3c464, #b4893a, #f3c464);
@@ -86,10 +85,9 @@
   }
   #wheelCanvas{ width:100%; height:100%; border-radius:50%; display:block; transition:transform 4.2s cubic-bezier(0.12,0.85,0.15,1); }
   
-  /* Ly bia chính giữa vòng quay */
   .hub-beer {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 68px; height: 86px; z-index: 5; pointer-events: none;
+    width: 64px; height: 82px; z-index: 5; pointer-events: none;
     filter: drop-shadow(0 6px 8px rgba(0,0,0,0.5));
   }
 
@@ -252,63 +250,66 @@ function showError(msg){
   errBox.style.display = 'block';
 }
 
-// Hàm vẽ 6 con cua tinh chỉnh sắc nét
-function draw6Crabs(cx, cy, s){
+// Hàm vẽ 6 con cua to rõ, sắc nét
+function draw6Crabs(cx, cy){
   ctx.save();
-  ctx.translate(cx - 35, cy - 20);
-  // Vẽ cụm 6 con cua nghệ thuật biểu trưng
-  for(let i=0; i<6; i++){
+  ctx.translate(cx - 75, cy - 25);
+  // Vẽ cụm 6 con cua xếp chồng nghệ thuật
+  const positions = [
+    {x: 10, y: 5, s: 0.55},
+    {x: 45, y: 0, s: 0.52},
+    {x: 25, y: 32, s: 0.58},
+    {x: 65, y: 28, s: 0.52},
+    {x: 40, y: 58, s: 0.55},
+    {x: 80, y: 50, s: 0.5}
+  ];
+  positions.forEach(p => {
     ctx.save();
-    let offsetX = (i % 3) * 22 - 15;
-    let offsetY = Math.floor(i / 3) * 25 - 10;
-    ctx.translate(offsetX, offsetY);
-    ctx.scale(0.45, 0.45);
-    
+    ctx.translate(p.x, p.y);
+    ctx.scale(p.s, p.s);
     // Thân cua
     ctx.beginPath();
-    ctx.ellipse(0, 0, 35, 26, 0, 0, Math.PI*2);
-    ctx.fillStyle = "#a8321e";
+    ctx.ellipse(0, 0, 32, 22, 0, 0, Math.PI*2);
+    ctx.fillStyle = "#b83a22";
     ctx.fill();
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 3;
     ctx.strokeStyle = "#4a150b";
     ctx.stroke();
-    
     // Càng cua
     ctx.beginPath();
-    ctx.arc(-25, -15, 12, 0, Math.PI*2);
-    ctx.arc(25, -15, 12, 0, Math.PI*2);
-    ctx.fillStyle = "#c73e24";
+    ctx.arc(-22, -12, 10, 0, Math.PI*2);
+    ctx.arc(22, -12, 10, 0, Math.PI*2);
+    ctx.fillStyle = "#d9482b";
     ctx.fill();
     ctx.stroke();
     ctx.restore();
-  }
+  });
   ctx.restore();
 }
 
-// Hàm vẽ 12 con ốc hương
-function draw12Snails(cx, cy, s){
+// Hàm vẽ 12 con ốc hương rõ nét
+function draw12Snails(cx, cy){
   ctx.save();
-  ctx.translate(cx + 40, cy - 15);
-  for(let i=0; i<8; i++){
+  ctx.translate(cx + 15, cy - 45);
+  for(let i=0; i<12; i++){
     ctx.save();
-    let angle = (i / 8) * Math.PI * 2;
-    let dist = 18;
-    let ox = Math.cos(angle) * dist;
-    let oy = Math.sin(angle) * dist;
+    let col = i % 4;
+    let row = Math.floor(i / 4);
+    let ox = col * 20 + (row % 2) * 8;
+    let oy = row * 22;
     ctx.translate(ox, oy);
     ctx.scale(0.35, 0.35);
 
     ctx.beginPath();
-    ctx.arc(0, 0, 22, 0, Math.PI*2);
+    ctx.arc(0, 0, 20, 0, Math.PI*2);
     ctx.fillStyle = "#d4b08c";
     ctx.fill();
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 3;
     ctx.strokeStyle = "#5e4328";
     ctx.stroke();
 
-    // Vỏ xoắn nhẹ bên trong ốc
     ctx.beginPath();
-    ctx.arc(4, -4, 10, 0, Math.PI*1.5);
+    ctx.arc(3, -3, 9, 0, Math.PI*1.5);
     ctx.strokeStyle = "#3b2817";
     ctx.lineWidth = 3;
     ctx.stroke();
@@ -317,7 +318,7 @@ function draw12Snails(cx, cy, s){
   ctx.restore();
 }
 
-// Vẽ vòng quay cao cấp Option 1
+// Vẽ vòng quay cao cấp Option 1 chuẩn xác
 function drawWheel(){
   const cx = 250, cy = 250, r = 240;
   ctx.clearRect(0,0,500,500);
@@ -363,21 +364,21 @@ function drawWheel(){
   ctx.stroke();
 
   // Vẽ hình 6 con cua (bên trái - Hương Lúa)
-  draw6Crabs(cx - 100, cy, 50);
+  draw6Crabs(cx - 105, cy - 10);
 
   // Chữ Hương Lúa
   ctx.save();
-  ctx.translate(cx - 105, cy + 65);
+  ctx.translate(cx - 105, cy + 70);
   ctx.shadowColor = "rgba(0,0,0,0.4)";
   ctx.shadowBlur = 4;
   ctx.fillStyle = "#22331c";
-  ctx.font = "700 30px 'Dancing Script', cursive";
+  ctx.font = "700 32px 'Dancing Script', cursive";
   ctx.textAlign = "center";
   ctx.fillText("Hương Lúa", 0, 0);
   ctx.restore();
 
   // Vẽ hình 12 con ốc (bên phải - 112)
-  draw12Snails(cx + 90, cy, 50);
+  draw12Snails(cx + 65, cy - 15);
 
   // Chữ 112
   ctx.save();
