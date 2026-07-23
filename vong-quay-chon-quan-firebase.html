@@ -186,10 +186,6 @@
 </style>
 </head>
 <body>
-<!-- Các thẻ Audio sử dụng link âm thanh chuẩn phát trực tiếp mượt mà như YouTube -->
-<audio id="tickAudio" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" preload="auto"></audio>
-<audio id="winAudio" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3" preload="auto"></audio>
-
 <div class="board">
   <div class="eyebrow">Nhóm ăn trưa</div>
   <h1>Vòng Quay Chọn Quán</h1>
@@ -252,21 +248,85 @@ let state = {};
 let spinning = false;
 let currentRotation = 0;
 let celebrated = false;
+let audioCtx = null;
 
-const tickAudio = document.getElementById('tickAudio');
-const winAudio = document.getElementById('winAudio');
+// Khởi tạo và mở khoá AudioContext trực tiếp khi người dùng chạm tay vào màn hình
+function initAudio(){
+  if(!audioCtx){
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AudioContext();
+  }
+  if(audioCtx.state === 'suspended'){
+    audioCtx.resume();
+  }
+}
 
-function playTick(){
+// Bắt buộc mở khoá loa ngay khi chạm vào bất kỳ đâu trên trang
+document.addEventListener('click', initAudio, { once: false });
+document.addEventListener('touchstart', initAudio, { once: false });
+
+// Âm thanh tạch tạch khi quay vòng quay
+function playTickSound(){
   try{
-    tickAudio.currentTime = 0;
-    tickAudio.play().catch(e=>{});
+    initAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.05);
+    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.05);
   }catch(e){}
 }
 
-function playWin(){
+// Âm thanh chuông chiến thắng vang dội kết hợp pháo hoa nổ lách tách
+function playWinSound(){
   try{
-    winAudio.currentTime = 0;
-    winAudio.play().catch(e=>{});
+    initAudio();
+    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+    notes.forEach((freq, idx)=>{
+      setTimeout(()=>{
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.6);
+      }, idx * 110);
+    });
+
+    for(let i=0; i<20; i++){
+      setTimeout(()=>{
+        const bufferSize = audioCtx.sampleRate * 0.09;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for(let j=0; j<bufferSize; j++){
+          data[j] = Math.random() * 2 - 1;
+        }
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 500 + Math.random() * 1800;
+        
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.09);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start();
+      }, 250 + Math.random() * 1500);
+    }
   }catch(e){}
 }
 
@@ -325,7 +385,7 @@ function showCongrats(winnerOption){
 function celebrateWin(winnerOption){
   if(celebrated) return;
   celebrated = true;
-  playWin();
+  playWinSound();
   launchConfetti();
   showCongrats(winnerOption);
 }
@@ -340,6 +400,7 @@ function renderNames(){
     if(selectedName === name) btn.classList.add('selected');
     btn.innerHTML = name + (spun ? '<span class="tag">đã quay</span>' : '');
     btn.onclick = ()=>{
+      initAudio();
       if(spinning || spun) return;
       selectedName = name;
       renderNames();
@@ -442,12 +503,13 @@ function spin(isTieBreaker = false, tiePerson = null){
   spinning = true;
   updateSpinButton();
   if(isTieBreaker) tieBtn.disabled = true;
+  initAudio();
 
   pointerEl.classList.add('shake');
 
   let tickInterval = setInterval(()=>{
-    playTick();
-  }, 150);
+    playTickSound();
+  }, 130);
 
   setTimeout(()=>{
     clearInterval(tickInterval);
