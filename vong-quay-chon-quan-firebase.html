@@ -155,7 +155,17 @@
   .tally{ margin-top:12px; text-align:center; font-size:12.5px; color:var(--chalk-cream-dim); }
   .tally b{ color:var(--chalk-cream); }
   .tally.winner{ font-size:14.5px; font-weight:800; color:var(--chalk-cream); }
-  .footnote{ margin-top:14px; text-align:center; font-size:10.5px; color:rgba(242,236,216,0.4); line-height:1.35; }
+  
+  /* Nút reset bảo mật */
+  .reset-container { margin-top: 14px; text-align: center; }
+  .reset-btn {
+    background: none; border: none; color: rgba(242,236,216,0.4);
+    font-size: 11px; cursor: pointer; text-decoration: underline; font-family: inherit;
+    padding: 4px 8px; transition: color 0.2s;
+  }
+  .reset-btn:hover { color: var(--marigold); }
+
+  .footnote{ margin-top:10px; text-align:center; font-size:10.5px; color:rgba(242,236,216,0.4); line-height:1.35; }
   .err{ text-align:center; font-size:11px; color:#e8a33d; margin-top:4px; display:none; }
 
   .confetti-layer{ position:fixed; inset:0; pointer-events:none; z-index:999; overflow:hidden; }
@@ -221,6 +231,11 @@
   <div class="tickets" id="tickets"></div>
   <div class="tally" id="tally"></div>
 
+  <!-- Nút Reset có bảo mật mật khẩu -->
+  <div class="reset-container">
+    <button class="reset-btn" onclick="resetData()">🔄 Xóa dữ liệu & làm lại từ đầu</button>
+  </div>
+
   <div class="footnote">Mỗi người tự mở link này, chọn đúng tên mình và quay. Hệ thống tự khoá lại sau khi đã quay.</div>
 </div>
 
@@ -250,7 +265,6 @@ let currentRotation = 0;
 let celebrated = false;
 let audioCtx = null;
 
-// Khởi tạo và mở khoá AudioContext trực tiếp khi người dùng chạm tay vào màn hình
 function initAudio(){
   if(!audioCtx){
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -261,11 +275,9 @@ function initAudio(){
   }
 }
 
-// Bắt buộc mở khoá loa ngay khi chạm vào bất kỳ đâu trên trang
 document.addEventListener('click', initAudio, { once: false });
 document.addEventListener('touchstart', initAudio, { once: false });
 
-// Âm thanh tạch tạch khi quay vòng quay
 function playTickSound(){
   try{
     initAudio();
@@ -283,7 +295,6 @@ function playTickSound(){
   }catch(e){}
 }
 
-// Âm thanh chuông chiến thắng vang dội kết hợp pháo hoa nổ lách tách
 function playWinSound(){
   try{
     initAudio();
@@ -490,6 +501,37 @@ async function loadState(){
   renderNames();
   renderResults();
   updateSpinButton();
+}
+
+// Hàm reset có bảo mật mật khẩu 2034
+async function resetData(){
+  const pass = prompt("Nhập mật khẩu quản trị để reset dữ liệu:");
+  if(pass === null) return; // Người dùng bấm Hủy
+  if(pass !== "2034"){
+    alert("❌ Mật khẩu không đúng!");
+    return;
+  }
+  
+  try{
+    const res = await fetch(DB_URL + "/spins.json", {
+      method: "DELETE"
+    });
+    if(res.ok){
+      state = {};
+      selectedName = null;
+      celebrated = false;
+      wheelElement.style.transform = "rotate(0deg)";
+      currentRotation = 0;
+      renderNames();
+      renderResults();
+      updateSpinButton();
+      alert("✅ Đã làm mới dữ liệu thành công!");
+    } else {
+      alert("❌ Lỗi khi xóa dữ liệu trên hệ thống.");
+    }
+  }catch(e){
+    alert("❌ Không kết nối được tới cơ sở dữ liệu.");
+  }
 }
 
 function pickWinner(){
