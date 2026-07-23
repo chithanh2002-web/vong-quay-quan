@@ -68,7 +68,6 @@
   .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin:10px 0 8px; }
   .wheel-frame{ position:relative; width:250px; height:250px; }
   
-  /* Mũi tên đỏ chỉ định đặt nổi lên trên và có hiệu ứng động khi quay */
   .pointer{
     position: absolute;
     top: -14px;
@@ -179,15 +178,9 @@
   .congrats-card .server-line{ font-weight:800; font-size:19px; color:var(--marigold); margin-bottom:8px; }
   .congrats-card .server-msg{ font-size:13.5px; color:var(--chalk-cream); line-height:1.4; font-style:italic; margin-bottom:14px; }
   
-  .voice-btn{
-    width: 100%; margin-bottom: 8px; padding: 10px; border-radius: 999px; border: 1.5px solid var(--gold);
-    background: rgba(227,192,105,0.2); color: var(--gold); font-family: inherit; font-weight: 700; font-size: 13px; cursor: pointer;
-  }
-  .voice-btn:hover{ background: rgba(227,192,105,0.35); }
-
   .congrats-close{
-    width: 100%; padding: 10px 22px; border-radius: 999px; border: none; background: var(--brick);
-    color: var(--chalk-cream); font-family: inherit; font-weight: 700; font-size: 13px; cursor: pointer;
+    width: 100%; padding: 11px 22px; border-radius: 999px; border: none; background: var(--brick);
+    color: var(--chalk-cream); font-family: inherit; font-weight: 700; font-size: 13.5px; cursor: pointer;
   }
 </style>
 </head>
@@ -201,7 +194,6 @@
 
   <div class="wheel-wrap">
     <div class="wheel-frame">
-      <!-- Mũi tên đỏ chỉ định có hiệu ứng lắc khi quay -->
       <div class="pointer" id="pointerEl"></div>
       <div class="wheel-container" id="wheelElement">
         <img src="vongquay.PNG" alt="Vòng Quay Chọn Quán">
@@ -237,7 +229,6 @@
     <div class="server-title">Quán chiến thắng</div>
     <div class="congrats-server" id="congratsServer"></div>
     <div class="congrats-msg" id="congratsMsg"></div>
-    <button class="voice-btn" id="voiceBtn">🔊 Nghe giọng đọc kết quả</button>
     <button class="congrats-close" id="congratsClose">Đã rõ, cảm ơn! 🎉</button>
   </div>
 </div>
@@ -257,7 +248,6 @@ let spinning = false;
 let currentRotation = 0;
 let celebrated = false;
 let audioCtx = null;
-let lastSpeechText = "";
 
 function initAudio(){
   if(!audioCtx){
@@ -294,31 +284,15 @@ function playWinSound(){
         const gain = audioCtx.createGain();
         osc.type = 'sine';
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.3);
+        osc.stop(audioCtx.currentTime + 0.35);
       }, idx * 120);
     });
   }catch(e){}
-}
-
-function speakResult(text){
-  if('speechSynthesis' in window){
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'vi-VN';
-    utterance.rate = 0.95;
-    utterance.pitch = 1.25;
-    
-    const voices = window.speechSynthesis.getVoices();
-    const viVoice = voices.find(v => v.lang.includes('vi') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('hoang') || v.name.toLowerCase().includes('linh') || v.name.toLowerCase().includes('google')));
-    if(viVoice) utterance.voice = viVoice;
-
-    window.speechSynthesis.speak(utterance);
-  }
 }
 
 const nameGrid = document.getElementById('nameGrid');
@@ -330,12 +304,10 @@ const congratsOverlay = document.getElementById('congratsOverlay');
 const congratsEmoji = document.getElementById('congratsEmoji');
 const congratsServer = document.getElementById('congratsServer');
 const congratsMsg = document.getElementById('congratsMsg');
-const voiceBtn = document.getElementById('voiceBtn');
 const congratsClose = document.getElementById('congratsClose');
 const pointerEl = document.getElementById('pointerEl');
 
 congratsClose.addEventListener('click', ()=>{ congratsOverlay.style.display = 'none'; });
-voiceBtn.addEventListener('click', ()=>{ speakResult(lastSpeechText); });
 
 const hint = document.getElementById('hint');
 const errBox = document.getElementById('errBox');
@@ -372,13 +344,7 @@ function showCongrats(winnerOption){
   congratsEmoji.textContent = server.emoji;
   congratsServer.textContent = winnerOption + " · " + server.name;
   congratsMsg.textContent = server.messages[0];
-  
-  lastSpeechText = `Xin chúc mừng! Quán chiến thắng là ${winnerOption}, do đại diện ${server.name} đề cử. ${server.messages[0]}`;
-  
   congratsOverlay.style.display = 'flex';
-  setTimeout(()=>{
-    speakResult(lastSpeechText);
-  }, 400);
 }
 
 function celebrateWin(winnerOption){
@@ -504,7 +470,6 @@ function spin(isTieBreaker = false, tiePerson = null){
   if(isTieBreaker) tieBtn.disabled = true;
   initAudio();
 
-  // Kích hoạt hiệu ứng mũi tên nhấp nhô/lắc lư khi quay
   pointerEl.classList.add('shake');
 
   let tickInterval = setInterval(()=>{
@@ -513,7 +478,7 @@ function spin(isTieBreaker = false, tiePerson = null){
 
   setTimeout(()=>{
     clearInterval(tickInterval);
-    pointerEl.classList.remove('shake'); // Dừng lắc khi vòng quay dừng lại
+    pointerEl.classList.remove('shake');
   }, 4100);
 
   const winner = pickWinner();
