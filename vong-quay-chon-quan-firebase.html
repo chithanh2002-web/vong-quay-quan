@@ -68,28 +68,6 @@
   .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin:10px 0 8px; }
   .wheel-frame{ position:relative; width:250px; height:250px; }
   
-  .pointer{
-    position: absolute;
-    top: -14px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 9px solid transparent;
-    border-right: 9px solid transparent;
-    border-top: 18px solid #c1442e;
-    z-index: 40;
-    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
-    transform-origin: top center;
-  }
-  .pointer.shake {
-    animation: pointerShake 0.08s infinite alternate ease-in-out;
-  }
-  @keyframes pointerShake {
-    0% { transform: translateX(-50%) rotate(-12deg); }
-    100% { transform: translateX(-50%) rotate(12deg); }
-  }
-
   .wheel-container{
     width:100%; height:100%; border-radius:50%; position:absolute; top:0; left:0;
     box-shadow: 0 12px 30px rgba(0,0,0,0.6);
@@ -194,7 +172,6 @@
 
   <div class="wheel-wrap">
     <div class="wheel-frame">
-      <div class="pointer" id="pointerEl"></div>
       <div class="wheel-container" id="wheelElement">
         <img src="vongquay.PNG" alt="Vòng Quay Chọn Quán">
       </div>
@@ -305,7 +282,6 @@ const congratsEmoji = document.getElementById('congratsEmoji');
 const congratsServer = document.getElementById('congratsServer');
 const congratsMsg = document.getElementById('congratsMsg');
 const congratsClose = document.getElementById('congratsClose');
-const pointerEl = document.getElementById('pointerEl');
 
 congratsClose.addEventListener('click', ()=>{ congratsOverlay.style.display = 'none'; });
 
@@ -470,15 +446,12 @@ function spin(isTieBreaker = false, tiePerson = null){
   if(isTieBreaker) tieBtn.disabled = true;
   initAudio();
 
-  pointerEl.classList.add('shake');
-
   let tickInterval = setInterval(()=>{
     playTickSound();
   }, 120);
 
   setTimeout(()=>{
     clearInterval(tickInterval);
-    pointerEl.classList.remove('shake');
   }, 4100);
 
   const winner = pickWinner();
