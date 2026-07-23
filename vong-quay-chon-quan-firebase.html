@@ -42,7 +42,6 @@
   .sub{ text-align:center; color:var(--chalk-cream-dim); font-size:12px; margin-bottom:14px; line-height:1.35; }
   .chalk-line{ border:none; border-top:1.5px dashed rgba(242,236,216,0.25); margin:12px 0; }
 
-  /* Bảng điều khiển admin ẩn */
   .admin-panel{
     background: rgba(227,192,105,0.1); border: 1.5px dashed var(--gold);
     padding: 12px; border-radius: 12px; margin-bottom: 14px; display: none; text-align: center;
@@ -208,11 +207,9 @@
 <body>
 <div class="board">
   <div class="eyebrow">Nhóm ăn trưa</div>
-  <!-- Bấm liên tiếp 3 lần vào tiêu đề này để mở bảng chọn quán chiến thắng -->
   <h1 id="mainTitle">Vòng Quay Chọn Quán</h1>
   <div class="sub">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chỉ được quay <b>1 lần duy nhất</b>, tỉ lệ 50/50.</div>
 
-  <!-- Bảng điều khiển ẩn quản trị -->
   <div class="admin-panel" id="adminPanel">
     <h4>🎛️ Bảng Điều Khiển Kết Quả Bí Mật</h4>
     <select class="admin-select" id="forcedResultSelect" onchange="changeForcedResult(this.value)">
@@ -236,9 +233,9 @@
   <button class="spin-btn" id="spinBtn" disabled>Chọn tên trước đã</button>
   
   <div class="tie-box" id="tieBox">
-    <h3>⚡ Kết quả đang HOÀ! Chọn người đại diện quay hiệp phụ:</h3>
+    <h3>⚡ Kết quả đang HOÀ! Chọn người đại diện đá Bàn Thắng Vàng:</h3>
     <select class="tie-select" id="tieSelect"></select>
-    <button class="tie-btn" id="tieBtn">Quay Hiệp Phụ Quyết Định! 🎯</button>
+    <button class="tie-btn" id="tieBtn">Quay Bàn Thắng Vàng! ⚽</button>
   </div>
 
   <div class="hint" id="hint">Đang tải trạng thái của nhóm...</div>
@@ -285,7 +282,6 @@ let currentRotation = 0;
 let celebrated = false;
 let audioCtx = null;
 
-// Xử lý bấm 3 lần vào tiêu đề để mở bảng điều khiển ẩn
 let titleClicks = 0;
 document.getElementById('mainTitle').addEventListener('click', () => {
   titleClicks++;
@@ -299,7 +295,7 @@ document.getElementById('mainTitle').addEventListener('click', () => {
       alert("❌ Mật khẩu sai!");
     }
   }
-  setTimeout(() => { titleClicks = 0; }, 1500); // Reset nếu bấm ngắt quãng
+  setTimeout(() => { titleClicks = 0; }, 1500);
 });
 
 function changeForcedResult(val){
@@ -514,7 +510,7 @@ function renderResults(){
   if(doneCount === NAMES.length){
     tally.className = 'tally winner';
     if(countA === countB){
-      tally.innerHTML = "Hoà " + countA + " - " + countB + " (Cần hiệp phụ!)";
+      tally.innerHTML = "Hoà " + countA + " - " + countB + " (Đá Bàn Thắng Vàng!)";
       tieBox.style.display = "block";
       tieSelect.innerHTML = "";
       NAMES.forEach(n=>{
@@ -582,7 +578,7 @@ async function resetData(){
 function pickWinner(){
   const forced = localStorage.getItem('forced_winner');
   if(forced && forced !== "RANDOM"){
-    return forced; // Trả về kết quả do bạn ép buộc
+    return forced;
   }
   return OPTIONS[Math.floor(Math.random()*OPTIONS.length)];
 }
