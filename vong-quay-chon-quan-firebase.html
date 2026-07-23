@@ -197,7 +197,6 @@
     <div class="wheel-frame">
       <div class="pointer" id="pointerEl"></div>
       <div class="wheel-container" id="wheelElement">
-        <!-- Đã sửa đúng tên file theo đúng GitHub là vongquay.jpg -->
         <img src="vongquay.jpg" alt="Vòng Quay Chọn Quán">
       </div>
     </div>
@@ -227,7 +226,7 @@
 
 <div class="congrats-overlay" id="congratsOverlay">
   <div class="congrats-card">
-    <span class="server-emoji" id="congratsEmoji"></span>
+    <span class="server-emoji" id="congratsEmoji">🍻</span>
     <div class="server-title">Quán chiến thắng</div>
     <div class="congrats-server" id="congratsServer"></div>
     <div class="congrats-msg" id="congratsMsg"></div>
@@ -240,8 +239,8 @@ const DB_URL = "https://vong-quay-cdd2d-default-rtdb.asia-southeast1.firebasedat
 const NAMES = ["Kiệt","Quý","Vương","Huy","Tra","Thành"];
 const OPTIONS = ["112","Hương Lúa"];
 const SERVERS = {
-  "112": { name: "Oanh", emoji: "🍲", messages: ["Yayyy quán mình thắng rồi nè! Oanh cảm ơn cả nhóm! 🥰"] },
-  "Hương Lúa": { name: "Tiên", emoji: "🌾", messages: ["Hương Lúa thắng rồi nè cả nhà ơi! 🥳"] }
+  "112": { name: "Oanh", emoji: "🍻", messages: ["Yayyy quán mình thắng rồi nè! Cụng ly nào anh em ơi! 🍻"] },
+  "Hương Lúa": { name: "Tiên", emoji: "🍻", messages: ["Hương Lúa thắng rồi nè cả nhà ơi, dô thôi! 🍻"] }
 };
 
 let selectedName = null;
@@ -275,10 +274,13 @@ function playTickSound(){
   }catch(e){}
 }
 
-function playWinSound(){
+// Hiệu ứng âm thanh tiếng pháo nổ lách tách vui tai
+function playFireworkSound(){
   try{
     initAudio();
     if(audioCtx.state === 'suspended') audioCtx.resume();
+    
+    // Tiếng chuông giai điệu chiến thắng
     const notes = [523.25, 659.25, 783.99, 1046.50];
     notes.forEach((freq, idx)=>{
       setTimeout(()=>{
@@ -294,6 +296,32 @@ function playWinSound(){
         osc.stop(audioCtx.currentTime + 0.35);
       }, idx * 120);
     });
+
+    // Tiếng pháo nổ lách tách (White Noise pop bursts)
+    for(let i=0; i<12; i++){
+      setTimeout(()=>{
+        const bufferSize = audioCtx.sampleRate * 0.05;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for(let j=0; j<bufferSize; j++){
+          data[j] = Math.random() * 2 - 1;
+        }
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 800 + Math.random() * 1200;
+        
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start();
+      }, 300 + Math.random() * 1200);
+    }
   }catch(e){}
 }
 
@@ -343,7 +371,7 @@ function launchConfetti(){
 function showCongrats(winnerOption){
   const server = SERVERS[winnerOption];
   if(!server) return;
-  congratsEmoji.textContent = server.emoji;
+  congratsEmoji.textContent = "🍻";
   congratsServer.textContent = winnerOption + " · " + server.name;
   congratsMsg.textContent = server.messages[0];
   congratsOverlay.style.display = 'flex';
@@ -352,7 +380,7 @@ function showCongrats(winnerOption){
 function celebrateWin(winnerOption){
   if(celebrated) return;
   celebrated = true;
-  playWinSound();
+  playFireworkSound();
   launchConfetti();
   showCongrats(winnerOption);
 }
