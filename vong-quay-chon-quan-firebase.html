@@ -489,13 +489,13 @@ function celebrateWin(winnerOption){
 function renderNames(){
   nameGrid.innerHTML = "";
   namesList.forEach(name=>{
-    if(!name) return; // Bỏ qua nếu tên trống
+    if(!name || typeof name !== 'string') return;
     const btn = document.createElement('button');
     btn.className = 'name-btn';
     const spun = state[name];
     btn.disabled = !!spun;
     if(selectedName === name) btn.classList.add('selected');
-    btn.innerHTML = name + (spun ? '<span class="tag">đã quay</span>' : '');
+    btn.innerHTML = name.trim() + (spun ? '<span class="tag">đã quay</span>' : '');
     btn.onclick = ()=>{
       initAudio();
       if(spinning || spun) return;
@@ -582,7 +582,7 @@ function renderResults(){
   let countA = 0, countB = 0, doneCount = 0;
   tickets.innerHTML = "";
   namesList.forEach(name=>{
-    if(!name) return;
+    if(!name || typeof name !== 'string') return;
     const rec = state[name];
     const row = document.createElement('div');
     row.className = 'ticket';
@@ -594,7 +594,7 @@ function renderResults(){
     } else {
       whatHtml = '<span class="what pending">chưa quay</span>';
     }
-    row.innerHTML = '<span class="who">'+name+'</span>'+whatHtml;
+    row.innerHTML = '<span class="who">'+name.trim()+'</span>'+whatHtml;
     tickets.appendChild(row);
   });
 
@@ -612,10 +612,10 @@ function renderResults(){
       tieBox.style.display = "block";
       tieSelect.innerHTML = "";
       namesList.forEach(n=>{
-        if(!n) return;
+        if(!n || typeof n !== 'string') return;
         const opt = document.createElement('option');
-        opt.value = n;
-        opt.textContent = n;
+        opt.value = n.trim();
+        opt.textContent = n.trim();
         tieSelect.appendChild(opt);
       });
     } else {
@@ -636,7 +636,10 @@ async function loadState(){
     const pRes = await fetch(DB_URL + "/players.json");
     const pData = pRes.ok ? await pRes.json() : null;
     if(pData && Array.isArray(pData)){
-      namesList = pData.filter(Boolean);
+      const validPlayers = pData.filter(n => n && typeof n === 'string' && n.trim().length > 0);
+      if(validPlayers.length > 0){
+        namesList = validPlayers;
+      }
     }
 
     const res = await fetch(DB_URL + "/spins.json");
