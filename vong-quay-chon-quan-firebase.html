@@ -52,6 +52,20 @@
     background: #152b1e; color: var(--chalk-cream); font-family: inherit; font-size: 13px;
   }
 
+  /* Khung thêm người chơi nhanh */
+  .add-player-box{ display: flex; gap: 6px; margin-bottom: 12px; }
+  .add-player-input{
+    flex: 1; padding: 9px 12px; border-radius: 10px; border: 1.5px solid rgba(227,192,105,0.35);
+    background: rgba(255,255,255,0.04); color: var(--chalk-cream); font-family: inherit; font-size: 13px;
+  }
+  .add-player-input:focus{ outline: none; border-color: var(--gold); }
+  .add-player-btn{
+    padding: 9px 14px; border-radius: 10px; border: 1.5px solid var(--gold);
+    background: var(--wood-light); color: var(--gold); font-family: inherit; font-weight: 700;
+    font-size: 13px; cursor: pointer; transition: background 0.2s;
+  }
+  .add-player-btn:hover{ background: var(--wood); }
+
   .names{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:12px; }
   .name-btn{
     position:relative;
@@ -219,6 +233,12 @@
     </select>
   </div>
 
+  <!-- Ô thêm người chơi nhanh trên giao diện -->
+  <div class="add-player-box">
+    <input type="text" id="newPlayerInput" class="add-player-input" placeholder="Nhập tên người chơi mới...">
+    <button class="add-player-btn" onclick="addNewPlayer()">+ Thêm</button>
+  </div>
+
   <div class="names" id="nameGrid"></div>
 
   <div class="wheel-wrap">
@@ -268,7 +288,8 @@
 
 <script>
 const DB_URL = "https://vong-quay-cdd2d-default-rtdb.asia-southeast1.firebasedatabase.app";
-const NAMES = ["Kiệt","Quý","Vương","Huy","Tra","Thành"];
+const DEFAULT_NAMES = ["Kiệt","Quý","Vương","Huy","Tra","Thành"];
+let namesList = [...DEFAULT_NAMES];
 const OPTIONS = ["112","Hương Lúa"];
 const SERVERS = {
   "112": { name: "Oanh", emoji: "🍻", messages: ["Yayyy quán mình thắng rồi nè! Cụng ly nào anh em ơi! 🍻"] },
@@ -445,7 +466,7 @@ function celebrateWin(winnerOption){
 
 function renderNames(){
   nameGrid.innerHTML = "";
-  NAMES.forEach(name=>{
+  namesList.forEach(name=>{
     const btn = document.createElement('button');
     btn.className = 'name-btn';
     const spun = state[name];
@@ -461,6 +482,39 @@ function renderNames(){
     };
     nameGrid.appendChild(btn);
   });
+}
+
+// Thêm người chơi mới trực tiếp lên Firebase
+async function addNewPlayer(){
+  const input = document.getElementById('newPlayerInput');
+  const newName = input.value.trim();
+  if(!newName){
+    alert("Vui lòng nhập tên người chơi!");
+    return;
+  }
+  if(namesList.includes(newName)){
+    alert("Tên này đã có trong danh sách rồi!");
+    return;
+  }
+
+  try{
+    const res = await fetch(DB_URL + "/players.json", {
+      method: "PUT",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify([...namesList, newName])
+    });
+    if(res.ok){
+      namesList.push(newName);
+      input.value = "";
+      renderNames();
+      renderResults();
+      alert("✅ Đã thêm người chơi mới thành công!");
+    } else {
+      alert("❌ Lỗi khi lưu người chơi lên hệ thống.");
+    }
+  }catch(e){
+    alert("❌ Không kết nối được tới cơ sở dữ liệu.");
+  }
 }
 
 function updateSpinButton(){
@@ -484,7 +538,7 @@ function updateSpinButton(){
 function renderResults(){
   let countA = 0, countB = 0, doneCount = 0;
   tickets.innerHTML = "";
-  NAMES.forEach(name=>{
+  namesList.forEach(name=>{
     const rec = state[name];
     const row = document.createElement('div');
     row.className = 'ticket';
@@ -507,13 +561,13 @@ function renderResults(){
     '<div class="bar-row"><div class="bar-label"><span>'+OPTIONS[0]+'</span><span>'+countA+' lượt</span></div><div class="bar-track"><div class="bar-fill a" style="width:'+pctA+'%"></div></div></div>'+
     '<div class="bar-row"><div class="bar-label"><span>'+OPTIONS[1]+'</span><span>'+countB+' lượt</span></div><div class="bar-track"><div class="bar-fill b" style="width:'+pctB+'%"></div></div></div>';
 
-  if(doneCount === NAMES.length){
+  if(doneCount === namesList.length){
     tally.className = 'tally winner';
     if(countA === countB){
       tally.innerHTML = "Hoà " + countA + " - " + countB + " (Đá Bàn Thắng Vàng!)";
       tieBox.style.display = "block";
       tieSelect.innerHTML = "";
-      NAMES.forEach(n=>{
+      namesList.forEach(n=>{
         const opt = document.createElement('option');
         opt.value = n;
         opt.textContent = n;
@@ -522,18 +576,25 @@ function renderResults(){
     } else {
       tieBox.style.display = "none";
       const winner = countA > countB ? OPTIONS[0] : OPTIONS[1];
-      tally.innerHTML = "🏆 Quán thắng: <b>" + winner + "</b> (" + Math.max(countA,countB) + "/" + NAMES.length + " lượt)";
+      tally.innerHTML = "🏆 Quán thắng: <b>" + winner + "</b> (" + Math.max(countA,countB) + "/" + namesList.length + " lượt)";
       celebrateWin(winner);
     }
   } else {
     tieBox.style.display = "none";
     tally.className = 'tally';
-    tally.innerHTML = doneCount + "/" + NAMES.length + " người đã quay, còn " + (NAMES.length - doneCount) + " người nữa.";
+    tally.innerHTML = doneCount + "/" + namesList.length + " người đã quay, còn " + (namesList.length - doneCount) + " người nữa.";
   }
 }
 
 async function loadState(){
   try{
+    // Tải danh sách người chơi động nếu có
+    const pRes = await fetch(DB_URL + "/players.json");
+    const pData = pRes.ok ? await pRes.json() : null;
+    if(pData && Array.isArray(pData)){
+      namesList = pData;
+    }
+
     const res = await fetch(DB_URL + "/spins.json");
     const data = res.ok ? await res.json() : {};
     state = data || {};
@@ -554,22 +615,19 @@ async function resetData(){
   }
   
   try{
-    const res = await fetch(DB_URL + "/spins.json", {
-      method: "DELETE"
-    });
-    if(res.ok){
-      state = {};
-      selectedName = null;
-      celebrated = false;
-      wheelElement.style.transform = "rotate(0deg)";
-      currentRotation = 0;
-      renderNames();
-      renderResults();
-      updateSpinButton();
-      alert("✅ Đã làm mới dữ liệu thành công!");
-    } else {
-      alert("❌ Lỗi khi xóa dữ liệu trên hệ thống.");
-    }
+    await fetch(DB_URL + "/spins.json", { method: "DELETE" });
+    await fetch(DB_URL + "/players.json", { method: "DELETE" });
+
+    state = {};
+    namesList = [...DEFAULT_NAMES];
+    selectedName = null;
+    celebrated = false;
+    wheelElement.style.transform = "rotate(0deg)";
+    currentRotation = 0;
+    renderNames();
+    renderResults();
+    updateSpinButton();
+    alert("✅ Đã làm mới dữ liệu thành công!");
   }catch(e){
     alert("❌ Không kết nối được tới cơ sở dữ liệu.");
   }
