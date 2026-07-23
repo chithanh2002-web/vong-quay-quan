@@ -68,6 +68,29 @@
   .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin:10px 0 8px; }
   .wheel-frame{ position:relative; width:250px; height:250px; }
   
+  /* Mũi tên đỏ chỉ định đặt nổi lên trên và có hiệu ứng động khi quay */
+  .pointer{
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-top: 18px solid #c1442e;
+    z-index: 40;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+    transform-origin: top center;
+  }
+  .pointer.shake {
+    animation: pointerShake 0.08s infinite alternate ease-in-out;
+  }
+  @keyframes pointerShake {
+    0% { transform: translateX(-50%) rotate(-12deg); }
+    100% { transform: translateX(-50%) rotate(12deg); }
+  }
+
   .wheel-container{
     width:100%; height:100%; border-radius:50%; position:absolute; top:0; left:0;
     box-shadow: 0 12px 30px rgba(0,0,0,0.6);
@@ -178,6 +201,8 @@
 
   <div class="wheel-wrap">
     <div class="wheel-frame">
+      <!-- Mũi tên đỏ chỉ định có hiệu ứng lắc khi quay -->
+      <div class="pointer" id="pointerEl"></div>
       <div class="wheel-container" id="wheelElement">
         <img src="vongquay.PNG" alt="Vòng Quay Chọn Quán">
       </div>
@@ -212,7 +237,6 @@
     <div class="server-title">Quán chiến thắng</div>
     <div class="congrats-server" id="congratsServer"></div>
     <div class="congrats-msg" id="congratsMsg"></div>
-    <!-- Thêm nút bấm phát giọng đọc trực tiếp -->
     <button class="voice-btn" id="voiceBtn">🔊 Nghe giọng đọc kết quả</button>
     <button class="congrats-close" id="congratsClose">Đã rõ, cảm ơn! 🎉</button>
   </div>
@@ -287,7 +311,7 @@ function speakResult(text){
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'vi-VN';
     utterance.rate = 0.95;
-    utterance.pitch = 1.25; // Giọng nữ cao
+    utterance.pitch = 1.25;
     
     const voices = window.speechSynthesis.getVoices();
     const viVoice = voices.find(v => v.lang.includes('vi') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('hoang') || v.name.toLowerCase().includes('linh') || v.name.toLowerCase().includes('google')));
@@ -308,6 +332,7 @@ const congratsServer = document.getElementById('congratsServer');
 const congratsMsg = document.getElementById('congratsMsg');
 const voiceBtn = document.getElementById('voiceBtn');
 const congratsClose = document.getElementById('congratsClose');
+const pointerEl = document.getElementById('pointerEl');
 
 congratsClose.addEventListener('click', ()=>{ congratsOverlay.style.display = 'none'; });
 voiceBtn.addEventListener('click', ()=>{ speakResult(lastSpeechText); });
@@ -351,8 +376,6 @@ function showCongrats(winnerOption){
   lastSpeechText = `Xin chúc mừng! Quán chiến thắng là ${winnerOption}, do đại diện ${server.name} đề cử. ${server.messages[0]}`;
   
   congratsOverlay.style.display = 'flex';
-
-  // Thử tự động phát giọng đọc ngay khi mở bảng
   setTimeout(()=>{
     speakResult(lastSpeechText);
   }, 400);
@@ -481,11 +504,16 @@ function spin(isTieBreaker = false, tiePerson = null){
   if(isTieBreaker) tieBtn.disabled = true;
   initAudio();
 
+  // Kích hoạt hiệu ứng mũi tên nhấp nhô/lắc lư khi quay
+  pointerEl.classList.add('shake');
+
   let tickInterval = setInterval(()=>{
     playTickSound();
   }, 120);
+
   setTimeout(()=>{
     clearInterval(tickInterval);
+    pointerEl.classList.remove('shake'); // Dừng lắc khi vòng quay dừng lại
   }, 4100);
 
   const winner = pickWinner();
