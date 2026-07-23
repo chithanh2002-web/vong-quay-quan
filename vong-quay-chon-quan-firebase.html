@@ -233,7 +233,7 @@
     </select>
   </div>
 
-  <!-- Ô thêm người chơi nhanh trên giao diện -->
+  <!-- Ô thêm người chơi nhanh có bảo mật mật khẩu -->
   <div class="add-player-box">
     <input type="text" id="newPlayerInput" class="add-player-input" placeholder="Nhập tên người chơi mới...">
     <button class="add-player-btn" onclick="addNewPlayer()">+ Thêm</button>
@@ -484,7 +484,7 @@ function renderNames(){
   });
 }
 
-// Thêm người chơi mới trực tiếp lên Firebase
+// Thêm người chơi mới có yêu cầu mật khẩu 2034
 async function addNewPlayer(){
   const input = document.getElementById('newPlayerInput');
   const newName = input.value.trim();
@@ -494,6 +494,13 @@ async function addNewPlayer(){
   }
   if(namesList.includes(newName)){
     alert("Tên này đã có trong danh sách rồi!");
+    return;
+  }
+
+  const pass = prompt("Nhập mật khẩu quản trị (2034) để thêm người chơi:");
+  if(pass === null) return;
+  if(pass !== "2034"){
+    alert("❌ Mật khẩu không đúng!");
     return;
   }
 
@@ -588,7 +595,6 @@ function renderResults(){
 
 async function loadState(){
   try{
-    // Tải danh sách người chơi động nếu có
     const pRes = await fetch(DB_URL + "/players.json");
     const pData = pRes.ok ? await pRes.json() : null;
     if(pData && Array.isArray(pData)){
