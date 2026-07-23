@@ -195,6 +195,35 @@
   .confetti-piece{ position:absolute; top:-20px; width:9px; height:14px; opacity:0.9; animation:confetti-fall linear forwards; }
   @keyframes confetti-fall{ to{ transform:translateY(110vh) rotate(540deg); opacity:0.3; } }
 
+  /* Modal Mật Khẩu Tùy Chỉnh (Ẩn Password) */
+  .modal-overlay{
+    position:fixed; inset:0; z-index:2000; display:none;
+    align-items:center; justify-content:center; padding:16px;
+    background:rgba(10,20,14,0.75); backdrop-filter:blur(3px);
+  }
+  .modal-card{
+    width:100%; max-width:300px; padding:20px;
+    border-radius:14px; text-align:center;
+    background:linear-gradient(180deg, #2a4a35, #1f3d2b);
+    border:2px solid var(--gold);
+    box-shadow:0 20px 40px rgba(0,0,0,0.5);
+  }
+  .modal-card h3{ margin:0 0 8px; font-size:15px; color:var(--gold); }
+  .modal-card p{ margin:0 0 12px; font-size:12px; color:var(--chalk-cream-dim); }
+  .modal-input{
+    width:100%; padding:10px; border-radius:8px; border:1px solid var(--gold);
+    background:#152b1e; color:var(--chalk-cream); font-family:inherit; font-size:16px;
+    text-align:center; letter-spacing:4px; margin-bottom:14px;
+  }
+  .modal-input:focus{ outline:none; border-color:var(--marigold); }
+  .modal-btns{ display:flex; gap:8px; }
+  .modal-btn{
+    flex:1; padding:10px; border-radius:8px; border:none; font-family:inherit;
+    font-weight:700; font-size:13px; cursor:pointer;
+  }
+  .modal-btn.cancel{ background:rgba(255,255,255,0.1); color:var(--chalk-cream); }
+  .modal-btn.submit{ background:var(--marigold); color:#3a2a1c; }
+
   .congrats-overlay{
     position:fixed; inset:0; z-index:1000; display:none;
     align-items:center; justify-content:center; padding:16px;
@@ -233,10 +262,10 @@
     </select>
   </div>
 
-  <!-- Ô thêm người chơi nhanh có bảo mật mật khẩu -->
+  <!-- Ô thêm người chơi nhanh -->
   <div class="add-player-box">
     <input type="text" id="newPlayerInput" class="add-player-input" placeholder="Nhập tên người chơi mới...">
-    <button class="add-player-btn" onclick="addNewPlayer()">+ Thêm</button>
+    <button class="add-player-btn" onclick="requestAddPlayer()">+ Thêm</button>
   </div>
 
   <div class="names" id="nameGrid"></div>
@@ -276,6 +305,19 @@
   <div class="footnote">Mỗi người tự mở link này, chọn đúng tên mình và quay. Hệ thống tự khoá lại sau khi đã quay.</div>
 </div>
 
+<!-- Modal nhập mật khẩu ẩn (dấu chấm) -->
+<div class="modal-overlay" id="passwordModal">
+  <div class="modal-card">
+    <h3>🔒 Xác Thực Mật Khẩu</h3>
+    <p>Nhập mật khẩu quản trị để thêm người chơi:</p>
+    <input type="password" id="modalPasswordInput" class="modal-input" placeholder="••••">
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closePasswordModal()">Hủy</button>
+      <button class="modal-btn submit" onclick="submitPasswordModal()">Xác nhận</button>
+    </div>
+  </div>
+</div>
+
 <div class="congrats-overlay" id="congratsOverlay">
   <div class="congrats-card">
     <span class="server-emoji" id="congratsEmoji">🍻</span>
@@ -302,6 +344,7 @@ let spinning = false;
 let currentRotation = 0;
 let celebrated = false;
 let audioCtx = null;
+let pendingNewPlayerName = "";
 
 let titleClicks = 0;
 document.getElementById('mainTitle').addEventListener('click', () => {
@@ -484,8 +527,8 @@ function renderNames(){
   });
 }
 
-// Thêm người chơi mới có yêu cầu mật khẩu 2034
-async function addNewPlayer(){
+// Xử lý mở modal mật khẩu ẩn
+function requestAddPlayer(){
   const input = document.getElementById('newPlayerInput');
   const newName = input.value.trim();
   if(!newName){
@@ -496,23 +539,36 @@ async function addNewPlayer(){
     alert("Tên này đã có trong danh sách rồi!");
     return;
   }
+  pendingNewPlayerName = newName;
+  document.getElementById('modalPasswordInput').value = "";
+  document.getElementById('passwordModal').style.display = 'flex';
+  document.getElementById('modalPasswordInput').focus();
+}
 
-  const pass = prompt("Nhập mật khẩu quản trị (2034) để thêm người chơi:");
-  if(pass === null) return;
+function closePasswordModal(){
+  document.getElementById('passwordModal').style.display = 'none';
+  pendingNewPlayerName = "";
+}
+
+async function submitPasswordModal(){
+  const pass = document.getElementById('modalPasswordInput').value;
   if(pass !== "2034"){
     alert("❌ Mật khẩu không đúng!");
     return;
   }
 
+  closePasswordModal();
+
   try{
     const res = await fetch(DB_URL + "/players.json", {
       method: "PUT",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify([...namesList, newName])
+      body: JSON.stringify([...namesList, pendingNewPlayerName])
     });
     if(res.ok){
-      namesList.push(newName);
-      input.value = "";
+      namesList.push(pendingNewPlayerName);
+      document.getElementById('newPlayerInput').value = "";
+      pendingNewPlayerName = "";
       renderNames();
       renderResults();
       alert("✅ Đã thêm người chơi mới thành công!");
