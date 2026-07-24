@@ -489,13 +489,14 @@ function showCongrats(winnerOption){
   congratsOverlay.style.display = 'flex';
 }
 
-function celebrateWin(winnerOption, isFromLoad = false){
-  if(!isFromLoad){
-    if(celebrated) return;
-    celebrated = true;
-    playWinSound();
-    launchConfetti();
-    updateStatsHistory(winnerOption);
+function celebrateWin(winnerOption, isFromLiveSpin = false){
+  if(isFromLiveSpin){
+    if(!celebrated){
+      celebrated = true;
+      playWinSound();
+      launchConfetti();
+      updateStatsHistory(winnerOption);
+    }
   }
   showCongrats(winnerOption);
 }
@@ -677,8 +678,6 @@ function updateSpinButton(){
   hint.textContent = spinning ? "" : "Nhấn để quay — chỉ một lần thôi nhé!";
 }
 
-let isInitialized = false;
-
 function renderResults(){
   let countA = 0, countB = 0, doneCount = 0;
   tickets.innerHTML = "";
@@ -723,19 +722,13 @@ function renderResults(){
       tieBox.style.display = "none";
       const winner = countA > countB ? OPTIONS[0] : OPTIONS[1];
       tally.innerHTML = "🏆 Quán thắng: <b>" + winner + "</b> (" + Math.max(countA,countB) + "/" + validList.length + " lượt)";
-      
-      if(!isInitialized){
-        celebrateWin(winner, false);
-      } else {
-        celebrateWin(winner, true);
-      }
+      celebrateWin(winner, false);
     }
   } else {
     tieBox.style.display = "none";
     tally.className = 'tally';
     tally.innerHTML = doneCount + "/" + validList.length + " người đã quay, còn " + (validList.length - doneCount) + " người nữa.";
   }
-  isInitialized = true;
 }
 
 async function loadState(){
@@ -792,7 +785,6 @@ async function resetData(){
     namesList = [...DEFAULT_NAMES];
     selectedName = null;
     celebrated = false;
-    isInitialized = false;
     wheelElement.style.transform = "rotate(0deg)";
     currentRotation = 0;
     renderNames();
@@ -872,13 +864,28 @@ async function spin(isTieBreaker = false, tiePerson = null){
     } else {
       spinning = false;
       if(isTieBreaker) tieBtn.disabled = false;
-      celebrateWin(winner, false);
+      celebrateWin(winner, true);
       return;
     }
     spinning = false;
     renderNames();
     renderResults();
     updateSpinButton();
+
+    // Kiểm tra nếu đây là lượt quay cuối cùng của nhóm thì kích hoạt hiệu ứng chiến thắng và cộng dồn lịch sử chính xác 1 lần
+    const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
+    const doneCount = validList.filter(n => state[n]).length;
+    if(doneCount === validList.length){
+      let countA = 0, countB = 0;
+      validList.forEach(n => {
+        if(state[n].result === OPTIONS[0]) countA++;
+        else countB++;
+      });
+      if(countA !== countB){
+        const finalWinner = countA > countB ? OPTIONS[0] : OPTIONS[1];
+        celebrateWin(finalWinner, true);
+      }
+    }
   }, 4300);
 }
 
