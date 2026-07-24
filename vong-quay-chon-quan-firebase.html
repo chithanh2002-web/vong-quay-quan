@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vòng Quay Chọn Quán</title>
 <meta property="og:title" content="Vòng Quay Chọn Quán 🎡">
-<meta property="og:description" content="112 hay Hương Lúa? Bấm vào chọn tên bạn rồi quay ngay!">
+<meta property="og:description" content="112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chống spam F5, mỗi người đúng 1 lượt!">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -326,7 +326,6 @@ let celebrated = false;
 let audioCtx = null;
 let soundEnabled = false;
 
-// Vẽ chữ lên Canvas có kèm viền xanh lá đậm và hiệu ứng nổi
 window.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('wheelCanvas');
   const ctx = canvas.getContext('2d');
@@ -336,15 +335,13 @@ window.addEventListener('DOMContentLoaded', () => {
   img.onload = () => {
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     
-    // Cấu hình chung cho chữ nổi bật
     ctx.font = "bold 36px 'Be Vietnam Pro', sans-serif";
     ctx.textAlign = "center";
     ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
     ctx.shadowBlur = 10;
-    ctx.lineWidth = 6; // Độ dày của viền xanh
-    ctx.strokeStyle = "#0b3b1e"; // Màu viền xanh lá đậm sắc nét
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = "#0b3b1e";
 
-    // Vẽ chữ 112 bên trái
     ctx.save();
     ctx.translate(135, 250);
     ctx.rotate(-Math.PI / 2);
@@ -353,7 +350,6 @@ window.addEventListener('DOMContentLoaded', () => {
     ctx.fillText("112", 0, 0);
     ctx.restore();
 
-    // Vẽ chữ Hương Lúa bên phải
     ctx.save();
     ctx.translate(365, 250);
     ctx.rotate(Math.PI / 2);
@@ -573,6 +569,7 @@ function renderStatsDisplay(){
 
 function randomPickTieBreaker(){
   const options = tieSelect.options;
+  // Lọc chỉ lấy các option chưa bị đánh dấu là đã quay bàn thắng vàng nếu có
   if(options.length > 0){
     const randomIndex = Math.floor(Math.random() * options.length);
     tieSelect.selectedIndex = randomIndex;
@@ -768,12 +765,18 @@ function renderResults(){
       tally.innerHTML = "Hoà " + countA + " - " + countB + " (Đá Bàn Thắng Vàng!)";
       tieBox.style.display = "block";
       tieSelect.innerHTML = "";
+      // Chỉ đưa vào danh sách chọn đá bàn thắng vàng những ai chưa quay hoặc chưa được ghi nhận
       validList.forEach(n=>{
-        const opt = document.createElement('option');
-        opt.value = n;
-        opt.textContent = n;
-        tieSelect.appendChild(opt);
+        if(!state[n] || !state[n].isTieBreaker){
+          const opt = document.createElement('option');
+          opt.value = n;
+          opt.textContent = n;
+          tieSelect.appendChild(opt);
+        }
       });
+      if(tieSelect.options.length === 0){
+        tieBox.style.display = "none";
+      }
     } else {
       tieBox.style.display = "none";
       const winner = countA > countB ? OPTIONS[0] : OPTIONS[1];
@@ -880,6 +883,12 @@ async function spin(isTieBreaker = false, tiePerson = null){
         return;
       }
     } catch(e){}
+  } else {
+    // Kiểm tra xem người đá bàn thắng vàng này đã được ghi nhận trên server chưa
+    if(state[targetName] && state[targetName].isTieBreaker) {
+      alert("⚠️ Người này đã thực hiện lượt đá bàn thắng vàng rồi!");
+      return;
+    }
   }
 
   spinning = true;
@@ -910,42 +919,24 @@ async function spin(isTieBreaker = false, tiePerson = null){
   currentRotation = finalRotation;
 
   setTimeout(async ()=>{
-    const record = { result: winner, time: new Date().toISOString() };
-    if(!isTieBreaker){
-      try{
-        await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json", {
-          method: "PUT",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify(record)
-        });
-        state[targetName] = record;
-      }catch(e){
-        showError("Không lưu được kết quả.");
-      }
-    } else {
-      spinning = false;
-      if(isTieBreaker) tieBtn.disabled = false;
-      celebrateWin(winner, true);
-      return;
+    const record = { result: winner, time: new Date().toISOString(), isTieBreaker: isTieBreaker };
+    try{
+      await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json", {
+        method: "PUT",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(record)
+      });
+      state[targetName] = record;
+    }catch(e){
+      showError("Không lưu được kết quả.");
     }
+
     spinning = false;
+    if(isTieBreaker) tieBtn.disabled = false;
     renderNames();
     renderResults();
     updateSpinButton();
-
-    const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-    const doneCount = validList.filter(n => state[n]).length;
-    if(doneCount === validList.length){
-      let countA = 0, countB = 0;
-      validList.forEach(n => {
-        if(state[n].result === OPTIONS[0]) countA++;
-        else countB++;
-      });
-      if(countA !== countB){
-        const finalWinner = countA > countB ? OPTIONS[0] : OPTIONS[1];
-        celebrateWin(finalWinner, true);
-      }
-    }
+    celebrateWin(winner, true);
   }, 4300);
 }
 
