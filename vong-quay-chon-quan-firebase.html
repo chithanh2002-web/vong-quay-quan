@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vòng Quay Chọn Quán</title>
 <meta property="og:title" content="Vòng Quay Chọn Quán 🎡">
-<meta property="og:description" content="112 hay Hương Lúa? Bấm vào chọn tên bạn rồi quay ngay!">
+<meta property="og:description" content="Quán nào hôm nay? Bấm vào chọn tên bạn rồi quay ngay!">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -53,22 +53,29 @@
 
   .admin-panel{
     background: rgba(227,192,105,0.1); border: 1.5px dashed var(--gold);
-    padding: 12px; border-radius: 12px; margin-bottom: 14px; display: none; text-align: center;
+    padding: 12px; border-radius: 12px; margin-bottom: 14px; display: none;
   }
-  .admin-panel h4{ margin: 0 0 8px; font-size: 13px; color: var(--gold); }
+  .admin-panel h4{ margin: 0 0 8px; font-size: 13px; color: var(--gold); text-align: center; }
   .admin-select{
     width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--gold);
     background: #152b1e; color: var(--chalk-cream); font-family: inherit; font-size: 13px; margin-bottom: 8px;
   }
-  .admin-input-row{ display: flex; gap: 6px; margin-top: 6px; }
+  .admin-shops-box{ display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+  .admin-shop-row{ display: flex; gap: 6px; }
   .admin-input{
     flex: 1; padding: 8px; border-radius: 6px; border: 1px solid var(--gold);
     background: #152b1e; color: var(--chalk-cream); font-family: inherit; font-size: 13px;
   }
-  .admin-save-btn{
-    padding: 8px 12px; border-radius: 6px; border: none; background: var(--marigold);
-    color: #3a2a1c; font-family: inherit; font-weight: 700; font-size: 12px; cursor: pointer;
+  .admin-del-shop-btn{
+    padding: 0 10px; border-radius: 6px; border: none; background: rgba(193,68,46,0.8);
+    color: #fff; font-weight: 800; cursor: pointer;
   }
+  .admin-btn-row{ display: flex; gap: 6px; margin-top: 8px; }
+  .admin-action-btn{
+    flex: 1; padding: 8px; border-radius: 6px; border: none; font-family: inherit; font-weight: 700; font-size: 12px; cursor: pointer;
+  }
+  .admin-add-shop{ background: rgba(127,166,92,0.3); border: 1px solid var(--paddy); color: var(--paddy); }
+  .admin-save-btn{ background: var(--marigold); color: #3a2a1c; }
 
   .add-player-box{ display: flex; gap: 6px; margin-bottom: 12px; }
   .add-player-input{
@@ -175,19 +182,16 @@
 
   .results-title{ font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:var(--marigold); font-weight:600; margin-bottom:6px; }
   .bars{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
-  .bar-label{ display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:3px; }
+  .bar-row{ display: flex; flex-direction: column; gap: 2px; }
+  .bar-label{ display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; }
   .bar-track{ height:9px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden; }
-  .bar-fill{ height:100%; border-radius:999px; transition:width 0.5s ease; }
-  .bar-fill.a{ background:var(--marigold); }
-  .bar-fill.b{ background:var(--paddy); }
+  .bar-fill{ height:100%; border-radius:999px; transition:width 0.5s ease; background: var(--marigold); }
 
   .tickets{ display:flex; flex-direction:column; gap:4px; }
   .ticket{ display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(242,236,216,0.15); font-size:12.5px; }
   .ticket .who{ font-weight:700; }
-  .ticket .what{ font-weight:600; padding:2px 7px; border-radius:999px; font-size:11px; }
-  .what.pending{ color:var(--chalk-cream-dim); font-weight:500; background:none; }
-  .what.a{ background:rgba(232,163,61,0.18); color:var(--marigold); }
-  .what.b{ background:rgba(127,166,92,0.2); color:var(--paddy); }
+  .ticket .what{ font-weight:600; padding:2px 7px; border-radius:999px; font-size:11px; color:var(--marigold); background:rgba(232,163,61,0.18); }
+  .ticket .what.pending{ color:var(--chalk-cream-dim); font-weight:500; background:none; }
 
   .tally{ margin-top:12px; text-align:center; font-size:12.5px; color:var(--chalk-cream-dim); }
   .tally b{ color:var(--chalk-cream); }
@@ -196,7 +200,7 @@
   .history-box{
     margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,0.02);
     border: 1px solid rgba(242,236,216,0.1); font-size: 12px; color: var(--chalk-cream-dim); text-align: center;
-    cursor: pointer; user-select: none;
+    cursor: pointer; user-select: none; line-height: 1.5;
   }
   .history-box b{ color: var(--marigold); }
 
@@ -242,7 +246,7 @@
 <div class="board">
   <div class="eyebrow">Nhóm ăn trưa</div>
   <h1 id="mainTitle">Vòng Quay Chọn Quán</h1>
-  <div class="sub" id="subTitleText">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chống spam F5, mỗi người đúng 1 lượt!</div>
+  <div class="sub" id="subTitleText">Chọn quán ăn trưa — chống spam F5, mỗi người đúng 1 lượt!</div>
 
   <!-- Nút Mở Khóa Âm Thanh Đảm Bảo 100% -->
   <div class="sound-bar" id="soundBar" onclick="forceUnlockSound()">
@@ -252,17 +256,15 @@
   <div class="admin-panel" id="adminPanel">
     <h4>🎛️ Bảng Điều Khiển Quản Trị</h4>
     <select class="admin-select" id="forcedResultSelect" onchange="changeForcedResult(this.value)">
-      <option value="RANDOM">🎲 Ngẫu nhiên hoàn toàn (50/50)</option>
+      <option value="RANDOM">🎲 Ngẫu nhiên hoàn toàn</option>
     </select>
     
     <div style="border-top: 1px dashed var(--gold); margin: 8px 0; padding-top: 8px;">
-      <h4 style="margin:0 0 4px;">✏️ Đổi tên quán trực tiếp:</h4>
-      <div class="admin-input-row">
-        <input type="text" id="shop1Input" class="admin-input" placeholder="Tên quán 1">
-        <button class="admin-save-btn" onclick="updateShopNames()">Lưu tên</button>
-      </div>
-      <div class="admin-input-row" style="margin-top: 4px;">
-        <input type="text" id="shop2Input" class="admin-input" placeholder="Tên quán 2">
+      <h4 style="margin:0 0 6px;">✏️ Quản lý danh sách quán:</h4>
+      <div class="admin-shops-box" id="adminShopsContainer"></div>
+      <div class="admin-btn-row">
+        <button class="admin-action-btn admin-add-shop" onclick="addShopInput()">+ Thêm quán</button>
+        <button class="admin-action-btn admin-save-btn" onclick="saveShopNames()">💾 Lưu tất cả</button>
       </div>
     </div>
   </div>
@@ -306,7 +308,7 @@
   <div class="tally" id="tally"></div>
   
   <div class="history-box" id="historyBox">
-    📊 Thống kê lịch sử: <b id="labelStat1">112</b> thắng (<span id="stat112">0</span>) - <b id="labelStat2">Hương Lúa</b> thắng (<span id="statHuongLua">0</span>)
+    📊 Thống kê lịch sử: <span id="historyStatsText">Đang tải...</span>
   </div>
 
   <div class="reset-container">
@@ -333,11 +335,6 @@ let namesList = [...DEFAULT_NAMES];
 
 let OPTIONS = JSON.parse(localStorage.getItem('lunch_options') || '["112", "Hương Lúa"]');
 
-let SERVERS = {
-  [OPTIONS[0]]: { name: "Oanh", emoji: "🍻", messages: [`Yayyy quán ${OPTIONS[0]} thắng rồi nè! Cụng ly nào anh em ơi! 🍻`] },
-  [OPTIONS[1]]: { name: "Tiên", emoji: "🍻", messages: [`Quán ${OPTIONS[1]} thắng rồi nè cả nhà ơi, dô thôi! 🍻`] }
-};
-
 let selectedName = null;
 let state = {};
 let spinning = false;
@@ -354,92 +351,131 @@ function drawWheelAndText(){
   img.crossOrigin = "anonymous";
   img.src = "vongquay.jpg";
   img.onload = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     
-    ctx.font = "bold 36px 'Be Vietnam Pro', sans-serif";
+    const count = OPTIONS.length;
+    if(count === 0) return;
+
+    ctx.font = "bold 28px 'Be Vietnam Pro', sans-serif";
     ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
     ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
     ctx.shadowBlur = 10;
     ctx.lineWidth = 6;
     ctx.strokeStyle = "#0b3b1e";
 
-    ctx.save();
-    ctx.translate(135, 250);
-    ctx.rotate(-Math.PI / 2);
-    ctx.strokeText(OPTIONS[0], 0, 0);
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText(OPTIONS[0], 0, 0);
-    ctx.restore();
+    const sliceAngle = (2 * Math.PI) / count;
+    const radius = 135; // Khoảng cách từ tâm ra vị trí đặt chữ trên vòng quay
 
-    ctx.save();
-    ctx.translate(365, 250);
-    ctx.rotate(Math.PI / 2);
-    ctx.strokeText(OPTIONS[1], 0, 0);
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText(OPTIONS[1], 0, 0);
-    ctx.restore();
+    OPTIONS.forEach((shopName, idx) => {
+      // Góc chính giữa của mỗi phần (bắt đầu từ đỉnh -90 độ tương ứng -Math.PI/2)
+      const angle = -Math.PI / 2 + sliceAngle * idx + sliceAngle / 2;
+      const x = 250 + radius * Math.cos(angle);
+      const y = 250 + radius * Math.sin(angle);
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle + Math.PI / 2); // Xoay chữ theo hướng nan hoa cho dễ đọc
+      ctx.strokeText(shopName, 0, 0);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(shopName, 0, 0);
+      ctx.restore();
+    });
   };
 }
 
 window.addEventListener('DOMContentLoaded', () => {
   drawWheelAndText();
   updateUItexts();
-  
-  document.getElementById('shop1Input').value = OPTIONS[0];
-  document.getElementById('shop2Input').value = OPTIONS[1];
-  
-  const select = document.getElementById('forcedResultSelect');
-  select.innerHTML = `
-    <option value="RANDOM">🎲 Ngẫu nhiên hoàn toàn (50/50)</option>
-    <option value="${OPTIONS[0]}">🔒 Cố định luôn về: ${OPTIONS[0]}</option>
-    <option value="${OPTIONS[1]}">🔒 Cố định luôn về: ${OPTIONS[1]}</option>
-  `;
-  const currentForced = localStorage.getItem('forced_winner');
-  if(currentForced) select.value = currentForced;
+  renderAdminShopInputs();
+  updateForcedSelect();
 });
 
 function updateUItexts(){
-  document.getElementById('subTitleText').textContent = `${OPTIONS[0]} hay ${OPTIONS[1]}? Mỗi người chọn tên mình rồi quay — chống spam F5, mỗi người đúng 1 lượt!`;
-  document.getElementById('labelStat1').textContent = OPTIONS[0];
-  document.getElementById('labelStat2').textContent = OPTIONS[1];
-  
-  SERVERS = {
-    [OPTIONS[0]]: { name: "Oanh", emoji: "🍻", messages: [`Yayyy quán ${OPTIONS[0]} thắng rồi nè! Cụng ly nào anh em ơi! 🍻`] },
-    [OPTIONS[1]]: { name: "Tiên", emoji: "🍻", messages: [`Quán ${OPTIONS[1]} thắng rồi nè cả nhà ơi, dô thôi! 🍻`] }
-  };
+  const shopNamesStr = OPTIONS.join(" hay ");
+  const subEl = document.getElementById('subTitleText');
+  if(subEl) subEl.textContent = `${shopNamesStr}? Mỗi người chọn tên mình rồi quay — chống spam F5, mỗi người đúng 1 lượt!`;
 }
 
-function updateShopNames(){
-  const s1 = document.getElementById('shop1Input').value.trim();
-  const s2 = document.getElementById('shop2Input').value.trim();
-  if(!s1 || !s2){
-    alert("⚠️ Vui lòng nhập đầy đủ tên cho cả hai quán!");
+function renderAdminShopInputs(){
+  const container = document.getElementById('adminShopsContainer');
+  container.innerHTML = "";
+  OPTIONS.forEach((shop, idx) => {
+    const row = document.createElement('div');
+    row.className = 'admin-shop-row';
+    row.innerHTML = `
+      <input type="text" class="admin-input shop-input-field" value="${shop}" placeholder="Tên quán ${idx+1}">
+      ${OPTIONS.length > 2 ? `<button class="admin-del-shop-btn" onclick="removeShopInput(${idx})">✕</button>` : ''}
+    `;
+    container.appendChild(row);
+  });
+}
+
+function addShopInput(){
+  if(OPTIONS.length >= 6){
+    alert("⚠️ Tối đa khoảng 6 quán trên một vòng quay cho đẹp bạn nhé!");
     return;
   }
-  OPTIONS = [s1, s2];
+  // Lấy dữ liệu hiện tại từ các ô input trước
+  const inputs = document.querySelectorAll('.shop-input-field');
+  let currentArr = [];
+  inputs.forEach(inp => currentArr.push(inp.value.trim()));
+  currentArr.push("Quán Mới");
+  OPTIONS = currentArr;
+  renderAdminShopInputs();
+}
+
+function removeShopInput(index){
+  if(OPTIONS.length <= 2){
+    alert("⚠️ Cần duy trì ít nhất 2 quán để quay!");
+    return;
+  }
+  const inputs = document.querySelectorAll('.shop-input-field');
+  let currentArr = [];
+  inputs.forEach(inp => currentArr.push(inp.value.trim()));
+  currentArr.splice(index, 1);
+  OPTIONS = currentArr;
+  renderAdminShopInputs();
+}
+
+function updateForcedSelect(){
+  const select = document.getElementById('forcedResultSelect');
+  let html = `<option value="RANDOM">🎲 Ngẫu nhiên hoàn toàn</option>`;
+  OPTIONS.forEach(shop => {
+    html += `<option value="${shop}">🔒 Cố định luôn về: ${shop}</option>`;
+  });
+  select.innerHTML = html;
+  const currentForced = localStorage.getItem('forced_winner');
+  if(currentForced) select.value = currentForced;
+}
+
+function saveShopNames(){
+  const inputs = document.querySelectorAll('.shop-input-field');
+  let newArr = [];
+  inputs.forEach(inp => {
+    const val = inp.value.trim();
+    if(val) newArr.push(val);
+  });
+  if(newArr.length < 2){
+    alert("⚠️ Vui lòng giữ lại ít nhất 2 tên quán hợp lệ!");
+    return;
+  }
+  OPTIONS = newArr;
   localStorage.setItem('lunch_options', JSON.stringify(OPTIONS));
   updateUItexts();
   drawWheelAndText();
-  
-  const select = document.getElementById('forcedResultSelect');
-  select.innerHTML = `
-    <option value="RANDOM">🎲 Ngẫu nhiên hoàn toàn (50/50)</option>
-    <option value="${OPTIONS[0]}">🔒 Cố định luôn về: ${OPTIONS[0]}</option>
-    <option value="${OPTIONS[1]}">🔒 Cố định luôn về: ${OPTIONS[1]}</option>
-  `;
-  
+  updateForcedSelect();
   renderResults();
   renderStatsDisplay();
-  alert("✅ Đã cập nhật tên quán thành công!");
+  alert("✅ Đã cập nhật danh sách quán thành công!");
 }
 
 function forceUnlockSound(){
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     audioCtx = new AudioContext();
-    if(audioCtx.state === 'suspended'){
-      audioCtx.resume();
-    }
+    if(audioCtx.state === 'suspended') audioCtx.resume();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.frequency.setValueAtTime(600, audioCtx.currentTime);
@@ -460,13 +496,8 @@ function forceUnlockSound(){
   setTimeout(()=>{ bar.style.display = 'none'; }, 2000);
 }
 
-document.addEventListener('click', () => {
-  if(!soundEnabled) forceUnlockSound();
-}, { once: true });
-
-document.addEventListener('touchstart', () => {
-  if(!soundEnabled) forceUnlockSound();
-}, { once: true });
+document.addEventListener('click', () => { if(!soundEnabled) forceUnlockSound(); }, { once: true });
+document.addEventListener('touchstart', () => { if(!soundEnabled) forceUnlockSound(); }, { once: true });
 
 function playClickSound(){
   try {
@@ -475,16 +506,13 @@ function playClickSound(){
       audioCtx = new AudioContext();
     }
     if(audioCtx.state === 'suspended') audioCtx.resume();
-
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = 'square';
     osc.frequency.setValueAtTime(580, audioCtx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.05);
-
     gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     osc.start();
@@ -499,7 +527,6 @@ function playWinSound(){
       audioCtx = new AudioContext();
     }
     if(audioCtx.state === 'suspended') audioCtx.resume();
-
     const notes = [523.25, 659.25, 783.99, 1046.50];
     notes.forEach((freq, idx) => {
       setTimeout(() => {
@@ -507,10 +534,8 @@ function playWinSound(){
         const gain = audioCtx.createGain();
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
         gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
-
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
@@ -525,7 +550,7 @@ document.getElementById('mainTitle').addEventListener('click', () => {
   titleClicks++;
   if(titleClicks >= 3){
     titleClicks = 0;
-    const pass = prompt("Nhập mật khẩu quản trị để mở bảng điều khiển kết quả:");
+    const pass = prompt("Nhập mật khẩu quản trị để mở bảng điều khiển:");
     if(pass === "2034"){
       const panel = document.getElementById('adminPanel');
       panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
@@ -543,7 +568,9 @@ document.getElementById('historyBox').addEventListener('click', () => {
     historyClicks = 0;
     const pass = prompt("🔒 Nhập mật khẩu quản trị để xóa thống kê lịch sử:");
     if(pass === "2034"){
-      localStorage.setItem('lunch_stats', JSON.stringify({[OPTIONS[0]]:0, [OPTIONS[1]]:0}));
+      let emptyStats = {};
+      OPTIONS.forEach(s => emptyStats[s] = 0);
+      localStorage.setItem('lunch_stats', JSON.stringify(emptyStats));
       renderStatsDisplay();
       alert("✅ Đã đặt lại thống kê về 0 thành công!");
     } else if(pass !== null){
@@ -606,10 +633,9 @@ function launchConfetti(){
 }
 
 function showCongrats(winnerOption){
-  const server = SERVERS[winnerOption] || { name: "Nhóm", emoji: "🍻", messages: [`Quán ${winnerOption} thắng rồi! 🍻`] };
   congratsEmoji.textContent = "🍻";
-  congratsServer.textContent = winnerOption + " · " + server.name;
-  congratsMsg.textContent = server.messages[0];
+  congratsServer.textContent = winnerOption;
+  congratsMsg.textContent = `Yayyy quán ${winnerOption} thắng rồi nè! Cụng ly nào anh em ơi! 🍻`;
   congratsOverlay.style.display = 'flex';
 }
 
@@ -626,7 +652,8 @@ function celebrateWin(winnerOption, isFromLiveSpin = false){
 }
 
 function updateStatsHistory(winner){
-  let stats = JSON.parse(localStorage.getItem('lunch_stats') || JSON.stringify({[OPTIONS[0]]:0, [OPTIONS[1]]:0}));
+  let stats = JSON.parse(localStorage.getItem('lunch_stats') || '{}');
+  OPTIONS.forEach(s => { if(stats[s] === undefined) stats[s] = 0; });
   if(!stats[winner]) stats[winner] = 0;
   stats[winner]++;
   localStorage.setItem('lunch_stats', JSON.stringify(stats));
@@ -634,11 +661,15 @@ function updateStatsHistory(winner){
 }
 
 function renderStatsDisplay(){
-  let stats = JSON.parse(localStorage.getItem('lunch_stats') || JSON.stringify({[OPTIONS[0]]:0, [OPTIONS[1]]:0}));
-  const stat1El = document.getElementById('stat112');
-  const stat2El = document.getElementById('statHuongLua');
-  if(stat1El) stat1El.textContent = stats[OPTIONS[0]] || 0;
-  if(stat2El) stat2El.textContent = stats[OPTIONS[1]] || 0;
+  let stats = JSON.parse(localStorage.getItem('lunch_stats') || '{}');
+  OPTIONS.forEach(s => { if(stats[s] === undefined) stats[s] = 0; });
+  
+  let parts = [];
+  OPTIONS.forEach(s => {
+    parts.push(`<b>${s}</b> thắng (<span>${stats[s] || 0}</span>)`);
+  });
+  const textEl = document.getElementById('historyStatsText');
+  if(textEl) textEl.innerHTML = parts.join(" - ");
 }
 
 function randomPickTieBreaker(){
@@ -692,24 +723,16 @@ function renderNames(){
 async function removePlayer(nameToRemove){
   const pass = prompt("🔒 Nhập mật khẩu quản trị để xóa người chơi '" + nameToRemove + "':");
   if(pass === null) return;
-  if(pass !== "2034"){
-    alert("❌ Mật khẩu không đúng!");
-    return;
-  }
+  if(pass !== "2034"){ alert("❌ Mật khẩu không đúng!"); return; }
 
   try{
     let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
     cleanList = cleanList.filter(n => n !== nameToRemove);
 
-    if(cleanList.length === 0){
-      alert("❌ Cần giữ lại ít nhất 1 người chơi trong danh sách!");
-      return;
-    }
+    if(cleanList.length === 0){ alert("❌ Cần giữ lại ít nhất 1 người chơi!"); return; }
 
     const payload = {};
-    cleanList.forEach((name, idx) => {
-      payload["p" + idx] = name;
-    });
+    cleanList.forEach((name, idx) => { payload["p" + idx] = name; });
 
     const res = await fetch(DB_URL + "/players.json", {
       method: "PUT",
@@ -720,51 +743,32 @@ async function removePlayer(nameToRemove){
     if(res.ok){
       namesList = cleanList;
       if(selectedName === nameToRemove) selectedName = null;
-      
-      await fetch(DB_URL + "/spins/" + encodeURIComponent(nameToRemove) + ".json", {
-        method: "DELETE"
-      });
+      await fetch(DB_URL + "/spins/" + encodeURIComponent(nameToRemove) + ".json", { method: "DELETE" });
       delete state[nameToRemove];
-
       renderNames();
       renderResults();
       updateSpinButton();
-      alert("✅ Đã xóa " + nameToRemove + " thành công!");
-    } else {
-      alert("❌ Lỗi khi cập nhật dữ liệu.");
+      alert("✅ Đã xóa thành công!");
     }
-  }catch(e){
-    alert("❌ Không kết nối được tới cơ sở dữ liệu.");
-  }
+  }catch(e){ alert("❌ Lỗi kết nối cơ sở dữ liệu."); }
 }
 
 async function addNewPlayerWithPassword(){
   const input = document.getElementById('newPlayerInput');
   const newName = input.value.trim();
-  if(!newName){
-    alert("Vui lòng nhập tên người chơi!");
-    return;
-  }
+  if(!newName){ alert("Vui lòng nhập tên người chơi!"); return; }
   if(namesList.some(n => String(n).trim().toLowerCase() === newName.toLowerCase())){
-    alert("Tên này đã có trong danh sách rồi!");
-    return;
+    alert("Tên này đã có trong danh sách rồi!"); return;
   }
-
   const pass = prompt("🔒 Nhập mật khẩu để thêm người chơi:");
   if(pass === null) return;
-  if(pass !== "2034"){
-    alert("❌ Mật khẩu không đúng!");
-    return;
-  }
+  if(pass !== "2034"){ alert("❌ Mật khẩu không đúng!"); return; }
 
   try{
     let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
     cleanList.push(newName);
-
     const payload = {};
-    cleanList.forEach((name, idx) => {
-      payload["p" + idx] = name;
-    });
+    cleanList.forEach((name, idx) => { payload["p" + idx] = name; });
 
     const res = await fetch(DB_URL + "/players.json", {
       method: "PUT",
@@ -777,13 +781,9 @@ async function addNewPlayerWithPassword(){
       input.value = "";
       renderNames();
       renderResults();
-      alert("✅ Đã thêm " + newName + " thành công!");
-    } else {
-      alert("❌ Lỗi khi lưu người chơi lên hệ thống.");
+      alert("✅ Đã thêm thành công!");
     }
-  }catch(e){
-    alert("❌ Không kết nối được tới cơ sở dữ liệu.");
-  }
+  }catch(e){ alert("❌ Lỗi kết nối cơ sở dữ liệu."); }
 }
 
 function updateSpinButton(){
@@ -805,7 +805,9 @@ function updateSpinButton(){
 }
 
 function renderResults(){
-  let countA = 0, countB = 0, doneCount = 0;
+  let counts = {};
+  OPTIONS.forEach(s => counts[s] = 0);
+  let doneCount = 0;
   tickets.innerHTML = "";
   const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
 
@@ -816,26 +818,46 @@ function renderResults(){
     let whatHtml;
     if(rec){
       doneCount++;
-      if(rec.result === OPTIONS[0]){ countA++; whatHtml = '<span class="what a">'+OPTIONS[0]+'</span>'; }
-      else { countB++; whatHtml = '<span class="what b">'+OPTIONS[1]+'</span>'; }
+      let resShop = rec.result;
+      if(counts[resShop] !== undefined) counts[resShop]++;
+      whatHtml = `<span class="what">${resShop}</span>`;
     } else {
       whatHtml = '<span class="what pending">chưa quay</span>';
     }
-    row.innerHTML = '<span class="who">'+name+'</span>'+whatHtml;
+    row.innerHTML = `<span class="who">${name}</span>${whatHtml}`;
     tickets.appendChild(row);
   });
 
-  const total = countA + countB;
-  const pctA = total ? Math.round(countA/total*100) : 0;
-  const pctB = total ? Math.round(countB/total*100) : 0;
-  barsEl.innerHTML =
-    '<div class="bar-row"><div class="bar-label"><span>'+OPTIONS[0]+'</span><span>'+countA+' lượt</span></div><div class="bar-track"><div class="bar-fill a" style="width:'+pctA+'%"></div></div></div>'+
-    '<div class="bar-row"><div class="bar-label"><span>'+OPTIONS[1]+'</span><span>'+countB+' lượt</span></div><div class="bar-track"><div class="bar-fill b" style="width:'+pctB+'%"></div></div></div>';
+  const total = doneCount;
+  let barsHtml = "";
+  OPTIONS.forEach(s => {
+    let cnt = counts[s] || 0;
+    let pct = total ? Math.round(cnt / total * 100) : 0;
+    barsHtml += `
+      <div class="bar-row">
+        <div class="bar-label"><span>${s}</span><span>${cnt} lượt</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+      </div>
+    `;
+  });
+  barsEl.innerHTML = barsHtml;
 
   if(doneCount === validList.length && validList.length > 0){
-    tally.className = 'tally winner';
-    if(countA === countB){
-      tally.innerHTML = "Hoà " + countA + " - " + countB + " (Đá Bàn Thắng Vàng!)";
+    // Kiểm tra xem có bị đồng điểm cao nhất không
+    let maxCount = -1;
+    let maxShops = [];
+    OPTIONS.forEach(s => {
+      if(counts[s] > maxCount){
+        maxCount = counts[s];
+        maxShops = [s];
+      } else if(counts[s] === maxCount){
+        maxShops.push(s);
+      }
+    });
+
+    if(maxShops.length > 1){
+      tally.className = 'tally winner';
+      tally.innerHTML = `Có sự đồng điểm (${maxShops.join(" & ")})! Đá Bàn Thắng Vàng!`;
       tieBox.style.display = "block";
       tieSelect.innerHTML = "";
       validList.forEach(n=>{
@@ -846,19 +868,18 @@ function renderResults(){
           tieSelect.appendChild(opt);
         }
       });
-      if(tieSelect.options.length === 0){
-        tieBox.style.display = "none";
-      }
+      if(tieSelect.options.length === 0) tieBox.style.display = "none";
     } else {
       tieBox.style.display = "none";
-      const winner = countA > countB ? OPTIONS[0] : OPTIONS[1];
-      tally.innerHTML = "🏆 Quán thắng: <b>" + winner + "</b> (" + Math.max(countA,countB) + "/" + validList.length + " lượt)";
+      const winner = maxShops[0];
+      tally.className = 'tally winner';
+      tally.innerHTML = `🏆 Quán thắng: <b>${winner}</b> (${maxCount}/${validList.length} lượt)`;
       celebrateWin(winner, false);
     }
   } else {
     tieBox.style.display = "none";
     tally.className = 'tally';
-    tally.innerHTML = doneCount + "/" + validList.length + " người đã quay, còn " + (validList.length - doneCount) + " người nữa.";
+    tally.innerHTML = `${doneCount}/${validList.length} người đã quay, còn ${validList.length - doneCount} người nữa.`;
   }
 }
 
@@ -867,16 +888,9 @@ async function loadState(){
     const pRes = await fetch(DB_URL + "/players.json");
     const pData = pRes.ok ? await pRes.json() : null;
     if(pData){
-      let loaded = [];
-      if(Array.isArray(pData)){
-        loaded = pData;
-      } else if(typeof pData === 'object'){
-        loaded = Object.values(pData);
-      }
+      let loaded = Array.isArray(pData) ? pData : Object.values(pData);
       const validPlayers = loaded.map(n => String(n || "").trim()).filter(n => n.length > 0);
-      if(validPlayers.length > 0){
-        namesList = validPlayers;
-      }
+      if(validPlayers.length > 0) namesList = validPlayers;
     } else {
       const defaultPayload = {};
       DEFAULT_NAMES.forEach((name, idx) => { defaultPayload["p" + idx] = name; });
@@ -903,15 +917,11 @@ async function loadState(){
 async function resetData(){
   const pass = prompt("Nhập mật khẩu quản trị để reset dữ liệu:");
   if(pass === null) return;
-  if(pass !== "2034"){
-    alert("❌ Mật khẩu không đúng!");
-    return;
-  }
+  if(pass !== "2034"){ alert("❌ Mật khẩu không đúng!"); return; }
   
   try{
     await fetch(DB_URL + "/spins.json", { method: "DELETE" });
     await fetch(DB_URL + "/players.json", { method: "DELETE" });
-
     state = {};
     namesList = [...DEFAULT_NAMES];
     selectedName = null;
@@ -922,9 +932,7 @@ async function resetData(){
     renderResults();
     updateSpinButton();
     alert("✅ Đã làm mới dữ liệu thành công!");
-  }catch(e){
-    alert("❌ Không kết nối được tới cơ sở dữ liệu.");
-  }
+  }catch(e){ alert("❌ Lỗi kết nối cơ sở dữ liệu."); }
 }
 
 function pickWinner(){
@@ -947,7 +955,7 @@ async function spin(isTieBreaker = false, tiePerson = null){
       const checkRes = await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json");
       const checkData = await checkRes.json();
       if(checkData) {
-        alert("⚠️ Bạn (" + targetName + ") đã thực hiện quay trước đó rồi, không thể quay lại nữa!");
+        alert("⚠️ Bạn (" + targetName + ") đã thực hiện quay trước đó rồi!");
         state[targetName] = checkData;
         renderNames();
         renderResults();
@@ -972,19 +980,20 @@ async function spin(isTieBreaker = false, tiePerson = null){
   let drumInterval = setInterval(()=>{
     playClickSound();
     soundTimer += 90;
-    if(soundTimer >= 4100){
-      clearInterval(drumInterval);
-    }
+    if(soundTimer >= 4100) clearInterval(drumInterval);
   }, 90);
 
-  setTimeout(()=>{
-    pointerEl.classList.remove('shake');
-  }, 4100);
+  setTimeout(()=>{ pointerEl.classList.remove('shake'); }, 4100);
 
   const winner = pickWinner();
-  const segCenter = winner === OPTIONS[0] ? 90 : 270;
-  let targetMod = ((360 - segCenter) % 360 + 360) % 360;
-  const finalRotation = currentRotation - (currentRotation % 360) + 6*360 + targetMod;
+  
+  // Tính toán góc dừng vòng quay chính xác theo số lượng quán
+  const count = OPTIONS.length;
+  const sliceDeg = 360 / count;
+  const winnerIdx = OPTIONS.indexOf(winner);
+  const segCenterDeg = sliceDeg * winnerIdx + sliceDeg / 2;
+  let targetMod = ((360 - segCenterDeg) % 360 + 360) % 360;
+  const finalRotation = currentRotation - (currentRotation % 360) + 6 * 360 + targetMod;
 
   wheelElement.style.transform = "rotate(" + finalRotation + "deg)";
   currentRotation = finalRotation;
@@ -998,9 +1007,7 @@ async function spin(isTieBreaker = false, tiePerson = null){
         body: JSON.stringify(record)
       });
       state[targetName] = record;
-    }catch(e){
-      showError("Không lưu được kết quả.");
-    }
+    }catch(e){ showError("Không lưu được kết quả."); }
 
     spinning = false;
     if(isTieBreaker) tieBtn.disabled = false;
