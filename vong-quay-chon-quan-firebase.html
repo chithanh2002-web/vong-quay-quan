@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vòng Quay Chọn Quán</title>
 <meta property="og:title" content="Vòng Quay Chọn Quán 🎡">
-<meta property="og:description" content="112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chống spam F5, mỗi người đúng 1 lượt!">
+<meta property="og:description" content="112 hay Hương Lúa? Bấm vào chọn tên bạn rồi quay ngay!">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -58,7 +58,16 @@
   .admin-panel h4{ margin: 0 0 8px; font-size: 13px; color: var(--gold); }
   .admin-select{
     width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--gold);
+    background: #152b1e; color: var(--chalk-cream); font-family: inherit; font-size: 13px; margin-bottom: 8px;
+  }
+  .admin-input-row{ display: flex; gap: 6px; margin-top: 6px; }
+  .admin-input{
+    flex: 1; padding: 8px; border-radius: 6px; border: 1px solid var(--gold);
     background: #152b1e; color: var(--chalk-cream); font-family: inherit; font-size: 13px;
+  }
+  .admin-save-btn{
+    padding: 8px 12px; border-radius: 6px; border: none; background: var(--marigold);
+    color: #3a2a1c; font-family: inherit; font-weight: 700; font-size: 12px; cursor: pointer;
   }
 
   .add-player-box{ display: flex; gap: 6px; margin-bottom: 12px; }
@@ -233,7 +242,7 @@
 <div class="board">
   <div class="eyebrow">Nhóm ăn trưa</div>
   <h1 id="mainTitle">Vòng Quay Chọn Quán</h1>
-  <div class="sub">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chống spam F5, mỗi người đúng 1 lượt!</div>
+  <div class="sub" id="subTitleText">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chống spam F5, mỗi người đúng 1 lượt!</div>
 
   <!-- Nút Mở Khóa Âm Thanh Đảm Bảo 100% -->
   <div class="sound-bar" id="soundBar" onclick="forceUnlockSound()">
@@ -241,12 +250,21 @@
   </div>
 
   <div class="admin-panel" id="adminPanel">
-    <h4>🎛️ Bảng Điều Khiển Kết Quả Bí Mật</h4>
+    <h4>🎛️ Bảng Điều Khiển Quản Trị</h4>
     <select class="admin-select" id="forcedResultSelect" onchange="changeForcedResult(this.value)">
       <option value="RANDOM">🎲 Ngẫu nhiên hoàn toàn (50/50)</option>
-      <option value="112">🔒 Cố định luôn về: 112</option>
-      <option value="Hương Lúa">🔒 Cố định luôn về: Hương Lúa</option>
     </select>
+    
+    <div style="border-top: 1px dashed var(--gold); margin: 8px 0; padding-top: 8px;">
+      <h4 style="margin:0 0 4px;">✏️ Đổi tên quán trực tiếp:</h4>
+      <div class="admin-input-row">
+        <input type="text" id="shop1Input" class="admin-input" placeholder="Tên quán 1">
+        <button class="admin-save-btn" onclick="updateShopNames()">Lưu tên</button>
+      </div>
+      <div class="admin-input-row" style="margin-top: 4px;">
+        <input type="text" id="shop2Input" class="admin-input" placeholder="Tên quán 2">
+      </div>
+    </div>
   </div>
 
   <div class="add-player-box">
@@ -288,7 +306,7 @@
   <div class="tally" id="tally"></div>
   
   <div class="history-box" id="historyBox">
-    📊 Thống kê lịch sử: <b>112</b> thắng (<span id="stat112">0</span>) - <b>Hương Lúa</b> thắng (<span id="statHuongLua">0</span>)
+    📊 Thống kê lịch sử: <b id="labelStat1">112</b> thắng (<span id="stat112">0</span>) - <b id="labelStat2">Hương Lúa</b> thắng (<span id="statHuongLua">0</span>)
   </div>
 
   <div class="reset-container">
@@ -312,10 +330,12 @@
 const DB_URL = "https://vong-quay-cdd2d-default-rtdb.asia-southeast1.firebasedatabase.app";
 const DEFAULT_NAMES = ["Kiệt","Quý","Vương","Huy","Tra","Thành"];
 let namesList = [...DEFAULT_NAMES];
-const OPTIONS = ["112","Hương Lúa"];
-const SERVERS = {
-  "112": { name: "Oanh", emoji: "🍻", messages: ["Yayyy quán mình thắng rồi nè! Cụng ly nào anh em ơi! 🍻"] },
-  "Hương Lúa": { name: "Tiên", emoji: "🍻", messages: ["Hương Lúa thắng rồi nè cả nhà ơi, dô thôi! 🍻"] }
+
+let OPTIONS = JSON.parse(localStorage.getItem('lunch_options') || '["112", "Hương Lúa"]');
+
+let SERVERS = {
+  [OPTIONS[0]]: { name: "Oanh", emoji: "🍻", messages: [`Yayyy quán ${OPTIONS[0]} thắng rồi nè! Cụng ly nào anh em ơi! 🍻`] },
+  [OPTIONS[1]]: { name: "Tiên", emoji: "🍻", messages: [`Quán ${OPTIONS[1]} thắng rồi nè cả nhà ơi, dô thôi! 🍻`] }
 };
 
 let selectedName = null;
@@ -326,8 +346,9 @@ let celebrated = false;
 let audioCtx = null;
 let soundEnabled = false;
 
-window.addEventListener('DOMContentLoaded', () => {
+function drawWheelAndText(){
   const canvas = document.getElementById('wheelCanvas');
+  if(!canvas) return;
   const ctx = canvas.getContext('2d');
   const img = new Image();
   img.crossOrigin = "anonymous";
@@ -345,20 +366,72 @@ window.addEventListener('DOMContentLoaded', () => {
     ctx.save();
     ctx.translate(135, 250);
     ctx.rotate(-Math.PI / 2);
-    ctx.strokeText("112", 0, 0);
+    ctx.strokeText(OPTIONS[0], 0, 0);
     ctx.fillStyle = "#ffffff";
-    ctx.fillText("112", 0, 0);
+    ctx.fillText(OPTIONS[0], 0, 0);
     ctx.restore();
 
     ctx.save();
     ctx.translate(365, 250);
     ctx.rotate(Math.PI / 2);
-    ctx.strokeText("Hương Lúa", 0, 0);
+    ctx.strokeText(OPTIONS[1], 0, 0);
     ctx.fillStyle = "#ffffff";
-    ctx.fillText("Hương Lúa", 0, 0);
+    ctx.fillText(OPTIONS[1], 0, 0);
     ctx.restore();
   };
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  drawWheelAndText();
+  updateUItexts();
+  
+  document.getElementById('shop1Input').value = OPTIONS[0];
+  document.getElementById('shop2Input').value = OPTIONS[1];
+  
+  const select = document.getElementById('forcedResultSelect');
+  select.innerHTML = `
+    <option value="RANDOM">🎲 Ngẫu nhiên hoàn toàn (50/50)</option>
+    <option value="${OPTIONS[0]}">🔒 Cố định luôn về: ${OPTIONS[0]}</option>
+    <option value="${OPTIONS[1]}">🔒 Cố định luôn về: ${OPTIONS[1]}</option>
+  `;
+  const currentForced = localStorage.getItem('forced_winner');
+  if(currentForced) select.value = currentForced;
 });
+
+function updateUItexts(){
+  document.getElementById('subTitleText').textContent = `${OPTIONS[0]} hay ${OPTIONS[1]}? Mỗi người chọn tên mình rồi quay — chống spam F5, mỗi người đúng 1 lượt!`;
+  document.getElementById('labelStat1').textContent = OPTIONS[0];
+  document.getElementById('labelStat2').textContent = OPTIONS[1];
+  
+  SERVERS = {
+    [OPTIONS[0]]: { name: "Oanh", emoji: "🍻", messages: [`Yayyy quán ${OPTIONS[0]} thắng rồi nè! Cụng ly nào anh em ơi! 🍻`] },
+    [OPTIONS[1]]: { name: "Tiên", emoji: "🍻", messages: [`Quán ${OPTIONS[1]} thắng rồi nè cả nhà ơi, dô thôi! 🍻`] }
+  };
+}
+
+function updateShopNames(){
+  const s1 = document.getElementById('shop1Input').value.trim();
+  const s2 = document.getElementById('shop2Input').value.trim();
+  if(!s1 || !s2){
+    alert("⚠️ Vui lòng nhập đầy đủ tên cho cả hai quán!");
+    return;
+  }
+  OPTIONS = [s1, s2];
+  localStorage.setItem('lunch_options', JSON.stringify(OPTIONS));
+  updateUItexts();
+  drawWheelAndText();
+  
+  const select = document.getElementById('forcedResultSelect');
+  select.innerHTML = `
+    <option value="RANDOM">🎲 Ngẫu nhiên hoàn toàn (50/50)</option>
+    <option value="${OPTIONS[0]}">🔒 Cố định luôn về: ${OPTIONS[0]}</option>
+    <option value="${OPTIONS[1]}">🔒 Cố định luôn về: ${OPTIONS[1]}</option>
+  `;
+  
+  renderResults();
+  renderStatsDisplay();
+  alert("✅ Đã cập nhật tên quán thành công!");
+}
 
 function forceUnlockSound(){
   try {
@@ -470,7 +543,7 @@ document.getElementById('historyBox').addEventListener('click', () => {
     historyClicks = 0;
     const pass = prompt("🔒 Nhập mật khẩu quản trị để xóa thống kê lịch sử:");
     if(pass === "2034"){
-      localStorage.setItem('lunch_stats', JSON.stringify({"112":0, "HuongLua":0}));
+      localStorage.setItem('lunch_stats', JSON.stringify({[OPTIONS[0]]:0, [OPTIONS[1]]:0}));
       renderStatsDisplay();
       alert("✅ Đã đặt lại thống kê về 0 thành công!");
     } else if(pass !== null){
@@ -533,8 +606,7 @@ function launchConfetti(){
 }
 
 function showCongrats(winnerOption){
-  const server = SERVERS[winnerOption];
-  if(!server) return;
+  const server = SERVERS[winnerOption] || { name: "Nhóm", emoji: "🍻", messages: [`Quán ${winnerOption} thắng rồi! 🍻`] };
   congratsEmoji.textContent = "🍻";
   congratsServer.textContent = winnerOption + " · " + server.name;
   congratsMsg.textContent = server.messages[0];
@@ -554,22 +626,23 @@ function celebrateWin(winnerOption, isFromLiveSpin = false){
 }
 
 function updateStatsHistory(winner){
-  let stats = JSON.parse(localStorage.getItem('lunch_stats') || '{"112":0, "HuongLua":0}');
-  if(winner === "112") stats["112"]++;
-  else stats["HuongLua"]++;
+  let stats = JSON.parse(localStorage.getItem('lunch_stats') || JSON.stringify({[OPTIONS[0]]:0, [OPTIONS[1]]:0}));
+  if(!stats[winner]) stats[winner] = 0;
+  stats[winner]++;
   localStorage.setItem('lunch_stats', JSON.stringify(stats));
   renderStatsDisplay();
 }
 
 function renderStatsDisplay(){
-  const stats = JSON.parse(localStorage.getItem('lunch_stats') || '{"112":0, "HuongLua":0}');
-  document.getElementById('stat112').textContent = stats["112"];
-  document.getElementById('statHuongLua').textContent = stats["HuongLua"];
+  let stats = JSON.parse(localStorage.getItem('lunch_stats') || JSON.stringify({[OPTIONS[0]]:0, [OPTIONS[1]]:0}));
+  const stat1El = document.getElementById('stat112');
+  const stat2El = document.getElementById('statHuongLua');
+  if(stat1El) stat1El.textContent = stats[OPTIONS[0]] || 0;
+  if(stat2El) stat2El.textContent = stats[OPTIONS[1]] || 0;
 }
 
 function randomPickTieBreaker(){
   const options = tieSelect.options;
-  // Lọc chỉ lấy các option chưa bị đánh dấu là đã quay bàn thắng vàng nếu có
   if(options.length > 0){
     const randomIndex = Math.floor(Math.random() * options.length);
     tieSelect.selectedIndex = randomIndex;
@@ -765,7 +838,6 @@ function renderResults(){
       tally.innerHTML = "Hoà " + countA + " - " + countB + " (Đá Bàn Thắng Vàng!)";
       tieBox.style.display = "block";
       tieSelect.innerHTML = "";
-      // Chỉ đưa vào danh sách chọn đá bàn thắng vàng những ai chưa quay hoặc chưa được ghi nhận
       validList.forEach(n=>{
         if(!state[n] || !state[n].isTieBreaker){
           const opt = document.createElement('option');
@@ -884,7 +956,6 @@ async function spin(isTieBreaker = false, tiePerson = null){
       }
     } catch(e){}
   } else {
-    // Kiểm tra xem người đá bàn thắng vàng này đã được ghi nhận trên server chưa
     if(state[targetName] && state[targetName].isTieBreaker) {
       alert("⚠️ Người này đã thực hiện lượt đá bàn thắng vàng rồi!");
       return;
