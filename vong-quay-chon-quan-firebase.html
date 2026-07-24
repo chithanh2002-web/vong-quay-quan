@@ -217,7 +217,7 @@
 
   <div class="add-player-box">
     <input type="text" id="newPlayerInput" class="add-player-input" placeholder="Nhập tên người chơi mới...">
-    <button class="add-player-btn" onclick="addNewPlayer()">+ Thêm</button>
+    <button class="add-player-btn" onclick="addNewPlayerWithPassword()">+ Thêm</button>
   </div>
 
   <div class="names" id="nameGrid"></div>
@@ -467,7 +467,7 @@ function renderNames(){
   });
 }
 
-async function addNewPlayer(){
+async function addNewPlayerWithPassword(){
   const input = document.getElementById('newPlayerInput');
   const newName = input.value.trim();
   if(!newName){
@@ -479,10 +479,19 @@ async function addNewPlayer(){
     return;
   }
 
+  // Yêu cầu nhập mật khẩu bảo vệ
+  const pass = prompt("🔒 Nhập mật khẩu để thêm người chơi:");
+  if(pass === null) return; // Người dùng bấm Hủy
+  if(pass !== "2034"){
+    alert("❌ Mật khẩu không đúng!");
+    return;
+  }
+
   try{
     let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
     cleanList.push(newName);
 
+    // Ghi nhận trực tiếp dạng Object khóa độc lập (p0, p1, p2...)
     const payload = {};
     cleanList.forEach((name, idx) => {
       payload["p" + idx] = name;
@@ -499,6 +508,7 @@ async function addNewPlayer(){
       input.value = "";
       renderNames();
       renderResults();
+      alert("✅ Đã thêm " + newName + " thành công!");
     } else {
       alert("❌ Lỗi khi lưu người chơi lên hệ thống.");
     }
