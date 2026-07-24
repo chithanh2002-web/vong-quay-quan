@@ -333,7 +333,6 @@ function forceUnlockSound(){
     if(audioCtx.state === 'suspended'){
       audioCtx.resume();
     }
-    // Phát một xung âm thanh mẫu để chính thức kích hoạt phần cứng loa điện thoại
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.frequency.setValueAtTime(600, audioCtx.currentTime);
@@ -354,7 +353,6 @@ function forceUnlockSound(){
   setTimeout(()=>{ bar.style.display = 'none'; }, 2000);
 }
 
-// Bắt mọi thao tác chạm/click trên màn hình để tự động mở khóa âm thanh luôn
 document.addEventListener('click', () => {
   if(!soundEnabled) forceUnlockSound();
 }, { once: true });
@@ -852,7 +850,6 @@ async function spin(isTieBreaker = false, tiePerson = null){
 
   pointerEl.classList.add('shake');
 
-  // Phát tiếng tạch tạch liên tục khi vòng quay chạy
   let soundTimer = 0;
   let drumInterval = setInterval(()=>{
     playClickSound();
