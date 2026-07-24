@@ -806,19 +806,21 @@ async function spin(isTieBreaker = false, tiePerson = null){
   const targetName = isTieBreaker ? tiePerson : selectedName;
   if(!targetName) return;
 
-  // Kiểm tra chống F5 / Quay nhiều lần: Nếu server đã lưu người này quay rồi thì chặn ngay lập tức
-  try {
-    const checkRes = await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json");
-    const checkData = await checkRes.json();
-    if(checkData) {
-      alert("⚠️ Bạn (" + targetName + ") đã thực hiện quay trước đó rồi, không thể quay lại nữa!");
-      state[targetName] = checkData;
-      renderNames();
-      renderResults();
-      updateSpinButton();
-      return;
-    }
-  } catch(e){}
+  // Nếu là quay chính thì kiểm tra chống F5, còn nếu là Bàn Thắng Vàng thì bỏ qua kiểm tra này để được phép quay
+  if(!isTieBreaker){
+    try {
+      const checkRes = await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json");
+      const checkData = await checkRes.json();
+      if(checkData) {
+        alert("⚠️ Bạn (" + targetName + ") đã thực hiện quay trước đó rồi, không thể quay lại nữa!");
+        state[targetName] = checkData;
+        renderNames();
+        renderResults();
+        updateSpinButton();
+        return;
+      }
+    } catch(e){}
+  }
 
   spinning = true;
   updateSpinButton();
@@ -846,15 +848,23 @@ async function spin(isTieBreaker = false, tiePerson = null){
 
   setTimeout(async ()=>{
     const record = { result: winner, time: new Date().toISOString() };
-    try{
-      await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json", {
-        method: "PUT",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(record)
-      });
-      state[targetName] = record;
-    }catch(e){
-      showError("Không lưu được kết quả.");
+    if(!isTieBreaker){
+      try{
+        await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json", {
+          method: "PUT",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify(record)
+        });
+        state[targetName] = record;
+      }catch(e){
+        showError("Không lưu được kết quả.");
+      }
+    } else {
+      // Nếu là bàn thắng vàng, hiển thị luôn kết quả phân định
+      spinning = false;
+      if(isTieBreaker) tieBtn.disabled = false;
+      celebrateWin(winner);
+      return;
     }
     spinning = false;
     renderNames();
