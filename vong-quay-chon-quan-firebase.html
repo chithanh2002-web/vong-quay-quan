@@ -852,13 +852,13 @@ function renderResults(){
       }
     });
 
+    // NẾU CÓ ĐỒNG ĐIỂM -> CHỈ HIỆN KHUNG ĐÁ BÀN THẮNG VÀNG, ẨN HOÀN TOÀN BẢNG CHÚC MỪNG CHIẾN THẮNG
     if(maxShops.length > 1){
       tally.className = 'tally winner';
       tally.innerHTML = `Có sự đồng điểm (${maxShops.join(" & ")})! Đá Bàn Thắng Vàng!`;
       tieBox.style.display = "block";
       tieSelect.innerHTML = "";
       
-      // Chỉ cho phép chọn những người CHƯA tham gia đá bàn thắng vàng (hoặc chưa có cờ tieBreaker)
       validList.forEach(n=>{
         if(!state[n] || !state[n].isTieBreaker){
           const opt = document.createElement('option');
@@ -969,7 +969,6 @@ async function spin(isTieBreaker = false, tiePerson = null){
       }
     } catch(e){}
   } else {
-    // KIỂM TRA TRÊN SERVER XEM NGƯỜI NÀY ĐÃ ĐÁ BÀN THẮNG VÀNG CHƯA ĐỂ CHẶN TUYỆT ĐỐI
     try {
       const checkRes = await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json");
       const checkData = await checkRes.json();
@@ -1026,14 +1025,28 @@ async function spin(isTieBreaker = false, tiePerson = null){
     renderResults();
     updateSpinButton();
     
-    if(!isTieBreaker){
-      const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-      const doneCount = validList.filter(n => state[n]).length;
-      if(doneCount === validList.length){
-        celebrateWin(winner, true);
+    // Kiểm tra lại xem sau lượt quay này (kể cả lượt đá bàn thắng vàng) đã thực sự phân định thắng thua chưa
+    let counts = {};
+    OPTIONS.forEach(s => counts[s] = 0);
+    let validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
+    validList.forEach(n => {
+      if(state[n]) counts[state[n].result]++;
+    });
+
+    let maxCount = -1;
+    let maxShops = [];
+    OPTIONS.forEach(s => {
+      if(counts[s] > maxCount){
+        maxCount = counts[s];
+        maxShops = [s];
+      } else if(counts[s] === maxCount){
+        maxShops.push(s);
       }
-    } else {
-      celebrateWin(winner, true);
+    });
+
+    // Chỉ ăn mừng chiến thắng khi chỉ có DUY NHẤT 1 quán cao phiếu nhất
+    if(maxShops.length === 1){
+      celebrateWin(maxShops[0], true);
     }
   }, 4300);
 }
