@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vòng Quay Chọn Quán - Vòng Tròn Thành Viên</title>
+    <title>Vòng Quay Chọn Quán - Nhóm Ăn Trưa</title>
     <style>
         :root {
-            --bg-color: #081a11;
+            --bg-color: #0b2317;
             --gold-color: #d4af37;
             --gold-light: #f3e5ab;
-            --box-bg: rgba(255, 255, 255, 0.06);
-            --box-border: rgba(212, 175, 55, 0.4);
+            --box-bg: rgba(255, 255, 255, 0.05);
+            --box-border: rgba(212, 175, 55, 0.3);
         }
 
         body {
             margin: 0;
-            padding: 10px;
+            padding: 20px;
             background-color: var(--bg-color);
             color: #f5f5f5;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -23,54 +23,50 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            overflow-x: hidden;
         }
 
         header {
             text-align: center;
-            margin-bottom: 5px;
+            margin-bottom: 20px;
         }
 
         .subtitle {
-            font-size: 11px;
+            font-size: 12px;
             letter-spacing: 2px;
             color: var(--gold-color);
             text-transform: uppercase;
-            margin-bottom: 2px;
+            margin-bottom: 5px;
         }
 
         h1 {
-            font-size: 20px;
-            margin: 0 0 4px 0;
+            font-size: 24px;
+            margin: 0 0 10px 0;
             color: var(--gold-light);
         }
 
         .description {
-            font-size: 11px;
+            font-size: 13px;
             color: #b0b0b0;
-            max-width: 380px;
-            line-height: 1.3;
-            text-align: center;
-            margin-bottom: 10px;
+            max-width: 400px;
+            line-height: 1.4;
         }
 
         .input-container {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             width: 100%;
-            max-width: 320px;
-            margin-bottom: 15px;
-            z-index: 10;
+            max-width: 360px;
+            margin-bottom: 20px;
         }
 
         input[type="text"] {
             flex: 1;
             background: var(--box-bg);
             border: 1px solid var(--box-border);
-            border-radius: 6px;
-            padding: 8px 12px;
+            border-radius: 8px;
+            padding: 10px 15px;
             color: #fff;
-            font-size: 13px;
+            font-size: 14px;
             outline: none;
         }
 
@@ -78,46 +74,90 @@
             color: #777;
         }
 
-        button.add-btn {
+        button {
             background: linear-gradient(to bottom, #e6c65c, #b8860b);
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             color: #111;
             font-weight: bold;
-            padding: 0 12px;
+            padding: 0 15px;
             cursor: pointer;
-            font-size: 13px;
+            transition: opacity 0.2s;
         }
 
-        /* Arena chứa vòng quay và người chơi xếp vòng tròn xung quanh */
-        .arena-container {
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 360px;
+            margin-bottom: 20px;
+        }
+
+        .player-card {
+            background: var(--box-bg);
+            border: 1px solid var(--box-border);
+            border-radius: 10px;
+            padding: 12px 5px;
+            text-align: center;
+            cursor: pointer;
             position: relative;
-            width: 360px;
-            height: 360px;
-            margin: 10px auto 20px auto;
+            transition: all 0.2s;
         }
 
-        /* Vòng quay ở chính giữa */
-        .wheel-wrapper {
+        .player-card.active-turn {
+            border-color: var(--gold-light);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+        }
+
+        .player-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .player-status {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin-bottom: 20px;
+        }
+
+        .pointer {
             position: absolute;
-            top: 50%;
+            top: -10px;
             left: 50%;
-            transform: translate(-50%, -50%);
-            width: 200px;
-            height: 200px;
-            z-index: 2;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 14px solid #e74c3c;
+            z-index: 10;
         }
 
         .wheel {
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            border: 3px solid var(--gold-color);
+            border: 4px solid var(--gold-color);
             position: relative;
             overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.6);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
             transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1);
-            background: #111;
+            background: #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .wheel-inner {
@@ -135,20 +175,19 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 12px;
-            color: #fff;
+            font-size: 16px;
         }
 
-        .section-1 { top: 0; left: 0; transform: rotate(0deg); background: #234e32; }
-        .section-2 { top: 0; left: 50%; transform: rotate(90deg); background: #614227; }
-        .section-3 { top: 50%; left: 50%; transform: rotate(180deg); background: #262626; }
-        .section-4 { top: 50%; left: 0; transform: rotate(270deg); background: #4a3b2c; }
+        .section-1 { top: 0; left: 0; transform: rotate(0deg); background: #2e5a36; }
+        .section-2 { top: 0; left: 50%; transform: rotate(90deg); background: #5a422e; }
+        .section-3 { top: 50%; left: 50%; transform: rotate(180deg); background: #333333; }
+        .section-4 { top: 50%; left: 0; transform: rotate(270deg); background: #42382e; }
 
         .wheel-center {
             position: absolute;
-            width: 50px;
-            height: 50px;
-            background: rgba(0,0,0,0.8);
+            width: 80px;
+            height: 80px;
+            background: rgba(0,0,0,0.6);
             border-radius: 50%;
             border: 2px solid var(--gold-color);
             top: 50%;
@@ -157,86 +196,31 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
-            color: var(--gold-light);
-            z-index: 3;
-            font-weight: bold;
-        }
-
-        /* Kim chỉ hướng ở phía trên vòng quay */
-        .pointer {
-            position: absolute;
-            top: -6px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-top: 12px solid #e74c3c;
-            z-index: 5;
-        }
-
-        /* Các thẻ thành viên xếp theo vòng tròn xung quanh */
-        .player-seat {
-            position: absolute;
-            width: 85px;
-            background: var(--box-bg);
-            border: 1px solid var(--box-border);
-            border-radius: 8px;
-            padding: 6px 4px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            z-index: 4;
-            backdrop-filter: blur(2px);
-        }
-
-        .player-seat.active-turn {
-            border-color: var(--gold-light);
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.6);
-            background: rgba(212, 175, 55, 0.15);
-        }
-
-        .seat-name {
-            font-weight: 600;
             font-size: 12px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-bottom: 2px;
-            color: #fff;
-        }
-
-        .seat-status {
-            font-size: 9px;
-            color: #aaa;
+            color: var(--gold-light);
+            text-align: center;
+            z-index: 2;
         }
 
         .spin-btn {
             width: 100%;
-            max-width: 320px;
-            padding: 12px;
-            background: linear-gradient(to bottom, #333, #1a1a1a);
+            max-width: 360px;
+            padding: 14px;
+            background: linear-gradient(to bottom, #333, #222);
             border: 1px solid var(--box-border);
-            border-radius: 8px;
+            border-radius: 10px;
             color: var(--gold-light);
-            font-size: 14px;
+            font-size: 15px;
             font-weight: bold;
             cursor: pointer;
             text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .spin-btn:hover {
-            opacity: 0.95;
+            margin-bottom: 15px;
         }
 
         .footer-note {
-            font-size: 10px;
+            font-size: 11px;
             color: #777;
             text-align: center;
-            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -245,33 +229,30 @@
     <header>
         <div class="subtitle">Nhóm Ăn Trưa</div>
         <h1>Vòng Quay Chọn Quán</h1>
-        <div class="description">112 hay Hương Lúa? Thành viên ngồi vòng tròn quanh vòng quay – mỗi người đúng 1 lượt!</div>
+        <div class="description">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay – chống spam F5, mỗi người đúng 1 lượt!</div>
     </header>
 
     <div class="input-container">
-        <input type="text" id="newNameInput" placeholder="Thêm tên thành viên mới...">
-        <button class="add-btn" onclick="addPlayer()">+ Thêm</button>
+        <input type="text" id="newNameInput" placeholder="Nhập tên người chơi mới...">
+        <button onclick="addPlayer()">+ Thêm</button>
     </div>
 
-    <!-- Khu vực bàn tròn bao gồm vòng quay ở giữa và các ghế bao quanh -->
-    <div class="arena-container" id="arenaContainer">
-        <!-- Vòng quay trung tâm -->
-        <div class="wheel-wrapper">
-            <div class="pointer"></div>
-            <div class="wheel" id="wheel">
-                <div class="wheel-inner">
-                    <div class="section section-1">Hương Lúa</div>
-                    <div class="section section-2">112</div>
-                    <div class="section section-3">Hương Lúa</div>
-                    <div class="section section-4">112</div>
-                </div>
+    <div class="players-grid" id="playersGrid"></div>
+
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <div class="wheel" id="wheel">
+            <div class="wheel-inner">
+                <div class="section section-1">Hương Lúa</div>
+                <div class="section section-2">112</div>
+                <div class="section section-3">Hương Lúa</div>
+                <div class="section section-4">112</div>
             </div>
-            <div class="wheel-center">QUÁN</div>
         </div>
-        <!-- Các thành viên sẽ được chèn tự động định vị vòng tròn bằng JS -->
+        <div class="wheel-center">QUÁN</div>
     </div>
 
-    <button class="spin-btn" onclick="spinWheel()">Quay Ngay</button>
+    <button class="spin-btn" onclick="spinWheel()">Chọn tên trước đã</button>
 
     <div class="footer-note">
         ⚖️ Tỉ lệ quay hoàn toàn ngẫu nhiên và bảo mật chống F5
@@ -287,37 +268,17 @@
             { name: 'Thành', spun: false }
         ];
 
-        function renderPlayersAroundWheel() {
-            const arena = document.getElementById('arenaContainer');
-            
-            // Xóa các ghế cũ trước khi render lại (giữ lại phần .wheel-wrapper)
-            const oldSeats = arena.querySelectorAll('.player-seat');
-            oldSeats.forEach(seat => seat.remove());
-
-            const total = players.length;
-            const radius = 130; // Khoảng cách từ tâm vòng quay ra các ghế
-            const centerX = 180; // Tọa độ X tâm arena (360 / 2)
-            const centerY = 180; // Tọa độ Y tâm arena (360 / 2)
-
+        function renderPlayers() {
+            const grid = document.getElementById('playersGrid');
+            grid.innerHTML = '';
             players.forEach((player, index) => {
-                // Tính góc phân bổ đều vòng tròn (bắt đầu từ góc -90 độ / đỉnh trên cùng)
-                const angle = (index * 2 * Math.PI) / total - Math.PI / 2;
-                
-                const x = centerX + radius * Math.cos(angle) - 42; // trừ đi nửa chiều rộng ghế (85/2)
-                const y = centerY + radius * Math.sin(angle) - 20; // trừ đi nửa chiều cao ghế
-
-                const seat = document.createElement('div');
-                const isActive = !player.spun && index === players.findIndex(p => !p.spun);
-                seat.className = `player-seat ${isActive ? 'active-turn' : ''}`;
-                seat.style.left = `${x}px`;
-                seat.style.top = `${y}px`;
-
-                seat.innerHTML = `
-                    <div class="seat-name">${player.name}</div>
-                    <div class="seat-status">${player.spun ? 'đã quay' : 'chưa quay'}</div>
+                const card = document.createElement('div');
+                card.className = `player-card ${!player.spun && index === players.length - 1 ? 'active-turn' : ''}`;
+                card.innerHTML = `
+                    <div class="player-name">${player.name}</div>
+                    <div class="player-status">${player.spun ? 'đã quay' : 'chưa quay'}</div>
                 `;
-                
-                arena.appendChild(seat);
+                grid.appendChild(card);
             });
         }
 
@@ -327,7 +288,7 @@
             if (name) {
                 players.push({ name: name, spun: false });
                 input.value = '';
-                renderPlayersAroundWheel();
+                renderPlayers();
             }
         }
 
@@ -336,15 +297,11 @@
             const randomDegree = Math.floor(Math.random() * 3600) + 720;
             wheel.style.transform = `rotate(${randomDegree}deg)`;
             setTimeout(() => {
-                alert("Đã quay xong! Kết quả hiển thị cho cả nhóm.");
+                alert("Đã quay xong! Quyết định cuối cùng thuộc về vòng quay.");
             }, 4000);
         }
 
-        // Khởi chạy khi tải trang
-        renderPlayersAroundWheel();
+        renderPlayers();
     </script>
 </body>
 </html>
-```eof
-
-Your slide deck/web app layout for the circular seating arrangement is ready! Feel free to take a look and let me know if you'd like to make any adjustments.
