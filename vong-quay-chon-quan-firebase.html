@@ -489,17 +489,18 @@ function celebrateWin(winnerOption){
 function renderNames(){
   nameGrid.innerHTML = "";
   namesList.forEach(name=>{
-    if(!name || typeof name !== 'string') return;
+    if(!name || typeof name !== 'string' || !name.trim()) return;
+    const cleanName = name.trim();
     const btn = document.createElement('button');
     btn.className = 'name-btn';
-    const spun = state[name];
+    const spun = state[cleanName];
     btn.disabled = !!spun;
-    if(selectedName === name) btn.classList.add('selected');
-    btn.innerHTML = name.trim() + (spun ? '<span class="tag">đã quay</span>' : '');
+    if(selectedName === cleanName) btn.classList.add('selected');
+    btn.innerHTML = cleanName + (spun ? '<span class="tag">đã quay</span>' : '');
     btn.onclick = ()=>{
       initAudio();
       if(spinning || spun) return;
-      selectedName = name;
+      selectedName = cleanName;
       renderNames();
       updateSpinButton();
     };
@@ -539,7 +540,8 @@ async function submitPasswordModal(){
   closePasswordModal();
 
   try{
-    const updatedList = [...namesList, pendingNewPlayerName];
+    const cleanList = namesList.filter(n => n && typeof n === 'string' && n.trim().length > 0);
+    const updatedList = [...cleanList, pendingNewPlayerName.trim()];
     const res = await fetch(DB_URL + "/players.json", {
       method: "PUT",
       headers: {"Content-Type":"application/json"},
@@ -582,8 +584,9 @@ function renderResults(){
   let countA = 0, countB = 0, doneCount = 0;
   tickets.innerHTML = "";
   namesList.forEach(name=>{
-    if(!name || typeof name !== 'string') return;
-    const rec = state[name];
+    if(!name || typeof name !== 'string' || !name.trim()) return;
+    const cleanName = name.trim();
+    const rec = state[cleanName];
     const row = document.createElement('div');
     row.className = 'ticket';
     let whatHtml;
@@ -594,7 +597,7 @@ function renderResults(){
     } else {
       whatHtml = '<span class="what pending">chưa quay</span>';
     }
-    row.innerHTML = '<span class="who">'+name.trim()+'</span>'+whatHtml;
+    row.innerHTML = '<span class="who">'+cleanName+'</span>'+whatHtml;
     tickets.appendChild(row);
   });
 
@@ -612,10 +615,11 @@ function renderResults(){
       tieBox.style.display = "block";
       tieSelect.innerHTML = "";
       namesList.forEach(n=>{
-        if(!n || typeof n !== 'string') return;
+        if(!n || typeof n !== 'string' || !n.trim()) return;
+        const cleanName = n.trim();
         const opt = document.createElement('option');
-        opt.value = n.trim();
-        opt.textContent = n.trim();
+        opt.value = cleanName;
+        opt.textContent = cleanName;
         tieSelect.appendChild(opt);
       });
     } else {
@@ -635,8 +639,14 @@ async function loadState(){
   try{
     const pRes = await fetch(DB_URL + "/players.json");
     const pData = pRes.ok ? await pRes.json() : null;
-    if(pData && Array.isArray(pData)){
-      const validPlayers = pData.filter(n => n && typeof n === 'string' && n.trim().length > 0);
+    if(pData){
+      let loaded = [];
+      if(Array.isArray(pData)){
+        loaded = pData;
+      } else if(typeof pData === 'object'){
+        loaded = Object.values(pData);
+      }
+      const validPlayers = loaded.filter(n => n && typeof n === 'string' && n.trim().length > 0);
       if(validPlayers.length > 0){
         namesList = validPlayers;
       }
