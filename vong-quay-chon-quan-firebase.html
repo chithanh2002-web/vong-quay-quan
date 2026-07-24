@@ -236,9 +236,9 @@
   <h1 id="mainTitle">Vòng Quay Chọn Quán</h1>
   <div class="sub">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chống spam F5, mỗi người đúng 1 lượt!</div>
 
-  <!-- Nút Bật Âm Thanh Bắt Buộc cho Điện Thoại -->
-  <div class="sound-bar" id="soundBar" onclick="enableAudioAndHide()">
-    🔊 NHẤN VÀO ĐÂY ĐỂ BẬT TIẾNG LOA (QUAN TRỌNG)
+  <!-- Nút Bật Âm Thanh Tương Tác Trực Tiếp -->
+  <div class="sound-bar" id="soundBar" onclick="initAndUnlockAudio()">
+    🔊 BẤM VÀO ĐÂY ĐỂ MỞ KHÓA ÂM THANH LOA
   </div>
 
   <div class="admin-panel" id="adminPanel">
@@ -324,42 +324,85 @@ let state = {};
 let spinning = false;
 let currentRotation = 0;
 let celebrated = false;
+let audioCtx = null;
 let audioUnlocked = false;
 
-// Dùng thẻ Audio HTML5 chuẩn để phát âm thanh tạch tạch và nhạc chiến thắng chuẩn 100% trên mọi điện thoại
-const tickAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
-tickAudio.volume = 0.5;
+function initAndUnlockAudio(){
+  if(!audioCtx){
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AudioContext();
+  }
+  if(audioCtx.state === 'suspended'){
+    audioCtx.resume();
+  }
+  
+  // Phát một xung âm thanh vô hình siêu nhỏ để chính thức mở khóa phần cứng loa trên Mobile
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.05);
+  } catch(e){}
 
-const winAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3');
-winAudio.volume = 0.8;
-
-function enableAudioAndHide(){
   audioUnlocked = true;
-  // Phát và dừng lập tức để kích hoạt phân vùng âm thanh của trình duyệt mobile
-  tickAudio.play().then(() => {
-    tickAudio.pause();
-    tickAudio.currentTime = 0;
-  }).catch(e => {});
-
   const bar = document.getElementById('soundBar');
   bar.style.background = "rgba(127,166,92,0.25)";
   bar.style.borderColor = "var(--paddy)";
   bar.style.color = "var(--paddy)";
-  bar.innerHTML = "✅ Loa đã được bật thành công, sẵn sàng quay!";
-  setTimeout(()=>{ bar.style.display = 'none'; }, 2200);
+  bar.innerHTML = "✅ Âm thanh đã bật thành công, quẩy thôi!";
+  setTimeout(()=>{ bar.style.display = 'none'; }, 2000);
 }
 
-function playTickSound(){
+// Tự động kích hoạt khi chạm bất cứ đâu trên trang
+document.addEventListener('click', () => { if(!audioUnlocked) initAndUnlockAudio(); }, { once: true });
+document.addEventListener('touchstart', () => { if(!audioUnlocked) initAndUnlockAudio(); }, { once: true });
+
+function playClickSound(){
   try {
-    tickAudio.currentTime = 0;
-    tickAudio.play().catch(e => {});
+    if(!audioCtx) initAndUnlockAudio();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.04);
+
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.04);
   } catch(e) {}
 }
 
-function playWinSoundEffect(){
+function playWinFanfare(){
   try {
-    winAudio.currentTime = 0;
-    winAudio.play().catch(e => {});
+    if(!audioCtx) initAndUnlockAudio();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+
+    const notes = [440, 554.37, 659.25, 880];
+    notes.forEach((freq, idx) => {
+      setTimeout(() => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+      }, idx * 120);
+    });
   } catch(e) {}
 }
 
@@ -461,7 +504,7 @@ function celebrateWin(winnerOption, isFromLiveSpin = false){
   if(isFromLiveSpin){
     if(!celebrated){
       celebrated = true;
-      playWinSoundEffect();
+      playWinFanfare();
       launchConfetti();
       updateStatsHistory(winnerOption);
     }
@@ -521,7 +564,7 @@ function renderNames(){
 
     btn.onclick = (e)=>{
       if(e.target === delBtn) return;
-      if(!audioUnlocked) enableAudioAndHide();
+      if(!audioUnlocked) initAndUnlockAudio();
       if(spinning || spun) return;
       selectedName = name;
       renderNames();
@@ -777,7 +820,7 @@ async function spin(isTieBreaker = false, tiePerson = null){
   const targetName = isTieBreaker ? tiePerson : selectedName;
   if(!targetName) return;
 
-  if(!audioUnlocked) enableAudioAndHide();
+  if(!audioUnlocked) initAndUnlockAudio();
 
   if(!isTieBreaker){
     try {
@@ -800,10 +843,10 @@ async function spin(isTieBreaker = false, tiePerson = null){
 
   pointerEl.classList.add('shake');
 
-  // Phát tiếng tạch tạch liên tục khi vòng quay đang chạy
+  // Phát tiếng tạch tạch liên tục khi vòng quay chạy
   let soundTimer = 0;
   let drumInterval = setInterval(()=>{
-    playTickSound();
+    playClickSound();
     soundTimer += 90;
     if(soundTimer >= 4100){
       clearInterval(drumInterval);
