@@ -225,7 +225,7 @@
 <div class="board">
   <div class="eyebrow">Nhóm ăn trưa</div>
   <h1 id="mainTitle">Vòng Quay Chọn Quán</h1>
-  <div class="sub">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — hoàn toàn ngẫu nhiên độc lập 50/50!</div>
+  <div class="sub">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chống spam F5, mỗi người đúng 1 lượt!</div>
 
   <div class="admin-panel" id="adminPanel">
     <h4>🎛️ Bảng Điều Khiển Kết Quả Bí Mật</h4>
@@ -265,7 +265,7 @@
 
   <div class="hint" id="hint">Đang tải trạng thái của nhóm...</div>
   <div class="err" id="errBox"></div>
-  <div class="fair-note">⚖️ Tỉ lệ quay hoàn toàn ngẫu nhiên và công bằng tuyệt đối</div>
+  <div class="fair-note">⚖️ Tỉ lệ quay hoàn toàn ngẫu nhiên và bảo mật chống F5</div>
 
   <hr class="chalk-line">
 
@@ -282,7 +282,7 @@
     <button class="reset-btn" onclick="resetData()">🔄 Xóa dữ liệu & làm lại từ đầu</button>
   </div>
 
-  <div class="footnote">Mỗi người tự mở link này, chọn đúng tên mình và quay. Hệ thống tự khoá lại sau khi đã quay.</div>
+  <div class="footnote">Mỗi người tự mở link này, chọn đúng tên mình và quay. Dữ liệu được khóa vĩnh viễn trên server chống F5.</div>
 </div>
 
 <div class="congrats-overlay" id="congratsOverlay">
@@ -793,7 +793,6 @@ async function resetData(){
   }
 }
 
-// Trở về cơ chế ngẫu nhiên hoàn toàn 100% bằng Math.random()
 function pickWinner(){
   const forced = localStorage.getItem('forced_winner');
   if(forced && forced !== "RANDOM"){
@@ -802,10 +801,25 @@ function pickWinner(){
   return OPTIONS[Math.floor(Math.random() * OPTIONS.length)];
 }
 
-function spin(isTieBreaker = false, tiePerson = null){
+async function spin(isTieBreaker = false, tiePerson = null){
   if(spinning) return;
-  if(!isTieBreaker && (!selectedName || state[selectedName])) return;
-  
+  const targetName = isTieBreaker ? tiePerson : selectedName;
+  if(!targetName) return;
+
+  // Kiểm tra chống F5 / Quay nhiều lần: Nếu server đã lưu người này quay rồi thì chặn ngay lập tức
+  try {
+    const checkRes = await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json");
+    const checkData = await checkRes.json();
+    if(checkData) {
+      alert("⚠️ Bạn (" + targetName + ") đã thực hiện quay trước đó rồi, không thể quay lại nữa!");
+      state[targetName] = checkData;
+      renderNames();
+      renderResults();
+      updateSpinButton();
+      return;
+    }
+  } catch(e){}
+
   spinning = true;
   updateSpinButton();
   if(isTieBreaker) tieBtn.disabled = true;
@@ -831,7 +845,6 @@ function spin(isTieBreaker = false, tiePerson = null){
   currentRotation = finalRotation;
 
   setTimeout(async ()=>{
-    const targetName = isTieBreaker ? tiePerson : selectedName;
     const record = { result: winner, time: new Date().toISOString() };
     try{
       await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json", {
