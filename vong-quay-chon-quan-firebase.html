@@ -326,7 +326,7 @@ let celebrated = false;
 let audioCtx = null;
 let soundEnabled = false;
 
-// Tự động vẽ ảnh nền và chữ sắc nét bằng Canvas để sau này dễ đổi tên quán
+// Vẽ chữ lên Canvas có kèm viền xanh lá đậm và hiệu ứng nổi
 window.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('wheelCanvas');
   const ctx = canvas.getContext('2d');
@@ -336,27 +336,29 @@ window.addEventListener('DOMContentLoaded', () => {
   img.onload = () => {
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     
+    // Cấu hình chung cho chữ nổi bật
+    ctx.font = "bold 36px 'Be Vietnam Pro', sans-serif";
+    ctx.textAlign = "center";
+    ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+    ctx.shadowBlur = 10;
+    ctx.lineWidth = 6; // Độ dày của viền xanh
+    ctx.strokeStyle = "#0b3b1e"; // Màu viền xanh lá đậm sắc nét
+
     // Vẽ chữ 112 bên trái
     ctx.save();
-    ctx.translate(130, 250);
+    ctx.translate(135, 250);
     ctx.rotate(-Math.PI / 2);
-    ctx.font = "bold 34px 'Be Vietnam Pro', sans-serif";
+    ctx.strokeText("112", 0, 0);
     ctx.fillStyle = "#ffffff";
-    ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
-    ctx.shadowBlur = 8;
-    ctx.textAlign = "center";
     ctx.fillText("112", 0, 0);
     ctx.restore();
 
     // Vẽ chữ Hương Lúa bên phải
     ctx.save();
-    ctx.translate(370, 250);
+    ctx.translate(365, 250);
     ctx.rotate(Math.PI / 2);
-    ctx.font = "bold 32px 'Be Vietnam Pro', sans-serif";
+    ctx.strokeText("Hương Lúa", 0, 0);
     ctx.fillStyle = "#ffffff";
-    ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
-    ctx.shadowBlur = 8;
-    ctx.textAlign = "center";
     ctx.fillText("Hương Lúa", 0, 0);
     ctx.restore();
   };
