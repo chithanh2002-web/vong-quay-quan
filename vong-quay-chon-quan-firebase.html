@@ -225,12 +225,12 @@
 <div class="board">
   <div class="eyebrow">Nhóm ăn trưa</div>
   <h1 id="mainTitle">Vòng Quay Chọn Quán</h1>
-  <div class="sub">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chỉ được quay <b>1 lần duy nhất</b>, tỉ lệ 50/50.</div>
+  <div class="sub">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — cơ chế chia đều thông minh chống lệch tỷ lệ!</div>
 
   <div class="admin-panel" id="adminPanel">
     <h4>🎛️ Bảng Điều Khiển Kết Quả Bí Mật</h4>
     <select class="admin-select" id="forcedResultSelect" onchange="changeForcedResult(this.value)">
-      <option value="RANDOM">🎲 Ngẫu nhiên bình thường (50/50)</option>
+      <option value="RANDOM">🎲 Tự động chia đều công bằng (Mặc định)</option>
       <option value="112">🔒 Cố định luôn về: 112</option>
       <option value="Hương Lúa">🔒 Cố định luôn về: Hương Lúa</option>
     </select>
@@ -265,7 +265,7 @@
 
   <div class="hint" id="hint">Đang tải trạng thái của nhóm...</div>
   <div class="err" id="errBox"></div>
-  <div class="fair-note">⚖️ Tỉ lệ quay luôn độc lập và công bằng tuyệt đối</div>
+  <div class="fair-note">⚖️ Tỉ lệ quay được cân bằng hoàn hảo cho toàn bộ danh sách</div>
 
   <hr class="chalk-line">
 
@@ -328,7 +328,6 @@ document.getElementById('mainTitle').addEventListener('click', () => {
   setTimeout(() => { titleClicks = 0; }, 1500);
 });
 
-// Thao tác bấm 3 cái liên tiếp vào khung Thống kê lịch sử để xóa
 let historyClicks = 0;
 document.getElementById('historyBox').addEventListener('click', () => {
   historyClicks++;
@@ -351,7 +350,7 @@ function changeForcedResult(val){
   if(val !== "RANDOM"){
     alert("⚠️ Đã kích hoạt chế độ ép kết quả về: " + val);
   } else {
-    alert("🎲 Đã chuyển lại chế độ ngẫu nhiên bình thường!");
+    alert("🎲 Đã chuyển lại chế độ chia đều công bằng!");
   }
 }
 
@@ -794,12 +793,34 @@ async function resetData(){
   }
 }
 
+// Thuật toán thông minh: Tự động cân bằng số lượng 2 bên dựa trên tổng số người chơi
 function pickWinner(){
   const forced = localStorage.getItem('forced_winner');
   if(forced && forced !== "RANDOM"){
     return forced;
   }
-  return OPTIONS[Math.floor(Math.random()*OPTIONS.length)];
+
+  const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
+  const totalPlayers = validList.length;
+  
+  // Đếm xem đã có bao nhiêu người ra kết quả 112 và Hương Lúa
+  let countA = 0, countB = 0;
+  validList.forEach(name => {
+    if(state[name]){
+      if(state[name].result === OPTIONS[0]) countA++;
+      else if(state[name].result === OPTIONS[1]) countB++;
+    }
+  });
+
+  const targetA = Math.ceil(totalPlayers / 2);
+  const targetB = Math.floor(totalPlayers / 2);
+
+  // Nếu bên nào đã đủ chỉ tiêu, bắt buộc phần còn lại phải ra bên kia để cân bằng tuyệt đối
+  if(countA >= targetA && countB < targetB) return OPTIONS[1];
+  if(countB >= targetB && countA < targetA) return OPTIONS[0];
+
+  // Nếu chưa đủ, random bình thường 50/50
+  return OPTIONS[Math.floor(Math.random() * OPTIONS.length)];
 }
 
 function spin(isTieBreaker = false, tiePerson = null){
