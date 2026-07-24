@@ -134,15 +134,22 @@
     margin-top: 14px; padding: 14px; border-radius: 12px; background: rgba(193,68,46,0.15);
     border: 1.5px solid rgba(193,68,46,0.4); text-align: center; display: none;
   }
-  .tie-box h3{ font-size: 14px; color: var(--marigold); margin: 0 0 8px; }
+  .tie-box h3{ font-size: 13.5px; color: var(--marigold); margin: 0 0 8px; }
+  .tie-row{ display: flex; gap: 6px; margin-bottom: 8px; }
   .tie-select{
-    width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--gold);
-    background: #1f3d2b; color: var(--chalk-cream); font-family: inherit; font-size: 14px; margin-bottom: 10px;
+    flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--gold);
+    background: #1f3d2b; color: var(--chalk-cream); font-family: inherit; font-size: 13px;
   }
+  .tie-random-btn{
+    padding: 8px 12px; border-radius: 8px; border: 1px solid var(--marigold);
+    background: rgba(232,163,61,0.2); color: var(--marigold); font-family: inherit; font-weight: 700;
+    font-size: 12px; cursor: pointer; white-space: nowrap;
+  }
+  .tie-random-btn:hover{ background: rgba(232,163,61,0.35); }
   .tie-btn{
-    width: 100%; padding: 12px; border-radius: 10px; border: none;
+    width: 100%; padding: 11px; border-radius: 10px; border: none;
     background: linear-gradient(180deg, #e8a33d, #b4893a); color: #3a2a1c;
-    font-family: inherit; font-weight: 800; font-size: 14.5px; cursor: pointer;
+    font-family: inherit; font-weight: 800; font-size: 14px; cursor: pointer;
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   }
 
@@ -169,6 +176,12 @@
   .tally b{ color:var(--chalk-cream); }
   .tally.winner{ font-size:14.5px; font-weight:800; color:var(--chalk-cream); }
   
+  .history-box{
+    margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(242,236,216,0.1); font-size: 12px; color: var(--chalk-cream-dim); text-align: center;
+  }
+  .history-box b{ color: var(--marigold); }
+
   .reset-container { margin-top: 14px; text-align: center; }
   .reset-btn {
     background: none; border: none; color: rgba(242,236,216,0.4);
@@ -241,8 +254,11 @@
   <button class="spin-btn" id="spinBtn" disabled>Chọn tên trước đã</button>
   
   <div class="tie-box" id="tieBox">
-    <h3>⚡ Kết quả đang HOÀ! Chọn người đại diện đá Bàn Thắng Vàng:</h3>
-    <select class="tie-select" id="tieSelect"></select>
+    <h3>⚡ Kết quả đang HOÀ! Chọn người đá Bàn Thắng Vàng:</h3>
+    <div class="tie-row">
+      <select class="tie-select" id="tieSelect"></select>
+      <button class="tie-random-btn" onclick="randomPickTieBreaker()">🎲 Bốc thăm</button>
+    </div>
     <button class="tie-btn" id="tieBtn">Quay Bàn Thắng Vàng! ⚽</button>
   </div>
 
@@ -256,6 +272,10 @@
   <div class="bars" id="bars"></div>
   <div class="tickets" id="tickets"></div>
   <div class="tally" id="tally"></div>
+  
+  <div class="history-box" id="historyBox">
+    📊 Thống kê lịch sử: <b>112</b> thắng (<span id="stat112">0</span>) - <b>Hương Lúa</b> thắng (<span id="statHuongLua">0</span>)
+  </div>
 
   <div class="reset-container">
     <button class="reset-btn" onclick="resetData()">🔄 Xóa dữ liệu & làm lại từ đầu</button>
@@ -329,20 +349,27 @@ function initAudio(){
 document.addEventListener('click', initAudio, { once: false });
 document.addEventListener('touchstart', initAudio, { once: false });
 
-function playTickSound(){
+function playDrumrollTick(){
   try{
     initAudio();
-    const osc = audioCtx.createOscillator();
+    const bufferSize = audioCtx.sampleRate * 0.04;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let j=0; j<bufferSize; j++){
+      data[j] = (Math.random() * 2 - 1) * Math.exp(-j / (bufferSize * 0.3));
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 800;
     const gain = audioCtx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.05);
-    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-    osc.connect(gain);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+    noise.connect(filter);
+    filter.connect(gain);
     gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.05);
+    noise.start();
   }catch(e){}
 }
 
@@ -450,6 +477,32 @@ function celebrateWin(winnerOption){
   playWinSound();
   launchConfetti();
   showCongrats(winnerOption);
+  updateStatsHistory(winnerOption);
+}
+
+function updateStatsHistory(winner){
+  let stats = JSON.parse(localStorage.getItem('lunch_stats') || '{"112":0, "HuongLua":0}');
+  if(winner === "112") stats["112"]++;
+  else stats["HuongLua"]++;
+  localStorage.setItem('lunch_stats', JSON.stringify(stats));
+  renderStatsDisplay();
+}
+
+function renderStatsDisplay(){
+  const stats = JSON.parse(localStorage.getItem('lunch_stats') || '{"112":0, "HuongLua":0}');
+  document.getElementById('stat112').textContent = stats["112"];
+  document.getElementById('statHuongLua').textContent = stats["HuongLua"];
+}
+
+function randomPickTieBreaker(){
+  const options = tieSelect.options;
+  if(options.length > 0){
+    const randomIndex = Math.floor(Math.random() * options.length);
+    tieSelect.selectedIndex = randomIndex;
+    // Hiệu ứng rung nhẹ select cho vui mắt
+    tieSelect.style.borderColor = "var(--marigold)";
+    setTimeout(()=>{ tieSelect.style.borderColor = "var(--gold)"; }, 500);
+  }
 }
 
 function renderNames(){
@@ -463,7 +516,6 @@ function renderNames(){
     btn.disabled = !!spun;
     if(selectedName === name) btn.classList.add('selected');
 
-    // Nút xóa nhỏ gọn góc trên bên trái ô tên
     const delBtn = document.createElement('button');
     delBtn.className = 'del-btn';
     delBtn.innerHTML = '✕';
@@ -523,7 +575,6 @@ async function removePlayer(nameToRemove){
       namesList = cleanList;
       if(selectedName === nameToRemove) selectedName = null;
       
-      // Xóa luôn trạng thái quay của người này nếu có
       await fetch(DB_URL + "/spins/" + encodeURIComponent(nameToRemove) + ".json", {
         method: "DELETE"
       });
@@ -695,6 +746,7 @@ async function loadState(){
   renderNames();
   renderResults();
   updateSpinButton();
+  renderStatsDisplay();
 }
 
 async function resetData(){
@@ -743,12 +795,13 @@ function spin(isTieBreaker = false, tiePerson = null){
 
   pointerEl.classList.add('shake');
 
-  let tickInterval = setInterval(()=>{
-    playTickSound();
-  }, 130);
+  // Hiệu ứng âm thanh trống dồn dập (Drumroll) lúc quay
+  let drumInterval = setInterval(()=>{
+    playDrumrollTick();
+  }, 75);
 
   setTimeout(()=>{
-    clearInterval(tickInterval);
+    clearInterval(drumInterval);
     pointerEl.classList.remove('shake');
   }, 4100);
 
