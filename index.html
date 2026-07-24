@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vòng Quay Chọn Quán - Theo Phòng Nhóm</title>
+    <title>Vòng Quay Chọn Quán - Theo Phòng</title>
     <style>
         :root {
             --bg-color: #0b2317;
@@ -14,105 +14,166 @@
         }
         body {
             margin: 0; padding: 20px;
-            background-color: var(--bg-color); color: #f5f5f5;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #fff; text-align: center;
         }
-        header { text-align: center; margin-bottom: 15px; }
-        .subtitle { font-size: 12px; letter-spacing: 2px; color: var(--gold-color); text-transform: uppercase; margin-bottom: 5px; }
-        h1 { font-size: 22px; margin: 0 0 5px 0; color: var(--gold-light); }
-        .room-badge { font-size: 13px; background: rgba(212, 175, 55, 0.2); color: var(--gold-light); padding: 4px 12px; border-radius: 20px; border: 1px solid var(--gold-color); display: inline-block; margin-top: 5px; }
-        .description { font-size: 12px; color: #b0b0b0; max-width: 400px; line-height: 1.4; margin-top: 8px; }
-        .input-container { display: flex; gap: 10px; width: 100%; max-width: 360px; margin-bottom: 15px; }
-        input[type="text"] { flex: 1; background: var(--box-bg); border: 1px solid var(--box-border); border-radius: 8px; padding: 10px 15px; color: #fff; font-size: 14px; outline: none; }
-        input[type="text"]::placeholder { color: #777; }
-        button { background: linear-gradient(to bottom, #e6c65c, #b8860b); border: none; border-radius: 8px; color: #111; font-weight: bold; padding: 0 15px; cursor: pointer; }
-        .players-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 360px; margin-bottom: 20px; }
-        .player-card { background: var(--box-bg); border: 1px solid var(--box-border); border-radius: 10px; padding: 12px 5px; text-align: center; }
-        .player-card.active-turn { border-color: var(--gold-light); box-shadow: 0 0 10px rgba(212, 175, 55, 0.4); }
-        .player-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-        .player-status { font-size: 11px; color: #888; }
-        .wheel-container { position: relative; width: 260px; height: 260px; margin-bottom: 20px; }
-        .pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 14px solid #e74c3c; z-index: 10; }
-        .wheel { width: 100%; height: 100%; border-radius: 50%; border: 4px solid var(--gold-color); position: relative; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.5); transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1); background: #222; display: flex; align-items: center; justify-content: center; }
-        .wheel-inner { width: 100%; height: 100%; position: relative; }
-        .section { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 15px; }
-        .section-1 { top: 0; left: 0; transform: rotate(0deg); background: #2e5a36; }
-        .section-2 { top: 0; left: 50%; transform: rotate(90deg); background: #5a422e; }
-        .section-3 { top: 50%; left: 50%; transform: rotate(180deg); background: #333333; }
-        .section-4 { top: 50%; left: 0; transform: rotate(270deg); background: #42382e; }
-        .wheel-center { position: absolute; width: 70px; height: 70px; background: rgba(0,0,0,0.6); border-radius: 50%; border: 2px solid var(--gold-color); top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--gold-light); text-align: center; z-index: 2; }
-        .spin-btn { width: 100%; max-width: 360px; padding: 14px; background: linear-gradient(to bottom, #e6c65c, #b8860b); border: none; border-radius: 10px; color: #111; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
-        .room-changer { margin-top: 10px; font-size: 12px; color: #aaa; cursor: pointer; text-decoration: underline; }
-        .footer-note { font-size: 11px; color: #777; text-align: center; }
+        .container { max-width: 500px; margin: 0 auto; }
+        .room-badge {
+            background: rgba(212, 175, 55, 0.2);
+            border: 1px solid var(--gold-color);
+            padding: 8px 15px; border-radius: 20px;
+            display: inline-block; margin-bottom: 15px;
+            color: var(--gold-light); font-weight: bold;
+        }
+        h1 { color: var(--gold-color); font-size: 24px; margin-bottom: 5px; }
+        p { font-size: 14px; color: #ccc; margin-bottom: 20px; }
+        .input-box {
+            display: flex; gap: 10px; margin-bottom: 20px;
+        }
+        input {
+            flex: 1; padding: 12px; border-radius: 8px;
+            border: 1px solid var(--box-border);
+            background: var(--box-bg); color: #fff; font-size: 16px;
+        }
+        button {
+            padding: 12px 20px; border-radius: 8px;
+            border: none; background: var(--gold-color);
+            color: #000; font-weight: bold; cursor: pointer;
+        }
+        .player-list {
+            display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;
+        }
+        .player-item {
+            background: var(--box-bg); border: 1px solid var(--box-border);
+            padding: 10px 15px; border-radius: 8px; display: flex;
+            justify-content: space-between; align-items: center;
+        }
+        .wheel-container {
+            position: relative; width: 280px; height: 280px; margin: 20px auto;
+        }
+        canvas { width: 100%; height: 100%; border-radius: 50%; border: 4px solid var(--gold-color); }
+        .spin-btn {
+            width: 100%; padding: 15px; font-size: 18px;
+            background: linear-gradient(to bottom, #f3e5ab, #d4af37);
+            border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 15px;
+        }
+        .footer-link {
+            margin-top: 30px; font-size: 13px; color: var(--gold-light); cursor: pointer; text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <div class="subtitle">Nhóm Ăn Trưa</div>
-        <h1>Vòng Quay Chọn Quán</h1>
-        <div class="room-badge" id="roomBadge">Phòng: Đang tải...</div>
-        <div class="description">Mỗi nhóm Zalo dùng một tên phòng riêng để không bị đụng dữ liệu hoặc phá phách!</div>
-    </header>
-    <div class="input-container">
-        <input type="text" id="newNameInput" placeholder="Nhập tên người chơi...">
+
+<div class="container">
+    <div style="font-size: 12px; color: #888; text-transform: uppercase;">Nhóm Ăn Trưa</div>
+    <h1>Vòng Quay Chọn Quán</h1>
+    <div class="room-badge" id="roomDisplay">Mã Phòng: Đang tải...</div>
+    <p>Mỗi nhóm Zalo dùng một tên phòng riêng để không bị đụng dữ liệu hoặc phá phách!</p>
+
+    <div class="input-box">
+        <input type="text" id="playerName" placeholder="Nhập tên người chơi...">
         <button onclick="addPlayer()">+ Thêm</button>
     </div>
-    <div class="players-grid" id="playersGrid"></div>
+
+    <div class="player-list" id="playerList"></div>
+
     <div class="wheel-container">
-        <div class="pointer"></div>
-        <div class="wheel" id="wheel">
-            <div class="wheel-inner">
-                <div class="section section-1">Hương Lúa</div>
-                <div class="section section-2">112</div>
-                <div class="section section-3">Hương Lúa</div>
-                <div class="section section-4">112</div>
-            </div>
-        </div>
-        <div class="wheel-center">QUÁN</div>
+        <canvas id="wheel" width="300" height="300"></canvas>
     </div>
+
     <button class="spin-btn" onclick="spinWheel()">Quay Vòng Ngay</button>
-    <div class="room-changer" onclick="changeRoom()">🔄 Đổi sang phòng/nhóm khác</div>
-    <div class="footer-note" style="margin-top: 15px;">⚖️ Dữ liệu được lưu riêng biệt cho từng phòng trên thiết bị.</div>
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        let roomName = urlParams.get('room') || 'nhom-mac-dinh';
-        document.getElementById('roomBadge').innerText = `Mã Phòng: ${roomName}`;
-        const storageKey = `vongquay_room_${roomName}`;
-        let defaultPlayers = [{ name: 'Kiệt', spun: false }, { name: 'Quý', spun: false }, { name: 'Vương', spun: false }];
-        let players = JSON.parse(localStorage.getItem(storageKey)) || defaultPlayers;
-        function savePlayers() { localStorage.setItem(storageKey, JSON.stringify(players)); }
-        function renderPlayers() {
-            const grid = document.getElementById('playersGrid');
-            grid.innerHTML = '';
-            players.forEach((player) => {
-                const card = document.createElement('div');
-                card.className = `player-card ${!player.spun ? 'active-turn' : ''}`;
-                card.innerHTML = `<div class="player-name">${player.name}</div><div class="player-status">${player.spun ? 'đã quay' : 'chưa quay'}</div>`;
-                grid.appendChild(card);
-            });
+
+    <div class="footer-link" onclick="changeRoom()">🔄 Đổi sang phòng/nhóm khác</div>
+</div>
+
+<script>
+    // Tự động nhận diện phòng từ URL (?room=ten_phong)
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentRoom = urlParams.get('room') || 'mac-dinh';
+    document.getElementById('roomDisplay').innerText = "Mã Phòng: " + currentRoom;
+
+    // Khởi tạo dữ liệu riêng biệt cho từng phòng qua localStorage
+    const storageKey = 'vongquay_' + currentRoom;
+    let data = JSON.parse(localStorage.getItem(storageKey)) || {
+        players: [
+            { name: "Kiệt", status: "chưa quay" },
+            { name: "Quý", status: "chưa quay" },
+            { name: "Vương", status: "chưa quay" }
+        ],
+        restaurants: ["Hương Lúa", "QUÁN"]
+    };
+
+    function saveData() {
+        localStorage.setItem(storageKey, JSON.stringify(data));
+    }
+
+    function render() {
+        const listEl = document.getElementById('playerList');
+        listEl.innerHTML = '';
+        data.players.forEach((p, index) => {
+            listEl.innerHTML += `
+                <div class="player-item">
+                    <span><b>${p.name}</b></span>
+                    <span style="color: ${p.status === 'chưa quay' ? '#aaa' : '#d4af37'}">${p.status}</span>
+                </div>
+            `;
+        });
+        drawWheel();
+    }
+
+    function addPlayer() {
+        const input = document.getElementById('playerName');
+        const name = input.value.trim();
+        if(name) {
+            data.players.push({ name: name, status: "chưa quay" });
+            input.value = '';
+            saveData();
+            render();
         }
-        function addPlayer() {
-            const input = document.getElementById('newNameInput');
-            const name = input.value.trim();
-            if (name) { players.push({ name: name, spun: false }); input.value = ''; savePlayers(); renderPlayers(); }
+    }
+
+    function changeRoom() {
+        let newRoom = prompt("Nhập tên phòng mới cho nhóm (không dấu, không khoảng cách):", currentRoom);
+        if(newRoom) {
+            newRoom = newRoom.toLowerCase().replace(/[^a-z0-9]/g, '-');
+            window.location.href = window.location.pathname + '?room=' + newRoom;
         }
-        function spinWheel() {
-            const nextPlayer = players.find(p => !p.spun);
-            if (!nextPlayer) { alert("Tất cả thành viên trong phòng này đã quay hết lượt rồi!"); return; }
-            const wheel = document.getElementById('wheel');
-            const randomDegree = Math.floor(Math.random() * 3600) + 720;
-            wheel.style.transform = `rotate(${randomDegree}deg)`;
-            setTimeout(() => {
-                nextPlayer.spun = true; savePlayers(); renderPlayers();
-                alert(`Lượt của ${nextPlayer.name} đã xong!`);
-            }, 4000);
-        }
-        function changeRoom() {
-            let newRoom = prompt("Nhập tên mã phòng mới cho nhóm Zalo của bạn:", roomName);
-            if (newRoom) { window.location.href = window.location.pathname + `?room=${encodeURIComponent(newRoom.trim())}`; }
-        }
-        renderPlayers();
-    </script>
+    }
+
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    function drawWheel() {
+        const restaurants = data.restaurants;
+        const arcs = restaurants.length;
+        const angle = (2 * Math.PI) / arcs;
+        ctx.clearRect(0, 0, 300, 300);
+        
+        restaurants.forEach((res, i) => {
+            ctx.beginPath();
+            ctx.fillStyle = i % 2 === 0 ? '#1b4d3e' : '#222';
+            ctx.moveTo(150, 150);
+            ctx.arc(150, 150, 140, i * angle, (i + 1) * angle);
+            ctx.lineTo(150, 150);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.save();
+            ctx.translate(150, 150);
+            ctx.rotate(i * angle + angle / 2);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillText(res, 60, 10);
+            ctx.restore();
+        });
+    }
+
+    function spinWheel() {
+        alert("Đã sẵn sàng quay cho phòng: " + currentRoom);
+    }
+
+    render();
+</script>
+
 </body>
 </html>
