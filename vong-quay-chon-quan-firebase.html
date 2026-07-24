@@ -68,7 +68,7 @@
   .names{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:12px; }
   .name-btn{
     position:relative;
-    padding:9px 4px; border-radius:10px; border:1.5px solid rgba(227,192,105,0.35);
+    padding:9px 4px 9px 18px; border-radius:10px; border:1.5px solid rgba(227,192,105,0.35);
     background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.12));
     color:var(--chalk-cream); font-family:inherit;
     font-weight:700; font-size:13.5px; cursor:pointer; transition:all 0.18s ease;
@@ -87,6 +87,13 @@
   }
   .name-btn:disabled{ opacity:0.4; cursor:not-allowed; text-decoration:line-through; }
   .name-btn .tag{ display:block; font-size:9px; font-weight:500; letter-spacing:0.04em; color:var(--paddy); margin-top:2px; text-decoration:none; }
+  
+  .del-btn{
+    position: absolute; top: 2px; left: 3px; background: none; border: none;
+    color: rgba(193,68,46,0.8); font-size: 11px; font-weight: 800; cursor: pointer;
+    padding: 2px 4px; border-radius: 4px; line-height: 1; transition: color 0.2s;
+  }
+  .del-btn:hover{ color: var(--brick); background: rgba(193,68,46,0.15); }
 
   .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin:14px 0 8px; }
   .wheel-frame{ position:relative; width:250px; height:250px; }
@@ -455,8 +462,25 @@ function renderNames(){
     const spun = state[name];
     btn.disabled = !!spun;
     if(selectedName === name) btn.classList.add('selected');
-    btn.innerHTML = name + (spun ? '<span class="tag">đã quay</span>' : '');
-    btn.onclick = ()=>{
+
+    // Nút xóa nhỏ gọn góc trên bên trái ô tên
+    const delBtn = document.createElement('button');
+    delBtn.className = 'del-btn';
+    delBtn.innerHTML = '✕';
+    delBtn.title = 'Xóa người chơi này';
+    delBtn.onclick = (e)=>{
+      e.stopPropagation();
+      removePlayer(name);
+    };
+
+    btn.appendChild(delBtn);
+
+    const textSpan = document.createElement('span');
+    textSpan.innerHTML = name + (spun ? '<span class="tag">đã quay</span>' : '');
+    btn.appendChild(textSpan);
+
+    btn.onclick = (e)=>{
+      if(e.target === delBtn) return;
       initAudio();
       if(spinning || spun) return;
       selectedName = name;
@@ -465,6 +489,56 @@ function renderNames(){
     };
     nameGrid.appendChild(btn);
   });
+}
+
+async function removePlayer(nameToRemove){
+  const pass = prompt("🔒 Nhập mật khẩu quản trị để xóa người chơi '" + nameToRemove + "':");
+  if(pass === null) return;
+  if(pass !== "2034"){
+    alert("❌ Mật khẩu không đúng!");
+    return;
+  }
+
+  try{
+    let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
+    cleanList = cleanList.filter(n => n !== nameToRemove);
+
+    if(cleanList.length === 0){
+      alert("❌ Cần giữ lại ít nhất 1 người chơi trong danh sách!");
+      return;
+    }
+
+    const payload = {};
+    cleanList.forEach((name, idx) => {
+      payload["p" + idx] = name;
+    });
+
+    const res = await fetch(DB_URL + "/players.json", {
+      method: "PUT",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(payload)
+    });
+
+    if(res.ok){
+      namesList = cleanList;
+      if(selectedName === nameToRemove) selectedName = null;
+      
+      // Xóa luôn trạng thái quay của người này nếu có
+      await fetch(DB_URL + "/spins/" + encodeURIComponent(nameToRemove) + ".json", {
+        method: "DELETE"
+      });
+      delete state[nameToRemove];
+
+      renderNames();
+      renderResults();
+      updateSpinButton();
+      alert("✅ Đã xóa " + nameToRemove + " thành công!");
+    } else {
+      alert("❌ Lỗi khi cập nhật dữ liệu.");
+    }
+  }catch(e){
+    alert("❌ Không kết nối được tới cơ sở dữ liệu.");
+  }
 }
 
 async function addNewPlayerWithPassword(){
@@ -479,9 +553,8 @@ async function addNewPlayerWithPassword(){
     return;
   }
 
-  // Yêu cầu nhập mật khẩu bảo vệ
   const pass = prompt("🔒 Nhập mật khẩu để thêm người chơi:");
-  if(pass === null) return; // Người dùng bấm Hủy
+  if(pass === null) return;
   if(pass !== "2034"){
     alert("❌ Mật khẩu không đúng!");
     return;
@@ -491,7 +564,6 @@ async function addNewPlayerWithPassword(){
     let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
     cleanList.push(newName);
 
-    // Ghi nhận trực tiếp dạng Object khóa độc lập (p0, p1, p2...)
     const payload = {};
     cleanList.forEach((name, idx) => {
       payload["p" + idx] = name;
