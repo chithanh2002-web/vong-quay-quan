@@ -43,11 +43,11 @@
   
   .sound-bar{
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    background: rgba(227,192,105,0.12); border: 1px solid var(--gold);
-    padding: 8px 12px; border-radius: 10px; margin-bottom: 14px; cursor: pointer;
-    font-size: 13px; font-weight: 700; color: var(--gold); transition: background 0.2s;
+    background: rgba(227,192,105,0.18); border: 1.5px solid var(--gold);
+    padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; cursor: pointer;
+    font-size: 13.5px; font-weight: 700; color: var(--gold); transition: background 0.2s; text-align: center;
   }
-  .sound-bar:hover{ background: rgba(227,192,105,0.22); }
+  .sound-bar:hover{ background: rgba(227,192,105,0.28); }
 
   .chalk-line{ border:none; border-top:1.5px dashed rgba(242,236,216,0.25); margin:12px 0; }
 
@@ -236,9 +236,9 @@
   <h1 id="mainTitle">Vòng Quay Chọn Quán</h1>
   <div class="sub">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chống spam F5, mỗi người đúng 1 lượt!</div>
 
-  <!-- Nút kích hoạt âm thanh cho điện thoại -->
-  <div class="sound-bar" id="soundBar" onclick="forceUnlockAudio()">
-    🔊 Bấm vào đây để bật tiếng trước khi quay!
+  <!-- Nút Bật Âm Thanh Bắt Buộc cho Điện Thoại -->
+  <div class="sound-bar" id="soundBar" onclick="enableAudioAndHide()">
+    🔊 NHẤN VÀO ĐÂY ĐỂ BẬT TIẾNG LOA (QUAN TRỌNG)
   </div>
 
   <div class="admin-panel" id="adminPanel">
@@ -324,41 +324,44 @@ let state = {};
 let spinning = false;
 let currentRotation = 0;
 let celebrated = false;
-let audioCtx = null;
+let audioUnlocked = false;
 
-function initAudio(){
-  if(!audioCtx){
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    audioCtx = new AudioContext();
-  }
-  if(audioCtx.state === 'suspended'){
-    audioCtx.resume();
-  }
-}
+// Dùng thẻ Audio HTML5 chuẩn để phát âm thanh tạch tạch và nhạc chiến thắng chuẩn 100% trên mọi điện thoại
+const tickAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+tickAudio.volume = 0.5;
 
-function forceUnlockAudio(){
-  initAudio();
-  // Phát một âm thanh rỗng siêu nhỏ để ép trình duyệt mở khóa loa
-  try {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.05);
-  } catch(e){}
+const winAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3');
+winAudio.volume = 0.8;
+
+function enableAudioAndHide(){
+  audioUnlocked = true;
+  // Phát và dừng lập tức để kích hoạt phân vùng âm thanh của trình duyệt mobile
+  tickAudio.play().then(() => {
+    tickAudio.pause();
+    tickAudio.currentTime = 0;
+  }).catch(e => {});
 
   const bar = document.getElementById('soundBar');
   bar.style.background = "rgba(127,166,92,0.25)";
   bar.style.borderColor = "var(--paddy)";
   bar.style.color = "var(--paddy)";
-  bar.innerHTML = "✅ Âm thanh đã sẵn sàng, quẩy thôi!";
-  setTimeout(()=>{ bar.style.display = 'none'; }, 2000);
+  bar.innerHTML = "✅ Loa đã được bật thành công, sẵn sàng quay!";
+  setTimeout(()=>{ bar.style.display = 'none'; }, 2200);
 }
 
-document.addEventListener('click', initAudio, { once: false });
-document.addEventListener('touchstart', initAudio, { once: false });
+function playTickSound(){
+  try {
+    tickAudio.currentTime = 0;
+    tickAudio.play().catch(e => {});
+  } catch(e) {}
+}
+
+function playWinSoundEffect(){
+  try {
+    winAudio.currentTime = 0;
+    winAudio.play().catch(e => {});
+  } catch(e) {}
+}
 
 let titleClicks = 0;
 document.getElementById('mainTitle').addEventListener('click', () => {
@@ -400,76 +403,6 @@ function changeForcedResult(val){
   } else {
     alert("🎲 Đã chuyển lại chế độ ngẫu nhiên hoàn toàn!");
   }
-}
-
-function playDrumrollTick(){
-  try{
-    initAudio();
-    const bufferSize = audioCtx.sampleRate * 0.04;
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for(let j=0; j<bufferSize; j++){
-      data[j] = (Math.random() * 2 - 1) * Math.exp(-j / (bufferSize * 0.3));
-    }
-    const noise = audioCtx.createBufferSource();
-    noise.buffer = buffer;
-    const filter = audioCtx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 800;
-    const gain = audioCtx.createGain();
-    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(audioCtx.destination);
-    noise.start();
-  }catch(e){}
-}
-
-function playWinSound(){
-  try{
-    initAudio();
-    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
-    notes.forEach((freq, idx)=>{
-      setTimeout(()=>{
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.6);
-      }, idx * 110);
-    });
-
-    for(let i=0; i<20; i++){
-      setTimeout(()=>{
-        const bufferSize = audioCtx.sampleRate * 0.09;
-        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for(let j=0; j<bufferSize; j++){
-          data[j] = Math.random() * 2 - 1;
-        }
-        const noise = audioCtx.createBufferSource();
-        noise.buffer = buffer;
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.value = 500 + Math.random() * 1800;
-        
-        const gain = audioCtx.createGain();
-        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.09);
-
-        noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(audioCtx.destination);
-        noise.start();
-      }, 250 + Math.random() * 1500);
-    }
-  }catch(e){}
 }
 
 const nameGrid = document.getElementById('nameGrid');
@@ -528,7 +461,7 @@ function celebrateWin(winnerOption, isFromLiveSpin = false){
   if(isFromLiveSpin){
     if(!celebrated){
       celebrated = true;
-      playWinSound();
+      playWinSoundEffect();
       launchConfetti();
       updateStatsHistory(winnerOption);
     }
@@ -588,7 +521,7 @@ function renderNames(){
 
     btn.onclick = (e)=>{
       if(e.target === delBtn) return;
-      initAudio();
+      if(!audioUnlocked) enableAudioAndHide();
       if(spinning || spun) return;
       selectedName = name;
       renderNames();
@@ -844,6 +777,8 @@ async function spin(isTieBreaker = false, tiePerson = null){
   const targetName = isTieBreaker ? tiePerson : selectedName;
   if(!targetName) return;
 
+  if(!audioUnlocked) enableAudioAndHide();
+
   if(!isTieBreaker){
     try {
       const checkRes = await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json");
@@ -862,16 +797,20 @@ async function spin(isTieBreaker = false, tiePerson = null){
   spinning = true;
   updateSpinButton();
   if(isTieBreaker) tieBtn.disabled = true;
-  initAudio();
 
   pointerEl.classList.add('shake');
 
+  // Phát tiếng tạch tạch liên tục khi vòng quay đang chạy
+  let soundTimer = 0;
   let drumInterval = setInterval(()=>{
-    playDrumrollTick();
-  }, 75);
+    playTickSound();
+    soundTimer += 90;
+    if(soundTimer >= 4100){
+      clearInterval(drumInterval);
+    }
+  }, 90);
 
   setTimeout(()=>{
-    clearInterval(drumInterval);
     pointerEl.classList.remove('shake');
   }, 4100);
 
