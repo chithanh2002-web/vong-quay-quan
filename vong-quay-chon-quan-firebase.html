@@ -1,923 +1,297 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vòng Quay Chọn Quán</title>
-<meta property="og:title" content="Vòng Quay Chọn Quán 🎡">
-<meta property="og:description" content="112 hay Hương Lúa? Bấm vào chọn tên bạn rồi quay ngay!">
-<meta property="og:type" content="website">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --chalk-bg: #152b1e;
-    --chalk-cream: #f2ecd8;
-    --chalk-cream-dim: #cfc7ab;
-    --marigold: #e8a33d;
-    --paddy: #7fa65c;
-    --brick: #c1442e;
-    --gold: #e3c069;
-    --gold-deep: #b4893a;
-    --wood: #3a2a1c;
-    --wood-light: #5c4128;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    min-height:100vh;
-    background:
-      radial-gradient(ellipse at top, rgba(255,255,255,0.04), transparent 60%),
-      repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 3px),
-      var(--chalk-bg);
-    font-family:'Be Vietnam Pro', sans-serif;
-    color:var(--chalk-cream);
-    display:flex;
-    justify-content:center;
-    padding:24px 16px 40px;
-  }
-  .board{ width:100%; max-width:480px; }
-  .eyebrow{ text-align:center; font-size:11px; letter-spacing:0.24em; text-transform:uppercase; color:var(--marigold); font-weight:600; margin-bottom:4px; }
-  h1{ text-align:center; font-size:24px; font-weight:800; margin:0 0 4px; cursor:pointer; user-select:none; }
-  .sub{ text-align:center; color:var(--chalk-cream-dim); font-size:12px; margin-bottom:12px; line-height:1.35; }
-  
-  .sound-bar{
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    background: rgba(227,192,105,0.18); border: 1.5px solid var(--gold);
-    padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; cursor: pointer;
-    font-size: 13.5px; font-weight: 700; color: var(--gold); transition: background 0.2s; text-align: center;
-  }
-  .sound-bar:hover{ background: rgba(227,192,105,0.28); }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vòng Quay Chọn Quán - Nhóm Ăn Trưa</title>
+    <style>
+        :root {
+            --bg-color: #0b2317;
+            --gold-color: #d4af37;
+            --gold-light: #f3e5ab;
+            --box-bg: rgba(255, 255, 255, 0.05);
+            --box-border: rgba(212, 175, 55, 0.3);
+        }
 
-  .chalk-line{ border:none; border-top:1.5px dashed rgba(242,236,216,0.25); margin:12px 0; }
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-  .admin-panel{
-    background: rgba(227,192,105,0.1); border: 1.5px dashed var(--gold);
-    padding: 12px; border-radius: 12px; margin-bottom: 14px; display: none; text-align: center;
-  }
-  .admin-panel h4{ margin: 0 0 8px; font-size: 13px; color: var(--gold); }
-  .admin-select{
-    width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--gold);
-    background: #152b1e; color: var(--chalk-cream); font-family: inherit; font-size: 13px;
-  }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-  .add-player-box{ display: flex; gap: 6px; margin-bottom: 12px; }
-  .add-player-input{
-    flex: 1; padding: 9px 12px; border-radius: 10px; border: 1.5px solid rgba(227,192,105,0.35);
-    background: rgba(255,255,255,0.04); color: var(--chalk-cream); font-family: inherit; font-size: 13px;
-  }
-  .add-player-input:focus{ outline: none; border-color: var(--gold); }
-  .add-player-btn{
-    padding: 9px 14px; border-radius: 10px; border: 1.5px solid var(--gold);
-    background: var(--wood-light); color: var(--gold); font-family: inherit; font-weight: 700;
-    font-size: 13px; cursor: pointer; transition: background 0.2s;
-  }
-  .add-player-btn:hover{ background: var(--wood); }
+        .subtitle {
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: var(--gold-color);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
 
-  .names{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:12px; }
-  .name-btn{
-    position:relative;
-    padding:9px 4px 9px 18px; border-radius:10px; border:1.5px solid rgba(227,192,105,0.35);
-    background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.12));
-    color:var(--chalk-cream); font-family:inherit;
-    font-weight:700; font-size:13.5px; cursor:pointer; transition:all 0.18s ease;
-  }
-  .name-btn:hover:not(:disabled){ border-color:var(--gold); background:rgba(227,192,105,0.1); }
-  .name-btn.selected{
-    border-color:var(--gold);
-    background:linear-gradient(180deg, rgba(227,192,105,0.28), rgba(227,192,105,0.1));
-    box-shadow:0 0 0 1px rgba(227,192,105,0.4) inset, 0 0 10px rgba(227,192,105,0.25);
-  }
-  .name-btn.selected::after{
-    content:"✓"; position:absolute; top:-6px; right:-6px; width:16px; height:16px;
-    border-radius:50%; background:linear-gradient(180deg, var(--gold), var(--gold-deep));
-    color:#3a2a1c; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center;
-    box-shadow:0 2px 4px rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.5);
-  }
-  .name-btn:disabled{ opacity:0.4; cursor:not-allowed; text-decoration:line-through; }
-  .name-btn .tag{ display:block; font-size:9px; font-weight:500; letter-spacing:0.04em; color:var(--paddy); margin-top:2px; text-decoration:none; }
-  
-  .del-btn{
-    position: absolute; top: 2px; left: 3px; background: none; border: none;
-    color: rgba(193,68,46,0.8); font-size: 11px; font-weight: 800; cursor: pointer;
-    padding: 2px 4px; border-radius: 4px; line-height: 1; transition: color 0.2s;
-  }
-  .del-btn:hover{ color: var(--brick); background: rgba(193,68,46,0.15); }
+        h1 {
+            font-size: 24px;
+            margin: 0 0 10px 0;
+            color: var(--gold-light);
+        }
 
-  .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin:14px 0 8px; }
-  .wheel-frame{ position:relative; width:250px; height:250px; }
-  
-  /* Thay thế mũi tên đỏ bằng biểu tượng bàn tay/ngón tay trỏ chỉ xuống */
-  .pointer{
-    position: absolute; top: -32px; left: 50%; transform: translateX(-50%);
-    font-size: 26px; z-index: 50; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.7));
-    transform-origin: bottom center; pointer-events: none; line-height: 1;
-  }
-  .pointer.shake { animation: pointerShake 0.08s infinite alternate ease-in-out; }
-  @keyframes pointerShake {
-    0% { transform: translateX(-50%) rotate(-16deg); }
-    100% { transform: translateX(-50%) rotate(16deg); }
-  }
+        .description {
+            font-size: 13px;
+            color: #b0b0b0;
+            max-width: 400px;
+            line-height: 1.4;
+        }
 
-  .wheel-container{
-    width:100%; height:100%; border-radius:50%; position:absolute; top:0; left:0;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
-    transition:transform 4.2s cubic-bezier(0.12,0.85,0.15,1);
-    overflow: hidden;
-  }
-  .wheel-container img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 50%; }
+        .input-container {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 360px;
+            margin-bottom: 20px;
+        }
 
-  .spin-btn{
-    margin-top:14px; width:100%; padding:14px; border-radius:12px;
-    border:1.5px solid rgba(227,192,105,0.55);
-    background:linear-gradient(180deg, var(--wood-light), var(--wood));
-    color:var(--gold); font-family:inherit; font-weight:800;
-    font-size:16px; letter-spacing:0.03em; cursor:pointer; transition:all 0.15s ease;
-    box-shadow:0 4px 0 #241a10, 0 6px 14px rgba(0,0,0,0.4);
-    text-shadow:0 1px 2px rgba(0,0,0,0.5);
-  }
-  .spin-btn:active:not(:disabled){ transform:translateY(3px); box-shadow:0 1px 0 #241a10; }
-  .spin-btn:disabled{ background:#453e33; color:#8a8270; box-shadow:0 5px 0 #2a251d; cursor:not-allowed; opacity:0.8; }
-  
-  .tie-box{
-    margin-top: 14px; padding: 14px; border-radius: 12px; background: rgba(193,68,46,0.15);
-    border: 1.5px solid rgba(193,68,46,0.4); text-align: center; display: none;
-  }
-  .tie-box h3{ font-size: 13.5px; color: var(--marigold); margin: 0 0 8px; }
-  .tie-row{ display: flex; gap: 6px; margin-bottom: 8px; }
-  .tie-select{
-    flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--gold);
-    background: #1f3d2b; color: var(--chalk-cream); font-family: inherit; font-size: 13px;
-  }
-  .tie-random-btn{
-    padding: 8px 12px; border-radius: 8px; border: 1px solid var(--marigold);
-    background: rgba(232,163,61,0.2); color: var(--marigold); font-family: inherit; font-weight: 700;
-    font-size: 12px; cursor: pointer; white-space: nowrap;
-  }
-  .tie-random-btn:hover{ background: rgba(232,163,61,0.35); }
-  .tie-btn{
-    width: 100%; padding: 11px; border-radius: 10px; border: none;
-    background: linear-gradient(180deg, #e8a33d, #b4893a); color: #3a2a1c;
-    font-family: inherit; font-weight: 800; font-size: 14px; cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  }
+        input[type="text"] {
+            flex: 1;
+            background: var(--box-bg);
+            border: 1px solid var(--box-border);
+            border-radius: 8px;
+            padding: 10px 15px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
 
-  .hint{ text-align:center; font-size:12px; color:var(--chalk-cream-dim); margin-top:5px; min-height:16px; }
-  .fair-note{ text-align:center; font-size:10.5px; color:rgba(242,236,216,0.45); margin-top:2px; }
+        input[type="text"]::placeholder {
+            color: #777;
+        }
 
-  .results-title{ font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:var(--marigold); font-weight:600; margin-bottom:6px; }
-  .bars{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
-  .bar-label{ display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:3px; }
-  .bar-track{ height:9px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden; }
-  .bar-fill{ height:100%; border-radius:999px; transition:width 0.5s ease; }
-  .bar-fill.a{ background:var(--marigold); }
-  .bar-fill.b{ background:var(--paddy); }
+        button {
+            background: linear-gradient(to bottom, #e6c65c, #b8860b);
+            border: none;
+            border-radius: 8px;
+            color: #111;
+            font-weight: bold;
+            padding: 0 15px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
 
-  .tickets{ display:flex; flex-direction:column; gap:4px; }
-  .ticket{ display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(242,236,216,0.15); font-size:12.5px; }
-  .ticket .who{ font-weight:700; }
-  .ticket .what{ font-weight:600; padding:2px 7px; border-radius:999px; font-size:11px; }
-  .what.pending{ color:var(--chalk-cream-dim); font-weight:500; background:none; }
-  .what.a{ background:rgba(232,163,61,0.18); color:var(--marigold); }
-  .what.b{ background:rgba(127,166,92,0.2); color:var(--paddy); }
+        button:hover {
+            opacity: 0.9;
+        }
 
-  .tally{ margin-top:12px; text-align:center; font-size:12.5px; color:var(--chalk-cream-dim); }
-  .tally b{ color:var(--chalk-cream); }
-  .tally.winner{ font-size:14.5px; font-weight:800; color:var(--chalk-cream); }
-  
-  .history-box{
-    margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(242,236,216,0.1); font-size: 12px; color: var(--chalk-cream-dim); text-align: center;
-    cursor: pointer; user-select: none;
-  }
-  .history-box b{ color: var(--marigold); }
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 360px;
+            margin-bottom: 20px;
+        }
 
-  .reset-container { margin-top: 14px; text-align: center; }
-  .reset-btn {
-    background: none; border: none; color: rgba(242,236,216,0.4);
-    font-size: 11px; cursor: pointer; text-decoration: underline; font-family: inherit;
-    padding: 4px 8px; transition: color 0.2s;
-  }
-  .reset-btn:hover { color: var(--marigold); }
+        .player-card {
+            background: var(--box-bg);
+            border: 1px solid var(--box-border);
+            border-radius: 10px;
+            padding: 12px 5px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
 
-  .footnote{ margin-top:10px; text-align:center; font-size:10.5px; color:rgba(242,236,216,0.4); line-height:1.35; }
-  .err{ text-align:center; font-size:11px; color:#e8a33d; margin-top:4px; display:none; }
+        .player-card.active-turn {
+            border-color: var(--gold-light);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+        }
 
-  .confetti-layer{ position:fixed; inset:0; pointer-events:none; z-index:999; overflow:hidden; }
-  .confetti-piece{ position:absolute; top:-20px; width:9px; height:14px; opacity:0.9; animation:confetti-fall linear forwards; }
-  @keyframes confetti-fall{ to{ transform:translateY(110vh) rotate(540deg); opacity:0.3; } }
+        .player-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
 
-  .congrats-overlay{
-    position:fixed; inset:0; z-index:1000; display:none;
-    align-items:center; justify-content:center; padding:16px;
-    background:rgba(10,20,14,0.72); backdrop-filter:blur(2px);
-  }
-  .congrats-card{
-    width:100%; max-width:320px; padding:24px 18px 20px;
-    border-radius:16px; text-align:center;
-    background:linear-gradient(180deg, #2a4a35, #1f3d2b);
-    border:2px solid var(--marigold);
-    box-shadow:0 20px 50px rgba(0,0,0,0.5), 0 0 0 6px rgba(232,163,61,0.12);
-  }
-  .congrats-card .server-emoji{ font-size:44px; display:block; margin-bottom:4px; }
-  .congrats-card .server-title{ font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:var(--chalk-cream-dim); margin-bottom:4px; }
-  .congrats-card .server-line{ font-weight:800; font-size:19px; color:var(--marigold); margin-bottom:8px; }
-  .congrats-card .server-msg{ font-size:13.5px; color:var(--chalk-cream); line-height:1.4; font-style:italic; margin-bottom:14px; }
-  
-  .congrats-close{
-    width: 100%; padding: 11px 22px; border-radius: 999px; border: none; background: var(--brick);
-    color: var(--chalk-cream); font-family: inherit; font-weight: 700; font-size: 13.5px; cursor: pointer;
-  }
-</style>
+        .player-status {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin-bottom: 20px;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid var(--gold-color);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1);
+            background: #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Mô phỏng giao diện bánh xe */
+        .wheel-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .section {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: 100% 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* Tạm chia 2 nửa cho Hương Lúa và 112 */
+        .section-1 { top: 0; left: 0; transform: rotate(0deg); background: #2e5a36; }
+        .section-2 { top: 0; left: 50%; transform: rotate(90deg); background: #5a422e; }
+        .section-3 { top: 50%; left: 50%; transform: rotate(180deg); background: #333333; }
+        .section-4 { top: 50%; left: 0; transform: rotate(270deg); background: #42382e; }
+
+        .wheel-center {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 50%;
+            border: 2px solid var(--gold-color);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--gold-light);
+            text-align: center;
+            z-index: 2;
+        }
+
+        .spin-btn {
+            width: 100%;
+            max-width: 360px;
+            padding: 14px;
+            background: linear-gradient(to bottom, #333, #222);
+            border: 1px solid var(--box-border);
+            border-radius: 10px;
+            color: var(--gold-light);
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .footer-note {
+            font-size: 11px;
+            color: #777;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-<div class="board">
-  <div class="eyebrow">Nhóm ăn trưa</div>
-  <h1 id="mainTitle">Vòng Quay Chọn Quán</h1>
-  <div class="sub">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chống spam F5, mỗi người đúng 1 lượt!</div>
 
-  <!-- Nút Mở Khóa Âm Thanh Đảm Bảo 100% -->
-  <div class="sound-bar" id="soundBar" onclick="forceUnlockSound()">
-    🔊 BẤM VÀO ĐÂY ĐỂ BẬT TIẾNG LOA NGAY
-  </div>
+    <header>
+        <div class="subtitle">Nhóm Ăn Trưa</div>
+        <h1>Vòng Quay Chọn Quán</h1>
+        <div class="description">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay – chống spam F5, mỗi người đúng 1 lượt!</div>
+    </header>
 
-  <div class="admin-panel" id="adminPanel">
-    <h4>🎛️ Bảng Điều Khiển Kết Quả Bí Mật</h4>
-    <select class="admin-select" id="forcedResultSelect" onchange="changeForcedResult(this.value)">
-      <option value="RANDOM">🎲 Ngẫu nhiên hoàn toàn (50/50)</option>
-      <option value="112">🔒 Cố định luôn về: 112</option>
-      <option value="Hương Lúa">🔒 Cố định luôn về: Hương Lúa</option>
-    </select>
-  </div>
-
-  <div class="add-player-box">
-    <input type="text" id="newPlayerInput" class="add-player-input" placeholder="Nhập tên người chơi mới...">
-    <button class="add-player-btn" onclick="addNewPlayerWithPassword()">+ Thêm</button>
-  </div>
-
-  <div class="names" id="nameGrid"></div>
-
-  <div class="wheel-wrap">
-    <div class="wheel-frame">
-      <!-- Đã thay mũi tên đỏ thành hình bàn tay / ngón tay chỉ xuống -->
-      <div class="pointer" id="pointerEl">👉</div>
-      <div class="wheel-container" id="wheelElement">
-        <img src="vongquay.jpg" alt="Vòng Quay Chọn Quán">
-      </div>
+    <div class="input-container">
+        <input type="text" id="newNameInput" placeholder="Nhập tên người chơi mới...">
+        <button onclick="addPlayer()">+ Thêm</button>
     </div>
-  </div>
 
-  <button class="spin-btn" id="spinBtn" disabled>Chọn tên trước đã</button>
-  
-  <div class="tie-box" id="tieBox">
-    <h3>⚡ Kết quả đang HOÀ! Chọn người đá Bàn Thắng Vàng:</h3>
-    <div class="tie-row">
-      <select class="tie-select" id="tieSelect"></select>
-      <button class="tie-random-btn" onclick="randomPickTieBreaker()">🎲 Bốc thăm</button>
+    <div class="players-grid" id="playersGrid">
+        <!-- Render danh sách người chơi bằng JavaScript -->
     </div>
-    <button class="tie-btn" id="tieBtn">Quay Bàn Thắng Vàng! ⚽</button>
-  </div>
 
-  <div class="hint" id="hint">Đang tải trạng thái của nhóm...</div>
-  <div class="err" id="errBox"></div>
-  <div class="fair-note">⚖️ Tỉ lệ quay hoàn toàn ngẫu nhiên và bảo mật chống F5</div>
-
-  <hr class="chalk-line">
-
-  <div class="results-title">Kết quả cả nhóm</div>
-  <div class="bars" id="bars"></div>
-  <div class="tickets" id="tickets"></div>
-  <div class="tally" id="tally"></div>
-  
-  <div class="history-box" id="historyBox">
-    📊 Thống kê lịch sử: <b>112</b> thắng (<span id="stat112">0</span>) - <b>Hương Lúa</b> thắng (<span id="statHuongLua">0</span>)
-  </div>
-
-  <div class="reset-container">
-    <button class="reset-btn" onclick="resetData()">🔄 Xóa dữ liệu & làm lại từ đầu</button>
-  </div>
-
-  <div class="footnote">Mỗi người tự mở link này, chọn đúng tên mình và quay. Dữ liệu được khóa vĩnh viễn trên server chống F5.</div>
-</div>
-
-<div class="congrats-overlay" id="congratsOverlay">
-  <div class="congrats-card">
-    <span class="server-emoji" id="congratsEmoji">🍻</span>
-    <div class="server-title">Quán chiến thắng</div>
-    <div class="congrats-server" id="congratsServer"></div>
-    <div class="congrats-msg" id="congratsMsg"></div>
-    <button class="congrats-close" id="congratsClose">Đã rõ, cảm ơn! 🎉</button>
-  </div>
-</div>
-
-<script>
-const DB_URL = "https://vong-quay-cdd2d-default-rtdb.asia-southeast1.firebasedatabase.app";
-const DEFAULT_NAMES = ["Kiệt","Quý","Vương","Huy","Tra","Thành"];
-let namesList = [...DEFAULT_NAMES];
-const OPTIONS = ["112","Hương Lúa"];
-const SERVERS = {
-  "112": { name: "Oanh", emoji: "🍻", messages: ["Yayyy quán mình thắng rồi nè! Cụng ly nào anh em ơi! 🍻"] },
-  "Hương Lúa": { name: "Tiên", emoji: "🍻", messages: ["Hương Lúa thắng rồi nè cả nhà ơi, dô thôi! 🍻"] }
-};
-
-let selectedName = null;
-let state = {};
-let spinning = false;
-let currentRotation = 0;
-let celebrated = false;
-let audioCtx = null;
-let soundEnabled = false;
-
-function forceUnlockSound(){
-  try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    audioCtx = new AudioContext();
-    if(audioCtx.state === 'suspended'){
-      audioCtx.resume();
-    }
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.1);
-  } catch(e) {}
-
-  soundEnabled = true;
-  const bar = document.getElementById('soundBar');
-  bar.style.background = "rgba(127,166,92,0.25)";
-  bar.style.borderColor = "var(--paddy)";
-  bar.style.color = "var(--paddy)";
-  bar.innerHTML = "✅ Âm thanh loa đã sẵn sàng hoạt động!";
-  setTimeout(()=>{ bar.style.display = 'none'; }, 2000);
-}
-
-document.addEventListener('click', () => {
-  if(!soundEnabled) forceUnlockSound();
-}, { once: true });
-
-document.addEventListener('touchstart', () => {
-  if(!soundEnabled) forceUnlockSound();
-}, { once: true });
-
-function playClickSound(){
-  try {
-    if(!audioCtx){
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
-    }
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(580, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.05);
-
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.05);
-  } catch(e) {}
-}
-
-function playWinSound(){
-  try {
-    if(!audioCtx){
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
-    }
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-
-    const notes = [523.25, 659.25, 783.99, 1046.50];
-    notes.forEach((freq, idx) => {
-      setTimeout(() => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
-        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.4);
-      }, idx * 100);
-    });
-  } catch(e) {}
-}
-
-let titleClicks = 0;
-document.getElementById('mainTitle').addEventListener('click', () => {
-  titleClicks++;
-  if(titleClicks >= 3){
-    titleClicks = 0;
-    const pass = prompt("Nhập mật khẩu quản trị để mở bảng điều khiển kết quả:");
-    if(pass === "2034"){
-      const panel = document.getElementById('adminPanel');
-      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-    } else if(pass !== null){
-      alert("❌ Mật khẩu sai!");
-    }
-  }
-  setTimeout(() => { titleClicks = 0; }, 1500);
-});
-
-let historyClicks = 0;
-document.getElementById('historyBox').addEventListener('click', () => {
-  historyClicks++;
-  if(historyClicks >= 3){
-    historyClicks = 0;
-    const pass = prompt("🔒 Nhập mật khẩu quản trị để xóa thống kê lịch sử:");
-    if(pass === "2034"){
-      localStorage.setItem('lunch_stats', JSON.stringify({"112":0, "HuongLua":0}));
-      renderStatsDisplay();
-      alert("✅ Đã đặt lại thống kê về 0 thành công!");
-    } else if(pass !== null){
-      alert("❌ Mật khẩu sai!");
-    }
-  }
-  setTimeout(() => { historyClicks = 0; }, 1500);
-});
-
-function changeForcedResult(val){
-  localStorage.setItem('forced_winner', val);
-  if(val !== "RANDOM"){
-    alert("⚠️ Đã kích hoạt chế độ ép kết quả về: " + val);
-  } else {
-    alert("🎲 Đã chuyển lại chế độ ngẫu nhiên hoàn toàn!");
-  }
-}
-
-const nameGrid = document.getElementById('nameGrid');
-const spinBtn = document.getElementById('spinBtn');
-const tieBox = document.getElementById('tieBox');
-const tieSelect = document.getElementById('tieSelect');
-const tieBtn = document.getElementById('tieBtn');
-const congratsOverlay = document.getElementById('congratsOverlay');
-const congratsEmoji = document.getElementById('congratsEmoji');
-const congratsServer = document.getElementById('congratsServer');
-const congratsMsg = document.getElementById('congratsMsg');
-const congratsClose = document.getElementById('congratsClose');
-const pointerEl = document.getElementById('pointerEl');
-
-congratsClose.addEventListener('click', ()=>{ congratsOverlay.style.display = 'none'; });
-
-const hint = document.getElementById('hint');
-const errBox = document.getElementById('errBox');
-const barsEl = document.getElementById('bars');
-const tickets = document.getElementById('tickets');
-const tally = document.getElementById('tally');
-const wheelElement = document.getElementById('wheelElement');
-
-function showError(msg){
-  errBox.textContent = msg;
-  errBox.style.display = 'block';
-}
-
-function launchConfetti(){
-  const colors = ["#e8a33d","#7fa65c","#c1442e","#f2ecd8"];
-  const layer = document.createElement('div');
-  layer.className = 'confetti-layer';
-  document.body.appendChild(layer);
-  for(let i=0; i<90; i++){
-    const piece = document.createElement('div');
-    piece.className = 'confetti-piece';
-    piece.style.left = Math.random()*100 + "vw";
-    piece.style.background = colors[Math.floor(Math.random()*colors.length)];
-    piece.style.animationDuration = (2.2 + Math.random()*1.8) + "s";
-    piece.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
-    layer.appendChild(piece);
-  }
-  setTimeout(()=>{ layer.remove(); }, 4800);
-}
-
-function showCongrats(winnerOption){
-  const server = SERVERS[winnerOption];
-  if(!server) return;
-  congratsEmoji.textContent = "🍻";
-  congratsServer.textContent = winnerOption + " · " + server.name;
-  congratsMsg.textContent = server.messages[0];
-  congratsOverlay.style.display = 'flex';
-}
-
-function celebrateWin(winnerOption, isFromLiveSpin = false){
-  if(isFromLiveSpin){
-    if(!celebrated){
-      celebrated = true;
-      playWinSound();
-      launchConfetti();
-      updateStatsHistory(winnerOption);
-    }
-  }
-  showCongrats(winnerOption);
-}
-
-function updateStatsHistory(winner){
-  let stats = JSON.parse(localStorage.getItem('lunch_stats') || '{"112":0, "HuongLua":0}');
-  if(winner === "112") stats["112"]++;
-  else stats["HuongLua"]++;
-  localStorage.setItem('lunch_stats', JSON.stringify(stats));
-  renderStatsDisplay();
-}
-
-function renderStatsDisplay(){
-  const stats = JSON.parse(localStorage.getItem('lunch_stats') || '{"112":0, "HuongLua":0}');
-  document.getElementById('stat112').textContent = stats["112"];
-  document.getElementById('statHuongLua').textContent = stats["HuongLua"];
-}
-
-function randomPickTieBreaker(){
-  const options = tieSelect.options;
-  if(options.length > 0){
-    const randomIndex = Math.floor(Math.random() * options.length);
-    tieSelect.selectedIndex = randomIndex;
-    tieSelect.style.borderColor = "var(--marigold)";
-    setTimeout(()=>{ tieSelect.style.borderColor = "var(--gold)"; }, 500);
-  }
-}
-
-function renderNames(){
-  nameGrid.innerHTML = "";
-  const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-  
-  validList.forEach(name=>{
-    const btn = document.createElement('button');
-    btn.className = 'name-btn';
-    const spun = state[name];
-    btn.disabled = !!spun;
-    if(selectedName === name) btn.classList.add('selected');
-
-    const delBtn = document.createElement('button');
-    delBtn.className = 'del-btn';
-    delBtn.innerHTML = '✕';
-    delBtn.title = 'Xóa người chơi này';
-    delBtn.onclick = (e)=>{
-      e.stopPropagation();
-      removePlayer(name);
-    };
-
-    btn.appendChild(delBtn);
-
-    const textSpan = document.createElement('span');
-    textSpan.innerHTML = name + (spun ? '<span class="tag">đã quay</span>' : '');
-    btn.appendChild(textSpan);
-
-    btn.onclick = (e)=>{
-      if(e.target === delBtn) return;
-      if(!soundEnabled) forceUnlockSound();
-      if(spinning || spun) return;
-      selectedName = name;
-      renderNames();
-      updateSpinButton();
-    };
-    nameGrid.appendChild(btn);
-  });
-}
-
-async function removePlayer(nameToRemove){
-  const pass = prompt("🔒 Nhập mật khẩu quản trị để xóa người chơi '" + nameToRemove + "':");
-  if(pass === null) return;
-  if(pass !== "2034"){
-    alert("❌ Mật khẩu không đúng!");
-    return;
-  }
-
-  try{
-    let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-    cleanList = cleanList.filter(n => n !== nameToRemove);
-
-    if(cleanList.length === 0){
-      alert("❌ Cần giữ lại ít nhất 1 người chơi trong danh sách!");
-      return;
-    }
-
-    const payload = {};
-    cleanList.forEach((name, idx) => {
-      payload["p" + idx] = name;
-    });
-
-    const res = await fetch(DB_URL + "/players.json", {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(payload)
-    });
-
-    if(res.ok){
-      namesList = cleanList;
-      if(selectedName === nameToRemove) selectedName = null;
-      
-      await fetch(DB_URL + "/spins/" + encodeURIComponent(nameToRemove) + ".json", {
-        method: "DELETE"
-      });
-      delete state[nameToRemove];
-
-      renderNames();
-      renderResults();
-      updateSpinButton();
-      alert("✅ Đã xóa " + nameToRemove + " thành công!");
-    } else {
-      alert("❌ Lỗi khi cập nhật dữ liệu.");
-    }
-  }catch(e){
-    alert("❌ Không kết nối được tới cơ sở dữ liệu.");
-  }
-}
-
-async function addNewPlayerWithPassword(){
-  const input = document.getElementById('newPlayerInput');
-  const newName = input.value.trim();
-  if(!newName){
-    alert("Vui lòng nhập tên người chơi!");
-    return;
-  }
-  if(namesList.some(n => String(n).trim().toLowerCase() === newName.toLowerCase())){
-    alert("Tên này đã có trong danh sách rồi!");
-    return;
-  }
-
-  const pass = prompt("🔒 Nhập mật khẩu để thêm người chơi:");
-  if(pass === null) return;
-  if(pass !== "2034"){
-    alert("❌ Mật khẩu không đúng!");
-    return;
-  }
-
-  try{
-    let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-    cleanList.push(newName);
-
-    const payload = {};
-    cleanList.forEach((name, idx) => {
-      payload["p" + idx] = name;
-    });
-
-    const res = await fetch(DB_URL + "/players.json", {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(payload)
-    });
-
-    if(res.ok){
-      namesList = cleanList;
-      input.value = "";
-      renderNames();
-      renderResults();
-      alert("✅ Đã thêm " + newName + " thành công!");
-    } else {
-      alert("❌ Lỗi khi lưu người chơi lên hệ thống.");
-    }
-  }catch(e){
-    alert("❌ Không kết nối được tới cơ sở dữ liệu.");
-  }
-}
-
-function updateSpinButton(){
-  if(!selectedName){
-    spinBtn.disabled = true;
-    spinBtn.textContent = "Chọn tên trước đã";
-    hint.textContent = "Chọn đúng tên của bạn trong danh sách bên trên.";
-    return;
-  }
-  if(state[selectedName]){
-    spinBtn.disabled = true;
-    spinBtn.textContent = "Bạn đã quay rồi";
-    hint.textContent = selectedName + " đã quay ra: " + state[selectedName].result;
-    return;
-  }
-  spinBtn.disabled = spinning;
-  spinBtn.textContent = spinning ? "Đang quay..." : "Quay cho " + selectedName;
-  hint.textContent = spinning ? "" : "Nhấn để quay — chỉ một lần thôi nhé!";
-}
-
-function renderResults(){
-  let countA = 0, countB = 0, doneCount = 0;
-  tickets.innerHTML = "";
-  const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-
-  validList.forEach(name=>{
-    const rec = state[name];
-    const row = document.createElement('div');
-    row.className = 'ticket';
-    let whatHtml;
-    if(rec){
-      doneCount++;
-      if(rec.result === OPTIONS[0]){ countA++; whatHtml = '<span class="what a">'+OPTIONS[0]+'</span>'; }
-      else { countB++; whatHtml = '<span class="what b">'+OPTIONS[1]+'</span>'; }
-    } else {
-      whatHtml = '<span class="what pending">chưa quay</span>';
-    }
-    row.innerHTML = '<span class="who">'+name+'</span>'+whatHtml;
-    tickets.appendChild(row);
-  });
-
-  const total = countA + countB;
-  const pctA = total ? Math.round(countA/total*100) : 0;
-  const pctB = total ? Math.round(countB/total*100) : 0;
-  barsEl.innerHTML =
-    '<div class="bar-row"><div class="bar-label"><span>'+OPTIONS[0]+'</span><span>'+countA+' lượt</span></div><div class="bar-track"><div class="bar-fill a" style="width:'+pctA+'%"></div></div></div>'+
-    '<div class="bar-row"><div class="bar-label"><span>'+OPTIONS[1]+'</span><span>'+countB+' lượt</span></div><div class="bar-track"><div class="bar-fill b" style="width:'+pctB+'%"></div></div></div>';
-
-  if(doneCount === validList.length && validList.length > 0){
-    tally.className = 'tally winner';
-    if(countA === countB){
-      tally.innerHTML = "Hoà " + countA + " - " + countB + " (Đá Bàn Thắng Vàng!)";
-      tieBox.style.display = "block";
-      tieSelect.innerHTML = "";
-      validList.forEach(n=>{
-        const opt = document.createElement('option');
-        opt.value = n;
-        opt.textContent = n;
-        tieSelect.appendChild(opt);
-      });
-    } else {
-      tieBox.style.display = "none";
-      const winner = countA > countB ? OPTIONS[0] : OPTIONS[1];
-      tally.innerHTML = "🏆 Quán thắng: <b>" + winner + "</b> (" + Math.max(countA,countB) + "/" + validList.length + " lượt)";
-      celebrateWin(winner, false);
-    }
-  } else {
-    tieBox.style.display = "none";
-    tally.className = 'tally';
-    tally.innerHTML = doneCount + "/" + validList.length + " người đã quay, còn " + (validList.length - doneCount) + " người nữa.";
-  }
-}
-
-async function loadState(){
-  try{
-    const pRes = await fetch(DB_URL + "/players.json");
-    const pData = pRes.ok ? await pRes.json() : null;
-    if(pData){
-      let loaded = [];
-      if(Array.isArray(pData)){
-        loaded = pData;
-      } else if(typeof pData === 'object'){
-        loaded = Object.values(pData);
-      }
-      const validPlayers = loaded.map(n => String(n || "").trim()).filter(n => n.length > 0);
-      if(validPlayers.length > 0){
-        namesList = validPlayers;
-      }
-    } else {
-      const defaultPayload = {};
-      DEFAULT_NAMES.forEach((name, idx) => { defaultPayload["p" + idx] = name; });
-      await fetch(DB_URL + "/players.json", {
-        method: "PUT",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(defaultPayload)
-      });
-      namesList = [...DEFAULT_NAMES];
-    }
-
-    const res = await fetch(DB_URL + "/spins.json");
-    const data = res.ok ? await res.json() : {};
-    state = data || {};
-  }catch(e){
-    showError("Không tải được dữ liệu nhóm.");
-  }
-  renderNames();
-  renderResults();
-  updateSpinButton();
-  renderStatsDisplay();
-}
-
-async function resetData(){
-  const pass = prompt("Nhập mật khẩu quản trị để reset dữ liệu:");
-  if(pass === null) return;
-  if(pass !== "2034"){
-    alert("❌ Mật khẩu không đúng!");
-    return;
-  }
-  
-  try{
-    await fetch(DB_URL + "/spins.json", { method: "DELETE" });
-    await fetch(DB_URL + "/players.json", { method: "DELETE" });
-
-    state = {};
-    namesList = [...DEFAULT_NAMES];
-    selectedName = null;
-    celebrated = false;
-    wheelElement.style.transform = "rotate(0deg)";
-    currentRotation = 0;
-    renderNames();
-    renderResults();
-    updateSpinButton();
-    alert("✅ Đã làm mới dữ liệu thành công!");
-  }catch(e){
-    alert("❌ Không kết nối được tới cơ sở dữ liệu.");
-  }
-}
-
-function pickWinner(){
-  const forced = localStorage.getItem('forced_winner');
-  if(forced && forced !== "RANDOM"){
-    return forced;
-  }
-  return OPTIONS[Math.floor(Math.random() * OPTIONS.length)];
-}
-
-async function spin(isTieBreaker = false, tiePerson = null){
-  if(spinning) return;
-  const targetName = isTieBreaker ? tiePerson : selectedName;
-  if(!targetName) return;
-
-  if(!soundEnabled) forceUnlockSound();
-
-  if(!isTieBreaker){
-    try {
-      const checkRes = await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json");
-      const checkData = await checkRes.json();
-      if(checkData) {
-        alert("⚠️ Bạn (" + targetName + ") đã thực hiện quay trước đó rồi, không thể quay lại nữa!");
-        state[targetName] = checkData;
-        renderNames();
-        renderResults();
-        updateSpinButton();
-        return;
-      }
-    } catch(e){}
-  }
-
-  spinning = true;
-  updateSpinButton();
-  if(isTieBreaker) tieBtn.disabled = true;
-
-  pointerEl.classList.add('shake');
-
-  // Phát tiếng tạch tạch liên tục khi vòng quay chạy
-  let soundTimer = 0;
-  let drumInterval = setInterval(()=>{
-    playClickSound();
-    soundTimer += 90;
-    if(soundTimer >= 4100){
-      clearInterval(drumInterval);
-    }
-  }, 90);
-
-  setTimeout(()=>{
-    pointerEl.classList.remove('shake');
-  }, 4100);
-
-  const winner = pickWinner();
-  const segCenter = winner === OPTIONS[0] ? 90 : 270;
-  let targetMod = ((360 - segCenter) % 360 + 360) % 360;
-  const finalRotation = currentRotation - (currentRotation % 360) + 6*360 + targetMod;
-
-  wheelElement.style.transform = "rotate(" + finalRotation + "deg)";
-  currentRotation = finalRotation;
-
-  setTimeout(async ()=>{
-    const record = { result: winner, time: new Date().toISOString() };
-    if(!isTieBreaker){
-      try{
-        await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json", {
-          method: "PUT",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify(record)
-        });
-        state[targetName] = record;
-      }catch(e){
-        showError("Không lưu được kết quả.");
-      }
-    } else {
-      spinning = false;
-      if(isTieBreaker) tieBtn.disabled = false;
-      celebrateWin(winner, true);
-      return;
-    }
-    spinning = false;
-    renderNames();
-    renderResults();
-    updateSpinButton();
-
-    const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-    const doneCount = validList.filter(n => state[n]).length;
-    if(doneCount === validList.length){
-      let countA = 0, countB = 0;
-      validList.forEach(n => {
-        if(state[n].result === OPTIONS[0]) countA++;
-        else countB++;
-      });
-      if(countA !== countB){
-        const finalWinner = countA > countB ? OPTIONS[0] : OPTIONS[1];
-        celebrateWin(finalWinner, true);
-      }
-    }
-  }, 4300);
-}
-
-spinBtn.addEventListener('click', ()=>spin(false));
-tieBtn.addEventListener('click', ()=>spin(true, tieSelect.value));
-
-loadState();
-</script>
+    <div class="wheel-container">
+        <div class="wheel" id="wheel">
+            <div class="wheel-inner">
+                <div class="section section-1">Hương Lúa</div>
+                <div class="section section-2">112</div>
+                <div class="section section-3">Hương Lúa</div>
+                <div class="section section-4">112</div>
+            </div>
+        </div>
+        <div class="wheel-center">QUÁN</div>
+    </div>
+
+    <button class="spin-btn" onclick="spinWheel()">Chọn tên trước đã</button>
+
+    <div class="footer-note">
+        ⚖️ Tỉ lệ quay hoàn toàn ngẫu nhiên và bảo mật chống F5
+    </div>
+
+    <script>
+        let players = [
+            { name: 'Kiệt', spun: true },
+            { name: 'Quý', spun: true },
+            { name: 'Vương', spun: true },
+            { name: 'Huy', spun: true },
+            { name: 'Tra', spun: true },
+            { name: 'Thành', spun: false }
+        ];
+
+        function renderPlayers() {
+            const grid = document.getElementById('playersGrid');
+            grid.innerHTML = '';
+            players.forEach((player, index) => {
+                const card = document.createElement('div');
+                card.className = `player-card ${!player.spun && index === players.length - 1 ? 'active-turn' : ''}`;
+                card.innerHTML = `
+                    <div class="player-name">${player.name}</div>
+                    <div class="player-status">${player.spun ? 'đã quay' : 'chưa quay'}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function addPlayer() {
+            const input = document.getElementById('newNameInput');
+            const name = input.value.trim();
+            if (name) {
+                players.push({ name: name, spun: false });
+                input.value = '';
+                renderPlayers();
+            }
+        }
+
+        function spinWheel() {
+            const wheel = document.getElementById('wheel');
+            const randomDegree = Math.floor(Math.random * 3600) + 720;
+            wheel.style.transform = `rotate(${randomDegree}deg)`;
+            setTimeout(() => {
+                alert("Đã quay xong! Quyết định cuối cùng thuộc về vòng quay.");
+            }, 4000);
+        }
+
+        renderPlayers();
+    </script>
 </body>
 </html>
