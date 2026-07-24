@@ -179,6 +179,7 @@
   .history-box{
     margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,0.02);
     border: 1px solid rgba(242,236,216,0.1); font-size: 12px; color: var(--chalk-cream-dim); text-align: center;
+    cursor: pointer; user-select: none;
   }
   .history-box b{ color: var(--marigold); }
 
@@ -325,6 +326,24 @@ document.getElementById('mainTitle').addEventListener('click', () => {
     }
   }
   setTimeout(() => { titleClicks = 0; }, 1500);
+});
+
+// Thao tác bấm 3 cái liên tiếp vào khung Thống kê lịch sử để xóa
+let historyClicks = 0;
+document.getElementById('historyBox').addEventListener('click', () => {
+  historyClicks++;
+  if(historyClicks >= 3){
+    historyClicks = 0;
+    const pass = prompt("🔒 Nhập mật khẩu quản trị để xóa thống kê lịch sử:");
+    if(pass === "2034"){
+      localStorage.setItem('lunch_stats', JSON.stringify({"112":0, "HuongLua":0}));
+      renderStatsDisplay();
+      alert("✅ Đã đặt lại thống kê về 0 thành công!");
+    } else if(pass !== null){
+      alert("❌ Mật khẩu sai!");
+    }
+  }
+  setTimeout(() => { historyClicks = 0; }, 1500);
 });
 
 function changeForcedResult(val){
@@ -499,7 +518,6 @@ function randomPickTieBreaker(){
   if(options.length > 0){
     const randomIndex = Math.floor(Math.random() * options.length);
     tieSelect.selectedIndex = randomIndex;
-    // Hiệu ứng rung nhẹ select cho vui mắt
     tieSelect.style.borderColor = "var(--marigold)";
     setTimeout(()=>{ tieSelect.style.borderColor = "var(--gold)"; }, 500);
   }
@@ -795,7 +813,6 @@ function spin(isTieBreaker = false, tiePerson = null){
 
   pointerEl.classList.add('shake');
 
-  // Hiệu ứng âm thanh trống dồn dập (Drumroll) lúc quay
   let drumInterval = setInterval(()=>{
     playDrumrollTick();
   }, 75);
