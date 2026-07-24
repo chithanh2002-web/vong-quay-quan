@@ -540,15 +540,26 @@ async function submitPasswordModal(){
   closePasswordModal();
 
   try{
-    const cleanList = namesList.filter(n => n && typeof n === 'string' && n.trim().length > 0);
-    const updatedList = [...cleanList, pendingNewPlayerName.trim()];
+    // Lọc sạch mảng, chỉ lấy các tên hợp lệ và loại bỏ mọi khoảng trắng thừa hoặc rỗng
+    const cleanList = namesList.map(n => String(n).trim()).filter(n => n.length > 0);
+    if(!cleanList.includes(pendingNewPlayerName.trim())){
+      cleanList.push(pendingNewPlayerName.trim());
+    }
+
+    // Đẩy danh sách dạng Object sạch sẽ lên Firebase (tránh hoàn toàn lỗi mảng rỗng)
+    const payload = {};
+    cleanList.forEach((name, idx) => {
+      payload["p" + idx] = name;
+    });
+
     const res = await fetch(DB_URL + "/players.json", {
       method: "PUT",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(updatedList)
+      body: JSON.stringify(payload)
     });
+
     if(res.ok){
-      namesList = updatedList;
+      namesList = cleanList;
       document.getElementById('newPlayerInput').value = "";
       pendingNewPlayerName = "";
       renderNames();
@@ -646,10 +657,20 @@ async function loadState(){
       } else if(typeof pData === 'object'){
         loaded = Object.values(pData);
       }
-      const validPlayers = loaded.filter(n => n && typeof n === 'string' && n.trim().length > 0);
+      const validPlayers = loaded.map(n => String(n).trim()).filter(n => n.length > 0);
       if(validPlayers.length > 0){
         namesList = validPlayers;
       }
+    } else {
+      // Nếu Firebase chưa có, tự khởi tạo danh sách Object chuẩn
+      const defaultPayload = {};
+      DEFAULT_NAMES.forEach((name, idx) => { defaultPayload["p" + idx] = name; });
+      await fetch(DB_URL + "/players.json", {
+        method: "PUT",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(defaultPayload)
+      });
+      namesList = [...DEFAULT_NAMES];
     }
 
     const res = await fetch(DB_URL + "/spins.json");
