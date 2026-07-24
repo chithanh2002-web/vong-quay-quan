@@ -82,7 +82,6 @@
     color:var(--chalk-cream); font-family:inherit;
     font-weight:700; font-size:13.5px; cursor:pointer; transition:all 0.18s ease;
   }
-  .name-btn:hover:not(:disabled){ border-color:var(--gold); background:rgba(227,192,105,0.1); }
   .name-btn.selected{
     border-color:var(--gold);
     background:linear-gradient(180deg, rgba(227,192,105,0.28), rgba(227,192,105,0.1));
@@ -236,9 +235,9 @@
   <h1 id="mainTitle">Vòng Quay Chọn Quán</h1>
   <div class="sub">112 hay Hương Lúa? Mỗi người chọn tên mình rồi quay — chống spam F5, mỗi người đúng 1 lượt!</div>
 
-  <!-- Nút Bật Âm Thanh Tương Tác Trực Tiếp -->
-  <div class="sound-bar" id="soundBar" onclick="initAndUnlockAudio()">
-    🔊 BẤM VÀO ĐÂY ĐỂ MỞ KHÓA ÂM THANH LOA
+  <!-- Nút Mở Khóa Âm Thanh Đảm Bảo 100% -->
+  <div class="sound-bar" id="soundBar" onclick="forceUnlockSound()">
+    🔊 BẤM VÀO ĐÂY ĐỂ BẬT TIẾNG LOA NGAY
   </div>
 
   <div class="admin-panel" id="adminPanel">
@@ -325,83 +324,93 @@ let spinning = false;
 let currentRotation = 0;
 let celebrated = false;
 let audioCtx = null;
-let audioUnlocked = false;
+let soundEnabled = false;
 
-function initAndUnlockAudio(){
-  if(!audioCtx){
+function forceUnlockSound(){
+  try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     audioCtx = new AudioContext();
-  }
-  if(audioCtx.state === 'suspended'){
-    audioCtx.resume();
-  }
-  
-  // Phát một xung âm thanh vô hình siêu nhỏ để chính thức mở khóa phần cứng loa trên Mobile
-  try {
+    if(audioCtx.state === 'suspended'){
+      audioCtx.resume();
+    }
+    // Phát một xung âm thanh mẫu để chính thức kích hoạt phần cứng loa điện thoại
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     osc.start();
-    osc.stop(audioCtx.currentTime + 0.05);
-  } catch(e){}
+    osc.stop(audioCtx.currentTime + 0.1);
+  } catch(e) {}
 
-  audioUnlocked = true;
+  soundEnabled = true;
   const bar = document.getElementById('soundBar');
   bar.style.background = "rgba(127,166,92,0.25)";
   bar.style.borderColor = "var(--paddy)";
   bar.style.color = "var(--paddy)";
-  bar.innerHTML = "✅ Âm thanh đã bật thành công, quẩy thôi!";
+  bar.innerHTML = "✅ Âm thanh loa đã sẵn sàng hoạt động!";
   setTimeout(()=>{ bar.style.display = 'none'; }, 2000);
 }
 
-// Tự động kích hoạt khi chạm bất cứ đâu trên trang
-document.addEventListener('click', () => { if(!audioUnlocked) initAndUnlockAudio(); }, { once: true });
-document.addEventListener('touchstart', () => { if(!audioUnlocked) initAndUnlockAudio(); }, { once: true });
+// Bắt mọi thao tác chạm/click trên màn hình để tự động mở khóa âm thanh luôn
+document.addEventListener('click', () => {
+  if(!soundEnabled) forceUnlockSound();
+}, { once: true });
+
+document.addEventListener('touchstart', () => {
+  if(!soundEnabled) forceUnlockSound();
+}, { once: true });
 
 function playClickSound(){
   try {
-    if(!audioCtx) initAndUnlockAudio();
+    if(!audioCtx){
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+    }
     if(audioCtx.state === 'suspended') audioCtx.resume();
 
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(450, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.04);
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(580, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.05);
 
     gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
 
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     osc.start();
-    osc.stop(audioCtx.currentTime + 0.04);
+    osc.stop(audioCtx.currentTime + 0.05);
   } catch(e) {}
 }
 
-function playWinFanfare(){
+function playWinSound(){
   try {
-    if(!audioCtx) initAndUnlockAudio();
+    if(!audioCtx){
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+    }
     if(audioCtx.state === 'suspended') audioCtx.resume();
 
-    const notes = [440, 554.37, 659.25, 880];
+    const notes = [523.25, 659.25, 783.99, 1046.50];
     notes.forEach((freq, idx) => {
       setTimeout(() => {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.type = 'sine';
+        osc.type = 'triangle';
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
-        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
 
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.5);
-      }, idx * 120);
+        osc.stop(audioCtx.currentTime + 0.4);
+      }, idx * 100);
     });
   } catch(e) {}
 }
@@ -504,7 +513,7 @@ function celebrateWin(winnerOption, isFromLiveSpin = false){
   if(isFromLiveSpin){
     if(!celebrated){
       celebrated = true;
-      playWinFanfare();
+      playWinSound();
       launchConfetti();
       updateStatsHistory(winnerOption);
     }
@@ -564,7 +573,7 @@ function renderNames(){
 
     btn.onclick = (e)=>{
       if(e.target === delBtn) return;
-      if(!audioUnlocked) initAndUnlockAudio();
+      if(!soundEnabled) forceUnlockSound();
       if(spinning || spun) return;
       selectedName = name;
       renderNames();
@@ -820,7 +829,7 @@ async function spin(isTieBreaker = false, tiePerson = null){
   const targetName = isTieBreaker ? tiePerson : selectedName;
   if(!targetName) return;
 
-  if(!audioUnlocked) initAndUnlockAudio();
+  if(!soundEnabled) forceUnlockSound();
 
   if(!isTieBreaker){
     try {
