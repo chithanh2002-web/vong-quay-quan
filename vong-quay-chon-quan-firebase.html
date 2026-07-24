@@ -840,7 +840,6 @@ function renderResults(){
   });
   barsEl.innerHTML = barsHtml;
 
-  // CHỈ THÔNG BÁO KẾT QUẢ KHI TẤT CẢ MỌI NGƯỜI ĐÃ QUAY XONG
   if(doneCount === validList.length && validList.length > 0){
     let maxCount = -1;
     let maxShops = [];
@@ -858,6 +857,8 @@ function renderResults(){
       tally.innerHTML = `Có sự đồng điểm (${maxShops.join(" & ")})! Đá Bàn Thắng Vàng!`;
       tieBox.style.display = "block";
       tieSelect.innerHTML = "";
+      
+      // Chỉ cho phép chọn những người CHƯA tham gia đá bàn thắng vàng (hoặc chưa có cờ tieBreaker)
       validList.forEach(n=>{
         if(!state[n] || !state[n].isTieBreaker){
           const opt = document.createElement('option');
@@ -873,7 +874,6 @@ function renderResults(){
       tally.className = 'tally winner';
       tally.innerHTML = `🏆 Quán thắng: <b>${winner}</b> (${maxCount}/${validList.length} lượt)`;
       
-      // Kiểm tra xem lượt quay vừa rồi có phải do chính người dùng bấm trực tiếp hay không
       const isLiveByThisUser = selectedName && state[selectedName] && !celebrated;
       if(isLiveByThisUser){
         celebrateWin(winner, true);
@@ -969,10 +969,17 @@ async function spin(isTieBreaker = false, tiePerson = null){
       }
     } catch(e){}
   } else {
-    if(state[targetName] && state[targetName].isTieBreaker) {
-      alert("⚠️ Người này đã thực hiện lượt đá bàn thắng vàng rồi!");
-      return;
-    }
+    // KIỂM TRA TRÊN SERVER XEM NGƯỜI NÀY ĐÃ ĐÁ BÀN THẮNG VÀNG CHƯA ĐỂ CHẶN TUYỆT ĐỐI
+    try {
+      const checkRes = await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json");
+      const checkData = await checkRes.json();
+      if(checkData && checkData.isTieBreaker) {
+        alert("⚠️ Người này (" + targetName + ") đã thực hiện lượt đá bàn thắng vàng rồi, không thể quay lại!");
+        state[targetName] = checkData;
+        renderResults();
+        return;
+      }
+    } catch(e){}
   }
 
   spinning = true;
@@ -1019,10 +1026,13 @@ async function spin(isTieBreaker = false, tiePerson = null){
     renderResults();
     updateSpinButton();
     
-    // Chỉ kích hoạt âm thanh pháo hoa nếu là người quay trực tiếp chốt hạ cuối cùng
-    const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-    const doneCount = validList.filter(n => state[n]).length;
-    if(doneCount === validList.length && !isTieBreaker){
+    if(!isTieBreaker){
+      const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
+      const doneCount = validList.filter(n => state[n]).length;
+      if(doneCount === validList.length){
+        celebrateWin(winner, true);
+      }
+    } else {
       celebrateWin(winner, true);
     }
   }, 4300);
