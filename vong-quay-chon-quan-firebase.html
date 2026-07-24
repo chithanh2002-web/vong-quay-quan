@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vòng Quay Chọn Quán</title>
 <meta property="og:title" content="Vòng Quay Chọn Quán 🎡">
-<meta property="og:description" content="Quán nào hôm nay? Bấm vào chọn tên bạn rồi quay ngay!">
+<meta property="og:description" content="Quán nào hôm hôm nay? Bấm vào chọn tên bạn rồi quay ngay!">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -840,6 +840,7 @@ function renderResults(){
   });
   barsEl.innerHTML = barsHtml;
 
+  // CHỈ KIỂM TRA KẾT QUẢ KHI TẤT CẢ MỌI NGƯỜI ĐÃ QUAY XONG
   if(doneCount === validList.length && validList.length > 0){
     let maxCount = -1;
     let maxShops = [];
@@ -852,7 +853,6 @@ function renderResults(){
       }
     });
 
-    // NẾU CÓ ĐỒNG ĐIỂM -> CHỈ HIỆN KHUNG ĐÁ BÀN THẮNG VÀNG, ẨN HOÀN TOÀN BẢNG CHÚC MỪNG CHIẾN THẮNG
     if(maxShops.length > 1){
       tally.className = 'tally winner';
       tally.innerHTML = `Có sự đồng điểm (${maxShops.join(" & ")})! Đá Bàn Thắng Vàng!`;
@@ -873,13 +873,6 @@ function renderResults(){
       const winner = maxShops[0];
       tally.className = 'tally winner';
       tally.innerHTML = `🏆 Quán thắng: <b>${winner}</b> (${maxCount}/${validList.length} lượt)`;
-      
-      const isLiveByThisUser = selectedName && state[selectedName] && !celebrated;
-      if(isLiveByThisUser){
-        celebrateWin(winner, true);
-      } else {
-        showCongrats(winner);
-      }
     }
   } else {
     tieBox.style.display = "none";
@@ -1025,28 +1018,34 @@ async function spin(isTieBreaker = false, tiePerson = null){
     renderResults();
     updateSpinButton();
     
-    // Kiểm tra lại xem sau lượt quay này (kể cả lượt đá bàn thắng vàng) đã thực sự phân định thắng thua chưa
+    // ĐOẠN KIỂM TRA CHỐT HẠ: Chỉ khi tất cả mọi người đã quay xong thì mới kiểm tra xem có cần chúc mừng hay đá bàn thắng vàng
+    const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
     let counts = {};
     OPTIONS.forEach(s => counts[s] = 0);
-    let validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
+    let doneCount = 0;
     validList.forEach(n => {
-      if(state[n]) counts[state[n].result]++;
-    });
-
-    let maxCount = -1;
-    let maxShops = [];
-    OPTIONS.forEach(s => {
-      if(counts[s] > maxCount){
-        maxCount = counts[s];
-        maxShops = [s];
-      } else if(counts[s] === maxCount){
-        maxShops.push(s);
+      if(state[n]) {
+        doneCount++;
+        counts[state[n].result]++;
       }
     });
 
-    // Chỉ ăn mừng chiến thắng khi chỉ có DUY NHẤT 1 quán cao phiếu nhất
-    if(maxShops.length === 1){
-      celebrateWin(maxShops[0], true);
+    if(doneCount === validList.length){
+      let maxCount = -1;
+      let maxShops = [];
+      OPTIONS.forEach(s => {
+        if(counts[s] > maxCount){
+          maxCount = counts[s];
+          maxShops = [s];
+        } else if(counts[s] === maxCount){
+          maxShops.push(s);
+        }
+      });
+
+      // Chỉ hiển thị bảng chúc mừng nếu có 1 quán thắng tuyệt đối (hoặc là sau khi kết thúc lượt đá bàn thắng vàng)
+      if(maxShops.length === 1 || isTieBreaker){
+        celebrateWin(maxShops[0], true);
+      }
     }
   }, 4300);
 }
