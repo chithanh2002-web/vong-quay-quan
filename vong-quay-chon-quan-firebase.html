@@ -308,7 +308,7 @@
     </div>
   </div>
 
-  <button class="spin-btn" id="spinBtn" disabled>Chọn tên trước đã</button>
+  <button class="spin-btn" id="spinBtn" disabled>Chọn tên trướcได้</button>
   
   <div class="tie-box" id="tieBox">
     <h3>⚡ Kết quả đang HOÀ! Đá Bàn Thắng Vàng:</h3>
@@ -372,6 +372,19 @@ let soundEnabled = false;
 
 const WHEEL_COLORS = ["#c1442e", "#e8a33d", "#7fa65c", "#2a4a35", "#b4893a", "#3a2a1c"];
 
+// Tự động gán icon sinh động dựa theo tên quán
+function getShopIcon(name){
+  const lower = name.toLowerCase();
+  if(lower.includes("hino") || lower.includes("sushi") || lower.includes("nhật")) return "🍣";
+  if(lower.includes("tokio") || lower.includes("deli") || lower.includes("mì")) return "🍜";
+  if(lower.includes("ốc") || lower.includes("hải sản")) return "🐚";
+  if(lower.includes("cơm") || lower.includes("phở")) return "🍲";
+  if(lower.includes("gà") || lower.includes("kf")) return "🍗";
+  if(lower.includes("pizza") || lower.includes("ý")) return "🍕";
+  if(lower.includes("cafe") || lower.includes("trà")) return "☕";
+  return "🍽️";
+}
+
 function drawWheelAndText(){
   const canvas = document.getElementById('wheelCanvas');
   if(!canvas) return;
@@ -410,15 +423,8 @@ function drawWheelAndText(){
   ctx.strokeStyle = "#3a2a1c";
   ctx.stroke();
 
-  ctx.font = "bold 22px 'Be Vietnam Pro', sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
-  ctx.shadowBlur = 6;
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = "#0b3b1e";
-
-  const textRadius = 145;
+  // Vẽ chữ và icon sinh động
+  const textRadius = 140;
   OPTIONS.forEach((shopName, idx) => {
     const angle = -Math.PI / 2 + sliceAngle * idx + sliceAngle / 2;
     const x = centerX + textRadius * Math.cos(angle);
@@ -427,9 +433,24 @@ function drawWheelAndText(){
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle + Math.PI / 2);
-    ctx.strokeText(shopName, 0, 0);
+
+    // Vẽ icon phía trên tên quán
+    ctx.font = "26px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const icon = getShopIcon(shopName);
+    ctx.fillText(icon, 0, -14);
+
+    // Vẽ tên quán
+    ctx.font = "bold 18px 'Be Vietnam Pro', sans-serif";
+    ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+    ctx.shadowBlur = 6;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#0b3b1e";
+    ctx.strokeText(shopName, 0, 12);
     ctx.fillStyle = "#ffffff";
-    ctx.fillText(shopName, 0, 0);
+    ctx.fillText(shopName, 0, 12);
+
     ctx.restore();
   });
 }
@@ -1137,7 +1158,6 @@ async function spin(isTieBreaker = false, tiePerson = null){
 
   if(!soundEnabled) forceUnlockSound();
 
-  // Kiểm tra an toàn chống lách lượt trực tiếp từ server trước khi quay
   try {
     const checkRes = await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json");
     const checkData = await checkRes.json();
