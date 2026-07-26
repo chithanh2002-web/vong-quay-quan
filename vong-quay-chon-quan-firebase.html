@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vòng Quay Chọn Quán</title>
 <meta property="og:title" content="Vòng Quay Chọn Quán 🎡">
-<meta property="og:description" content="Quán nào hôm nay? Bấm vào chọn tên bạn rồi quay ngay!">
+<meta property="og:description" content="Quán nào hôm hôm nay? Bấm vào chọn tên bạn rồi quay ngay!">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -176,23 +176,14 @@
     border: 1.5px solid rgba(193,68,46,0.4); text-align: center; display: none;
   }
   .tie-box h3{ font-size: 13.5px; color: var(--marigold); margin: 0 0 8px; }
-  .tie-row{ display: flex; gap: 6px; margin-bottom: 8px; }
-  .tie-select{
-    flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--gold);
-    background: #1f3d2b; color: var(--chalk-cream); font-family: inherit; font-size: 13px;
-  }
-  .tie-random-btn{
-    padding: 8px 12px; border-radius: 8px; border: 1px solid var(--marigold);
-    background: rgba(232,163,61,0.2); color: var(--marigold); font-family: inherit; font-weight: 700;
-    font-size: 12px; cursor: pointer; white-space: nowrap;
-  }
-  .tie-random-btn:hover{ background: rgba(232,163,61,0.35); }
+  .tie-info{ font-size: 13px; color: var(--chalk-cream); margin-bottom: 10px; font-weight: 600; }
   .tie-btn{
     width: 100%; padding: 11px; border-radius: 10px; border: none;
     background: linear-gradient(180deg, #e8a33d, #b4893a); color: #3a2a1c;
     font-family: inherit; font-weight: 800; font-size: 14px; cursor: pointer;
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   }
+  .tie-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
 
   .hint{ text-align:center; font-size:12px; color:var(--chalk-cream-dim); margin-top:5px; min-height:16px; }
   .fair-note{ text-align:center; font-size:10.5px; color:rgba(242,236,216,0.45); margin-top:2px; }
@@ -320,17 +311,14 @@
   <button class="spin-btn" id="spinBtn" disabled>Chọn tên trước đã</button>
   
   <div class="tie-box" id="tieBox">
-    <h3>⚡ Kết quả đang HOÀ! Chọn người đá Bàn Thắng Vàng:</h3>
-    <div class="tie-row">
-      <select class="tie-select" id="tieSelect"></select>
-      <button class="tie-random-btn" onclick="randomPickTieBreaker()">🎲 Bốc thăm</button>
-    </div>
-    <button class="tie-btn" id="tieBtn">Quay Bàn Thắng Vàng! ⚽</button>
+    <h3>⚡ Kết quả đang HOÀ! Đá Bàn Thắng Vàng:</h3>
+    <div class="tie-info" id="tieInfoText">Đang chờ người chơi...</div>
+    <button class="tie-btn" id="tieBtn" onclick="spinTieBreaker()">Quay Bàn Thắng Vàng! ⚽</button>
   </div>
 
   <div class="hint" id="hint">Đang tải trạng thái của nhóm...</div>
   <div class="err" id="errBox"></div>
-  <div class="fair-note">⚖️ Tỉ lệ quay hoàn toàn ngẫu nhiên và bảo mật chống F5</div>
+  <div class="fair-note">⚖️ Tỉ lệ quay hoàn toàn ngẫu nhiên và bảo mật chống lách luật</div>
 
   <hr class="chalk-line">
 
@@ -368,8 +356,11 @@ let currentRoom = urlParams.get('room') ? urlParams.get('room').trim().toLowerCa
 const DB_URL = `${BASE_DB_URL}/rooms/${currentRoom}`;
 
 let namesList = [];
-let OPTIONS = ["112", "Hương Lúa"]; // Mặc định ban đầu
+let OPTIONS = ["112", "Hương Lúa"];
 let maxAllowedSpins = 1;
+let serverAdminPass = "2034";
+let forcedWinnerSetting = "RANDOM";
+let serverStats = {};
 
 let selectedName = null;
 let state = {};
@@ -379,45 +370,68 @@ let celebrated = false;
 let audioCtx = null;
 let soundEnabled = false;
 
+const WHEEL_COLORS = ["#c1442e", "#e8a33d", "#7fa65c", "#2a4a35", "#b4893a", "#3a2a1c"];
+
 function drawWheelAndText(){
   const canvas = document.getElementById('wheelCanvas');
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
-  const img = new Image();
-  img.crossOrigin = "anonymous";
-  img.src = "vongquay.jpg";
-  img.onload = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    
-    const count = OPTIONS.length;
-    if(count === 0) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  const count = OPTIONS.length;
+  if(count === 0) return;
 
-    ctx.font = "bold 26px 'Be Vietnam Pro', sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
-    ctx.shadowBlur = 10;
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = "#0b3b1e";
+  const sliceAngle = (2 * Math.PI) / count;
+  const centerX = 250;
+  const centerY = 250;
+  const radius = 245;
 
-    const sliceAngle = (2 * Math.PI) / count;
-    const radius = 135;
+  OPTIONS.forEach((shopName, idx) => {
+    const startAngle = -Math.PI / 2 + sliceAngle * idx;
+    const endAngle = startAngle + sliceAngle;
 
-    OPTIONS.forEach((shopName, idx) => {
-      const angle = -Math.PI / 2 + sliceAngle * idx + sliceAngle / 2;
-      const x = 250 + radius * Math.cos(angle);
-      const y = 250 + radius * Math.sin(angle);
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+    ctx.closePath();
 
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(angle + Math.PI / 2);
-      ctx.strokeText(shopName, 0, 0);
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText(shopName, 0, 0);
-      ctx.restore();
-    });
-  };
+    ctx.fillStyle = WHEEL_COLORS[idx % WHEEL_COLORS.length];
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#f2ecd8";
+    ctx.stroke();
+  });
+
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
+  ctx.fillStyle = "#e3c069";
+  ctx.fill();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "#3a2a1c";
+  ctx.stroke();
+
+  ctx.font = "bold 22px 'Be Vietnam Pro', sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+  ctx.shadowBlur = 6;
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "#0b3b1e";
+
+  const textRadius = 145;
+  OPTIONS.forEach((shopName, idx) => {
+    const angle = -Math.PI / 2 + sliceAngle * idx + sliceAngle / 2;
+    const x = centerX + textRadius * Math.cos(angle);
+    const y = centerY + textRadius * Math.sin(angle);
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle + Math.PI / 2);
+    ctx.strokeText(shopName, 0, 0);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(shopName, 0, 0);
+    ctx.restore();
+  });
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -432,15 +446,17 @@ document.getElementById('mainTitle').addEventListener('click', () => {
   if(titleClicks >= 3){
     titleClicks = 0;
     const pass = prompt("🔒 Nhập mật khẩu quản trị để tạo/đổi phòng & mở bảng điều khiển:");
-    if(pass === "2034"){
-      const roomBar = document.getElementById('roomBar');
-      roomBar.style.display = roomBar.style.display === 'flex' ? 'none' : 'flex';
+    if(pass !== null){
+      if(pass === serverAdminPass){
+        const roomBar = document.getElementById('roomBar');
+        roomBar.style.display = roomBar.style.display === 'flex' ? 'none' : 'flex';
 
-      const panel = document.getElementById('adminPanel');
-      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-      alert("🔓 Đã mở khóa tính năng quản trị phòng thành công!");
-    } else if(pass !== null){
-      alert("❌ Mật khẩu sai!");
+        const panel = document.getElementById('adminPanel');
+        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        alert("🔓 Đã mở khóa tính năng quản trị phòng thành công!");
+      } else {
+        alert("❌ Mật khẩu sai!");
+      }
     }
   }
   setTimeout(() => { titleClicks = 0; }, 1500);
@@ -490,685 +506,17 @@ function renderAdminShopInputs(){
   const container = document.getElementById('adminShopsContainer');
   container.innerHTML = "";
   OPTIONS.forEach((shop, idx) => {
-    const row = document.createElement('div');
-    row.className = 'admin-shop-row';
-    row.innerHTML = `
-      <input type="text" class="admin-input shop-input-field" value="${shop}" placeholder="Tên quán ${idx+1}">
-      ${OPTIONS.length > 2 ? `<button class="admin-del-shop-btn" onclick="removeShopInput(${idx})">✕</button>` : ''}
-    `;
-    container.appendChild(row);
-  });
-}
-
-function addShopInput(){
-  if(OPTIONS.length >= 6){
-    alert("⚠️ Tối đa khoảng 6 quán trên một vòng quay cho đẹp bạn nhé!");
-    return;
-  }
-  const inputs = document.querySelectorAll('.shop-input-field');
-  let currentArr = [];
-  inputs.forEach(inp => currentArr.push(inp.value.trim()));
-  currentArr.push("Quán Mới");
-  OPTIONS = currentArr;
-  renderAdminShopInputs();
-}
-
-function removeShopInput(index){
-  if(OPTIONS.length <= 2){
-    alert("⚠️ Cần duy trì ít nhất 2 quán để quay!");
-    return;
-  }
-  const inputs = document.querySelectorAll('.shop-input-field');
-  let currentArr = [];
-  inputs.forEach(inp => currentArr.push(inp.value.trim()));
-  currentArr.splice(index, 1);
-  OPTIONS = currentArr;
-  renderAdminShopInputs();
-}
-
-function updateForcedSelect(){
-  const select = document.getElementById('forcedResultSelect');
-  if(!select) return;
-  let html = `<option value="RANDOM">🎲 Ngẫu nhiên hoàn toàn</option>`;
-  OPTIONS.forEach(shop => {
-    html += `<option value="${shop}">🔒 Cố định luôn về: ${shop}</option>`;
-  });
-  select.innerHTML = html;
-  const currentForced = localStorage.getItem(`forced_winner_${currentRoom}`);
-  if(currentForced) select.value = currentForced;
-}
-
-async function saveShopNames(){
-  const inputs = document.querySelectorAll('.shop-input-field');
-  let newArr = [];
-  inputs.forEach(inp => {
-    const val = inp.value.trim();
-    if(val) newArr.push(val);
-  });
-  if(newArr.length < 2){
-    alert("⚠️ Vui lòng giữ lại ít nhất 2 tên quán hợp lệ!");
-    return;
-  }
-  OPTIONS = newArr;
-  
-  // Lưu trực tiếp danh sách quán lên Firebase của phòng này
-  try {
-    await fetch(DB_URL + "/options.json", {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(OPTIONS)
-    });
-  } catch(e){
-    alert("❌ Không lưu được danh sách quán lên server.");
-    return;
-  }
-
-  updateUItexts();
-  drawWheelAndText();
-  updateForcedSelect();
-  renderResults();
-  renderStatsDisplay();
-  alert("✅ Đã lưu danh sách quán lên server thành công!");
-}
-
-function forceUnlockSound(){
-  try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    audioCtx = new AudioContext();
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.1);
-  } catch(e) {}
-
-  soundEnabled = true;
-  const bar = document.getElementById('soundBar');
-  bar.style.background = "rgba(127,166,92,0.25)";
-  bar.style.borderColor = "var(--paddy)";
-  bar.style.color = "var(--paddy)";
-  bar.innerHTML = "✅ Âm thanh loa đã sẵn sàng hoạt động!";
-  setTimeout(()=>{ bar.style.display = 'none'; }, 2000);
-}
-
-document.addEventListener('click', () => { if(!soundEnabled) forceUnlockSound(); }, { once: true });
-document.addEventListener('touchstart', () => { if(!soundEnabled) forceUnlockSound(); }, { once: true });
-
-function playClickSound(){
-  try {
-    if(!audioCtx){
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
-    }
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(580, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.05);
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.05);
-  } catch(e) {}
-}
-
-function playWinSound(){
-  try {
-    if(!audioCtx){
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
-    }
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-    const notes = [523.25, 659.25, 783.99, 1046.50];
-    notes.forEach((freq, idx) => {
-      setTimeout(() => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.4);
-      }, idx * 100);
-    });
-  } catch(e) {}
-}
-
-let historyClicks = 0;
-document.getElementById('historyBox').addEventListener('click', () => {
-  historyClicks++;
-  if(historyClicks >= 3){
-    historyClicks = 0;
-    const pass = prompt("🔒 Nhập mật khẩu quản trị để xóa thống kê lịch sử:");
-    if(pass === "2034"){
-      let emptyStats = {};
-      OPTIONS.forEach(s => emptyStats[s] = 0);
-      localStorage.setItem(`lunch_stats_${currentRoom}`, JSON.stringify(emptyStats));
-      renderStatsDisplay();
-      alert("✅ Đã đặt lại thống kê về 0 thành công!");
-    } else if(pass !== null){
-      alert("❌ Mật khẩu sai!");
-    }
-  }
-  setTimeout(() => { historyClicks = 0; }, 1500);
-});
-
-function changeForcedResult(val){
-  localStorage.setItem(`forced_winner_${currentRoom}`, val);
-  if(val !== "RANDOM"){
-    alert("⚠️ Đã kích hoạt chế độ ép kết quả về: " + val);
-  } else {
-    alert("🎲 Đã chuyển lại chế độ ngẫu nhiên hoàn toàn!");
-  }
-}
-
-const nameGrid = document.getElementById('nameGrid');
-const spinBtn = document.getElementById('spinBtn');
-const tieBox = document.getElementById('tieBox');
-const tieSelect = document.getElementById('tieSelect');
-const tieBtn = document.getElementById('tieBtn');
-const congratsOverlay = document.getElementById('congratsOverlay');
-const congratsEmoji = document.getElementById('congratsEmoji');
-const congratsServer = document.getElementById('congratsServer');
-const congratsMsg = document.getElementById('congratsMsg');
-const congratsClose = document.getElementById('congratsClose');
-const pointerEl = document.getElementById('pointerEl');
-
-congratsClose.addEventListener('click', ()=>{ congratsOverlay.style.display = 'none'; });
-
-const hint = document.getElementById('hint');
-const errBox = document.getElementById('errBox');
-const barsEl = document.getElementById('bars');
-const tickets = document.getElementById('tickets');
-const tally = document.getElementById('tally');
-const wheelElement = document.getElementById('wheelElement');
-
-function showError(msg){
-  errBox.textContent = msg;
-  errBox.style.display = 'block';
-}
-
-function launchConfetti(){
-  const colors = ["#e8a33d","#7fa65c","#c1442e","#f2ecd8"];
-  const layer = document.createElement('div');
-  layer.className = 'confetti-layer';
-  document.body.appendChild(layer);
-  for(let i=0; i<90; i++){
-    const piece = document.createElement('div');
-    piece.className = 'confetti-piece';
-    piece.style.left = Math.random()*100 + "vw";
-    piece.style.background = colors[Math.floor(Math.random()*colors.length)];
-    piece.style.animationDuration = (2.2 + Math.random()*1.8) + "s";
-    piece.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
-    layer.appendChild(piece);
-  }
-  setTimeout(()=>{ layer.remove(); }, 4800);
-}
-
-function showCongrats(winnerOption){
-  congratsEmoji.textContent = "🍻";
-  congratsServer.textContent = winnerOption;
-  congratsMsg.textContent = `Yayyy quán ${winnerOption} thắng rồi nè! Cụng ly nào anh em ơi! 🍻`;
-  congratsOverlay.style.display = 'flex';
-}
-
-function celebrateWin(winnerOption, isFromLiveSpin = false){
-  if(isFromLiveSpin){
-    if(!celebrated){
-      celebrated = true;
-      playWinSound();
-      launchConfetti();
-      updateStatsHistory(winnerOption);
-    }
-  }
-  showCongrats(winnerOption);
-}
-
-function updateStatsHistory(winner){
-  let stats = JSON.parse(localStorage.getItem(`lunch_stats_${currentRoom}`) || '{}');
-  OPTIONS.forEach(s => { if(stats[s] === undefined) stats[s] = 0; });
-  if(!stats[winner]) stats[winner] = 0;
-  stats[winner]++;
-  localStorage.setItem(`lunch_stats_${currentRoom}`, JSON.stringify(stats));
-  renderStatsDisplay();
-}
-
-function renderStatsDisplay(){
-  let stats = JSON.parse(localStorage.getItem(`lunch_stats_${currentRoom}`) || '{}');
-  OPTIONS.forEach(s => { if(stats[s] === undefined) stats[s] = 0; });
-  
-  let parts = [];
-  OPTIONS.forEach(s => {
-    parts.push(`<b>${s}</b> thắng (<span>${stats[s] || 0}</span>)`);
-  });
-  const textEl = document.getElementById('historyStatsText');
-  if(textEl) textEl.innerHTML = parts.join(" - ");
-}
-
-function randomPickTieBreaker(){
-  const options = tieSelect.options;
-  if(options.length > 0){
-    const randomIndex = Math.floor(Math.random() * options.length);
-    tieSelect.selectedIndex = randomIndex;
-    tieSelect.style.borderColor = "var(--marigold)";
-    setTimeout(()=>{ tieSelect.style.borderColor = "var(--gold)"; }, 500);
-  }
-}
-
-function renderNames(){
-  nameGrid.innerHTML = "";
-  const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-  
-  if(validList.length === 0){
-    nameGrid.innerHTML = `<div style="grid-column: span 3; text-align:center; color: var(--marigold); font-weight:700; padding: 20px;">⚠️ Phòng này chưa có người chơi hoặc không tồn tại!</div>`;
-    spinBtn.disabled = true;
-    spinBtn.textContent = "Chưa có người chơi";
-    hint.textContent = "Hãy thêm người chơi mới bên trên.";
-    return;
-  }
-
-  validList.forEach(name=>{
-    const btn = document.createElement('button');
-    btn.className = 'name-btn';
-    
-    const userSpins = state[name] || [];
-    const isDone = userSpins.length >= maxAllowedSpins;
-    
-    btn.disabled = isDone;
-    if(selectedName === name) btn.classList.add('selected');
-
-    const delBtn = document.createElement('button');
-    delBtn.className = 'del-btn';
-    delBtn.innerHTML = '✕';
-    delBtn.title = 'Xóa người chơi này';
-    delBtn.onclick = (e)=>{
-      e.stopPropagation();
-      removePlayer(name);
-    };
-
-    btn.appendChild(delBtn);
-
-    const textSpan = document.createElement('span');
-    let tagText = isDone ? 'đã xong' : `${userSpins.length}/${maxAllowedSpins} lượt`;
-    textSpan.innerHTML = name + `<span class="tag">${tagText}</span>`;
-    btn.appendChild(textSpan);
-
-    btn.onclick = (e)=>{
-      if(e.target === delBtn) return;
-      if(!soundEnabled) forceUnlockSound();
-      if(spinning || isDone) return;
-      selectedName = name;
-      renderNames();
-      updateSpinButton();
-    };
-    nameGrid.appendChild(btn);
-  });
-}
-
-async function removePlayer(nameToRemove){
-  const pass = prompt("🔒 Nhập mật khẩu quản trị để xóa người chơi '" + nameToRemove + "':");
-  if(pass === null) return;
-  if(pass !== "2034"){ alert("❌ Mật khẩu không đúng!"); return; }
-
-  try{
-    let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-    cleanList = cleanList.filter(n => n !== nameToRemove);
-
-    const payload = {};
-    cleanList.forEach((name, idx) => { payload["p" + idx] = name; });
-
-    const res = await fetch(DB_URL + "/players.json", {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(payload)
-    });
-
-    if(res.ok){
-      namesList = cleanList;
-      if(selectedName === nameToRemove) selectedName = null;
-      await fetch(DB_URL + "/spins/" + encodeURIComponent(nameToRemove) + ".json", { method: "DELETE" });
-      delete state[nameToRemove];
-      renderNames();
-      renderResults();
-      updateSpinButton();
-      alert("✅ Đã xóa thành công!");
-    }
-  }catch(e){ alert("❌ Lỗi kết nối cơ sở dữ liệu."); }
-}
-
-async function addNewPlayerWithPassword(){
-  const input = document.getElementById('newPlayerInput');
-  const newName = input.value.trim();
-  if(!newName){ alert("Vui lòng nhập tên người chơi!"); return; }
-  if(namesList.some(n => String(n).trim().toLowerCase() === newName.toLowerCase())){
-    alert("Tên này đã có trong danh sách rồi!"); return;
-  }
-  const pass = prompt("🔒 Nhập mật khẩu để thêm người chơi:");
-  if(pass === null) return;
-  if(pass !== "2034"){ alert("❌ Mật khẩu không đúng!"); return; }
-
-  try{
-    let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-    cleanList.push(newName);
-    const payload = {};
-    cleanList.forEach((name, idx) => { payload["p" + idx] = name; });
-
-    const res = await fetch(DB_URL + "/players.json", {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(payload)
-    });
-
-    if(res.ok){
-      namesList = cleanList;
-      input.value = "";
-      renderNames();
-      renderResults();
-      alert("✅ Đã thêm thành công!");
-    }
-  }catch(e){ alert("❌ Lỗi kết nối cơ sở dữ liệu."); }
-}
-
-function updateSpinButton(){
-  const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-  if(validList.length === 0) return;
-
-  if(!selectedName){
-    spinBtn.disabled = true;
-    spinBtn.textContent = "Chọn tên trước đã";
-    hint.textContent = "Chọn đúng tên của bạn trong danh sách bên trên.";
-    return;
-  }
-  
-  const userSpins = state[selectedName] || [];
-  if(userSpins.length >= maxAllowedSpins){
-    spinBtn.disabled = true;
-    spinBtn.textContent = "Đã hoàn thành đủ lượt";
-    hint.textContent = selectedName + ` đã quay đủ ${maxAllowedSpins} lượt.`;
-    return;
-  }
-  
-  spinBtn.disabled = spinning;
-  spinBtn.textContent = spinning ? "Đang quay..." : `Quay cho ${selectedName} (Lượt ${userSpins.length + 1}/${maxAllowedSpins})`;
-  hint.textContent = spinning ? "" : "Nhấn để quay lượt tiếp theo!";
-}
-
-function renderResults(){
-  let counts = {};
-  OPTIONS.forEach(s => counts[s] = 0);
-  let totalDoneUsers = 0;
-  tickets.innerHTML = "";
-  const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-
-  if(validList.length === 0){
-    tickets.innerHTML = '<div style="text-align:center; color:var(--chalk-cream-dim); padding:10px;">Chưa có người chơi trong phòng.</div>';
-    barsEl.innerHTML = "";
-    tally.innerHTML = "";
-    return;
-  }
-
-  validList.forEach(name=>{
-    const userSpins = state[name] || [];
-    const row = document.createElement('div');
-    row.className = 'ticket';
-    
-    let whatHtml = "";
-    if(userSpins.length > 0){
-      if(userSpins.length >= maxAllowedSpins) totalDoneUsers++;
-      let badges = userSpins.map(s => `<span class="what">${s.result}</span>`).join(" ");
-      whatHtml = `<div>${badges}</div>`;
-    } else {
-      whatHtml = '<span class="what pending">chưa quay</span>';
-    }
-    row.innerHTML = `<span class="who">${name}</span>${whatHtml}`;
-    tickets.appendChild(row);
-  });
-
-  let totalAllSpins = 0;
-  OPTIONS.forEach(s => counts[s] = 0);
-  validList.forEach(name => {
-    const userSpins = state[name] || [];
-    userSpins.forEach(s => {
-      totalAllSpins++;
-      if(counts[s.result] !== undefined) counts[s.result]++;
-    });
-  });
-
-  let barsHtml = "";
-  OPTIONS.forEach(s => {
-    let cnt = counts[s] || 0;
-    let pct = totalAllSpins ? Math.round(cnt / totalAllSpins * 100) : 0;
-    barsHtml += `
-      <div class="bar-row">
-        <div class="bar-label"><span>${s}</span><span>${cnt} lượt</span></div>
-        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
-      </div>
-    `;
-  });
-  barsEl.innerHTML = barsHtml;
-
-  if(totalDoneUsers === validList.length && validList.length > 0){
-    let maxCount = -1;
-    let maxShops = [];
-    OPTIONS.forEach(s => {
-      if(counts[s] > maxCount){
-        maxCount = counts[s];
-        maxShops = [s];
-      } else if(counts[s] === maxCount){
-        maxShops.push(s);
-      }
-    });
-
-    if(maxShops.length > 1){
-      tally.className = 'tally winner';
-      tally.innerHTML = `Có sự đồng điểm (${maxShops.join(" & ")})! Đá Bàn Thắng Vàng!`;
-      tieBox.style.display = "block";
-      tieSelect.innerHTML = "";
-      
-      validList.forEach(n=>{
-        if(!state[n] || state[n].length < maxAllowedSpins || !state[n].some(s => s.isTieBreaker)){
-          const opt = document.createElement('option');
-          opt.value = n;
-          opt.textContent = n;
-          tieSelect.appendChild(opt);
-        }
-      });
-      if(tieSelect.options.length === 0) tieBox.style.display = "none";
-    } else {
-      tieBox.style.display = "none";
-      const winner = maxShops[0];
-      tally.className = 'tally winner';
-      tally.innerHTML = `🏆 Quán thắng chung cuộc: <b>${winner}</b> (${maxCount}/${totalAllSpins} tổng lượt)`;
-    }
-  } else {
-    tieBox.style.display = "none";
-    tally.className = 'tally';
-    tally.innerHTML = `${totalDoneUsers}/${validList.length} người đã hoàn thành đủ ${maxAllowedSpins} lượt quay.`;
-  }
-}
-
-async function loadState(){
-  try{
-    // Tải danh sách quán từ Firebase của phòng hiện tại
-    const optRes = await fetch(DB_URL + "/options.json");
-    const optData = await optRes.json();
-    if(optData && Array.isArray(optData) && optData.length > 0){
-      OPTIONS = optData;
-    }
-
-    // Tải số lượt quay tối đa từ Firebase
-    const maxRes = await fetch(DB_URL + "/maxSpins.json");
-    const maxData = await maxRes.json();
-    if(maxData){
-      maxAllowedSpins = parseInt(maxData);
-      document.getElementById('maxSpinsSelect').value = maxAllowedSpins;
-    }
-
-    const pRes = await fetch(DB_URL + "/players.json");
-    const pData = pRes.ok ? await pRes.json() : null;
-    
-    if(pData){
-      let loaded = Array.isArray(pData) ? pData : Object.values(pData);
-      namesList = loaded.map(n => String(n || "").trim()).filter(n => n.length > 0);
-    } else {
-      namesList = [];
-    }
-
-    const res = await fetch(DB_URL + "/spins.json");
-    const data = res.ok ? await res.json() : {};
-    state = data || {};
-  }catch(e){
-    showError("Không tải được dữ liệu nhóm.");
-  }
-  drawWheelAndText();
-  updateUItexts();
-  renderAdminShopInputs();
-  updateForcedSelect();
-  renderNames();
-  renderResults();
-  updateSpinButton();
-  renderStatsDisplay();
-}
-
-async function resetData(){
-  const pass = prompt("Nhập mật khẩu quản trị để reset dữ liệu:");
-  if(pass === null) return;
-  if(pass !== "2034"){ alert("❌ Mật khẩu không đúng!"); return; }
-  
-  try{
-    await fetch(DB_URL + "/spins.json", { method: "DELETE" });
-    await fetch(DB_URL + "/players.json", { method: "DELETE" });
-    await fetch(DB_URL + "/options.json", { method: "DELETE" });
-    await fetch(DB_URL + "/maxSpins.json", { method: "DELETE" });
-    state = {};
-    namesList = [];
-    selectedName = null;
-    celebrated = false;
-    wheelElement.style.transform = "rotate(0deg)";
-    currentRotation = 0;
-    loadState();
-    alert("✅ Đã làm mới dữ liệu thành công!");
-  }catch(e){ alert("❌ Lỗi kết nối cơ sở dữ liệu."); }
-}
-
-function pickWinner(){
-  const forced = localStorage.getItem(`forced_winner_${currentRoom}`);
-  if(forced && forced !== "RANDOM"){
-    return forced;
-  }
-  return OPTIONS[Math.floor(Math.random() * OPTIONS.length)];
-}
-
-async function spin(isTieBreaker = false, tiePerson = null){
-  if(spinning) return;
-  const targetName = isTieBreaker ? tiePerson : selectedName;
-  if(!targetName) return;
-
-  if(!soundEnabled) forceUnlockSound();
-
-  const userSpins = state[targetName] || [];
-  if(!isTieBreaker && userSpins.length >= maxAllowedSpins){
-    alert("⚠️ Bạn (" + targetName + ") đã quay đủ số lượt cho phép (" + maxAllowedSpins + " lượt) rồi!");
-    renderNames();
-    renderResults();
-    updateSpinButton();
-    return;
-  }
-
-  spinning = true;
-  updateSpinButton();
-  if(isTieBreaker) tieBtn.disabled = true;
-
-  pointerEl.classList.add('shake');
-
-  let soundTimer = 0;
-  let drumInterval = setInterval(()=>{
-    playClickSound();
-    soundTimer += 90;
-    if(soundTimer >= 4100) clearInterval(drumInterval);
-  }, 90);
-
-  setTimeout(()=>{ pointerEl.classList.remove('shake'); }, 4100);
-
-  const winner = pickWinner();
-  
-  const count = OPTIONS.length;
-  const sliceDeg = 360 / count;
-  const winnerIdx = OPTIONS.indexOf(winner);
-  const segCenterDeg = sliceDeg * winnerIdx + sliceDeg / 2;
-  let targetMod = ((360 - segCenterDeg) % 360 + 360) % 360;
-  const finalRotation = currentRotation - (currentRotation % 360) + 6 * 360 + targetMod;
-
-  wheelElement.style.transform = "rotate(" + finalRotation + "deg)";
-  currentRotation = finalRotation;
-
-  setTimeout(async ()=>{
-    const record = { result: winner, time: new Date().toISOString(), isTieBreaker: isTieBreaker };
-    
-    if(!state[targetName]) state[targetName] = [];
-    state[targetName].push(record);
-
-    try{
-      await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json", {
-        method: "PUT",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(state[targetName])
-      });
-    }catch(e){ showError("Không lưu được kết quả."); }
-
-    spinning = false;
-    if(isTieBreaker) tieBtn.disabled = false;
-    renderNames();
-    renderResults();
-    updateSpinButton();
-    
-    const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-    let totalDoneUsers = 0;
-    validList.forEach(n => {
-      const spins = state[n] || [];
-      if(spins.length >= maxAllowedSpins) totalDoneUsers++;
-    });
-
-    if(totalDoneUsers === validList.length){
-      let counts = {};
-      OPTIONS.forEach(s => counts[s] = 0);
-      validList.forEach(n => {
-        (state[n] || []).forEach(s => {
-          if(counts[s.result] !== undefined) counts[s.result]++;
-        });
-      });
-
-      let maxCount = -1;
-      let maxShops = [];
-      OPTIONS.forEach(s => {
-        if(counts[s] > maxCount){
-          maxCount = counts[s];
-          maxShops = [s];
-        } else if(counts[s] === maxCount){
-          maxShops.push(s);
-        }
-      });
-
-      if(maxShops.length === 1 || isTieBreaker){
-        celebrateWin(maxShops[0], true);
-      }
-    }
-  }, 4300);
-}
-
-spinBtn.addEventListener('click', ()=>spin(false));
-tieBtn.addEventListener('click', ()=>spin(true, tieSelect.value));
-</script>
-</body>
-</html>
+    constChào Binhnavi, đây là một lỗi khá phổ biến trong lập trình web hoặc ứng dụng di động liên quan đến cơ chế xử lý **Race Condition (Tranh chấp điều kiện)** hoặc **thiếu đồng bộ ở phía Server (Backend)**. 
+
+Khi gặp trường hợp bấm nhanh 2 lần hoặc mở 2 tab cùng lúc mà vượt qua được giới hạn số lượt quay, nguyên nhân thường xuất phát từ những điểm sau:
+
+### 1. Nguyên nhân kỹ thuật phổ biến
+* **Kiểm tra và cập nhật không đồng bộ (Non-atomic operation):** Server hoặc Database kiểm tra số lượt quay còn lại (Ví dụ: `SELECT turns FROM users WHERE id = X`), thấy còn 1 lượt, cho phép quay. Ngay lập tức, 2 yêu cầu (requests) gần như song song gửi lên, cả hai đều đọc được giá trị "còn 1 lượt" trước khi hệ thống kịp trừ đi lượt quay đó. Kết quả là cả 2 lượt quay đều được thực thi.
+* **Xử lý logic ở phía Client:** Giao diện khóa nút bấm (disable button) chậm hoặc chỉ ẩn đi bằng JavaScript, trong khi người dùng có thể dùng phím tắt, click đúp hoặc gọi trực tiếp API bằng các công cụ như Postman/Curl.
+* **Độ trễ mạng (Network Latency):** Khi mở 2 tab, trạng thái số lượt quay chưa đồng bộ kịp thời giữa các phiên trình duyệt cho đến khi request đầu tiên hoàn tất trả về dữ liệu mới.
+
+### 2. Hướng khắc phục (Dành cho lập trình viên)
+Nếu đây là hệ thống do bạn hoặc đội ngũ của bạn phát triển, để bịt lỗ hổng này, cần áp dụng các biện pháp:
+* **Khóa Database (Database Lock / Transactions):** Sử dụng `SELECT ... FOR UPDATE` hoặc các cơ chế transaction với mức cô lập phù hợp để đảm bảo việc kiểm tra và trừ lượt quay là một luồng nguyên tử (atomic).
+* **Kiểm tra trạng thái bằng Redis (Distributed Lock):** Dùng Redis để khóa tạm thời user ID trong vài trăm mili-giây khi họ đang thực hiện lượt quay, ngăn chặn các request trùng lặp gửi đến cùng lúc.
+* **Xác thực chặt chẽ ở Backend:** Tuyệt đối không tin tưởng dữ liệu từ phía Client gửi lên, mọi giới hạn lượt quay phải được validate trực tiếp và cập nhật ngay lập tức vào DB trước khi trả kết quả về cho người dùng.
