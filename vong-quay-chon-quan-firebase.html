@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vòng Quay Chọn Quán</title>
 <meta property="og:title" content="Vòng Quay Chọn Quán 🎡">
-<meta property="og:description" content="Quán nào hôm hôm nay? Bấm vào chọn tên bạn rồi quay ngay!">
+<meta property="og:description" content="Quán nào hôm nay? Bấm vào chọn tên bạn rồi quay ngay!">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -368,11 +368,11 @@ let currentRoom = urlParams.get('room') ? urlParams.get('room').trim().toLowerCa
 const DB_URL = `${BASE_DB_URL}/rooms/${currentRoom}`;
 
 let namesList = [];
-let OPTIONS = JSON.parse(localStorage.getItem(`lunch_options_${currentRoom}`) || '["112", "Hương Lúa"]');
-let maxAllowedSpins = parseInt(localStorage.getItem(`max_spins_${currentRoom}`) || '1');
+let OPTIONS = ["112", "Hương Lúa"]; // Mặc định ban đầu
+let maxAllowedSpins = 1;
 
 let selectedName = null;
-let state = {}; // Cấu trúc lưu mảng các lượt quay: state[name] = [{result: '...', time: '...'}, ...]
+let state = {};
 let spinning = false;
 let currentRotation = 0;
 let celebrated = false;
@@ -423,12 +423,6 @@ function drawWheelAndText(){
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('roomEyebrow').textContent = `Phòng hiện tại: ${currentRoom}`;
   document.getElementById('roomInput').value = currentRoom;
-  document.getElementById('maxSpinsSelect').value = maxAllowedSpins;
-  
-  drawWheelAndText();
-  updateUItexts();
-  renderAdminShopInputs();
-  updateForcedSelect();
   loadState();
 });
 
@@ -477,9 +471,15 @@ function updateUItexts(){
   if(subEl) subEl.textContent = `${shopNamesStr}? Mỗi người được quay ${maxAllowedSpins} lần — chống spam F5!`;
 }
 
-function changeMaxSpins(val){
+async function changeMaxSpins(val){
   maxAllowedSpins = parseInt(val);
-  localStorage.setItem(`max_spins_${currentRoom}`, maxAllowedSpins);
+  try {
+    await fetch(DB_URL + "/maxSpins.json", {
+      method: "PUT",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(maxAllowedSpins)
+    });
+  } catch(e){}
   updateUItexts();
   renderResults();
   updateSpinButton();
@@ -528,6 +528,7 @@ function removeShopInput(index){
 
 function updateForcedSelect(){
   const select = document.getElementById('forcedResultSelect');
+  if(!select) return;
   let html = `<option value="RANDOM">🎲 Ngẫu nhiên hoàn toàn</option>`;
   OPTIONS.forEach(shop => {
     html += `<option value="${shop}">🔒 Cố định luôn về: ${shop}</option>`;
@@ -537,7 +538,7 @@ function updateForcedSelect(){
   if(currentForced) select.value = currentForced;
 }
 
-function saveShopNames(){
+async function saveShopNames(){
   const inputs = document.querySelectorAll('.shop-input-field');
   let newArr = [];
   inputs.forEach(inp => {
@@ -549,13 +550,25 @@ function saveShopNames(){
     return;
   }
   OPTIONS = newArr;
-  localStorage.setItem(`lunch_options_${currentRoom}`, JSON.stringify(OPTIONS));
+  
+  // Lưu trực tiếp danh sách quán lên Firebase của phòng này
+  try {
+    await fetch(DB_URL + "/options.json", {
+      method: "PUT",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(OPTIONS)
+    });
+  } catch(e){
+    alert("❌ Không lưu được danh sách quán lên server.");
+    return;
+  }
+
   updateUItexts();
   drawWheelAndText();
   updateForcedSelect();
   renderResults();
   renderStatsDisplay();
-  alert("✅ Đã cập nhật danh sách quán thành công!");
+  alert("✅ Đã lưu danh sách quán lên server thành công!");
 }
 
 function forceUnlockSound(){
@@ -758,10 +771,10 @@ function renderNames(){
   const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
   
   if(validList.length === 0){
-    nameGrid.innerHTML = `<div style="grid-column: span 3; text-align:center; color: var(--marigold); font-weight:700; padding: 20px;">⚠️ Phòng này đã bị xóa hoặc không tồn tại!</div>`;
+    nameGrid.innerHTML = `<div style="grid-column: span 3; text-align:center; color: var(--marigold); font-weight:700; padding: 20px;">⚠️ Phòng này chưa có người chơi hoặc không tồn tại!</div>`;
     spinBtn.disabled = true;
-    spinBtn.textContent = "Phòng không tồn tại";
-    hint.textContent = "Vui lòng kiểm tra lại đường dẫn link phòng.";
+    spinBtn.textContent = "Chưa có người chơi";
+    hint.textContent = "Hãy thêm người chơi mới bên trên.";
     return;
   }
 
@@ -811,8 +824,6 @@ async function removePlayer(nameToRemove){
   try{
     let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
     cleanList = cleanList.filter(n => n !== nameToRemove);
-
-    if(cleanList.length === 0){ alert("❌ Cần giữ lại ít nhất 1 người chơi!"); return; }
 
     const payload = {};
     cleanList.forEach((name, idx) => { payload["p" + idx] = name; });
@@ -876,7 +887,7 @@ function updateSpinButton(){
   if(!selectedName){
     spinBtn.disabled = true;
     spinBtn.textContent = "Chọn tên trước đã";
-    hint.textContent = "Chọn đúng tên của bạn trong danh sách bên上の.";
+    hint.textContent = "Chọn đúng tên của bạn trong danh sách bên trên.";
     return;
   }
   
@@ -901,7 +912,7 @@ function renderResults(){
   const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
 
   if(validList.length === 0){
-    tickets.innerHTML = '<div style="text-align:center; color:var(--chalk-cream-dim); padding:10px;">Phòng không tồn tại hoặc đã bị xóa.</div>';
+    tickets.innerHTML = '<div style="text-align:center; color:var(--chalk-cream-dim); padding:10px;">Chưa có người chơi trong phòng.</div>';
     barsEl.innerHTML = "";
     tally.innerHTML = "";
     return;
@@ -924,7 +935,6 @@ function renderResults(){
     tickets.appendChild(row);
   });
 
-  // Tính tổng số lượt quay của tất cả mọi người để làm biểu đồ
   let totalAllSpins = 0;
   OPTIONS.forEach(s => counts[s] = 0);
   validList.forEach(name => {
@@ -948,7 +958,6 @@ function renderResults(){
   });
   barsEl.innerHTML = barsHtml;
 
-  // CHỈ KIỂM TRA KẾT QUẢ KHI TẤT CẢ MỌI NGƯỜI ĐÃ QUAY ĐỦ SỐ LƯỢT CÀI ĐẶT
   if(totalDoneUsers === validList.length && validList.length > 0){
     let maxCount = -1;
     let maxShops = [];
@@ -991,6 +1000,21 @@ function renderResults(){
 
 async function loadState(){
   try{
+    // Tải danh sách quán từ Firebase của phòng hiện tại
+    const optRes = await fetch(DB_URL + "/options.json");
+    const optData = await optRes.json();
+    if(optData && Array.isArray(optData) && optData.length > 0){
+      OPTIONS = optData;
+    }
+
+    // Tải số lượt quay tối đa từ Firebase
+    const maxRes = await fetch(DB_URL + "/maxSpins.json");
+    const maxData = await maxRes.json();
+    if(maxData){
+      maxAllowedSpins = parseInt(maxData);
+      document.getElementById('maxSpinsSelect').value = maxAllowedSpins;
+    }
+
     const pRes = await fetch(DB_URL + "/players.json");
     const pData = pRes.ok ? await pRes.json() : null;
     
@@ -1007,6 +1031,10 @@ async function loadState(){
   }catch(e){
     showError("Không tải được dữ liệu nhóm.");
   }
+  drawWheelAndText();
+  updateUItexts();
+  renderAdminShopInputs();
+  updateForcedSelect();
   renderNames();
   renderResults();
   updateSpinButton();
@@ -1021,15 +1049,15 @@ async function resetData(){
   try{
     await fetch(DB_URL + "/spins.json", { method: "DELETE" });
     await fetch(DB_URL + "/players.json", { method: "DELETE" });
+    await fetch(DB_URL + "/options.json", { method: "DELETE" });
+    await fetch(DB_URL + "/maxSpins.json", { method: "DELETE" });
     state = {};
     namesList = [];
     selectedName = null;
     celebrated = false;
     wheelElement.style.transform = "rotate(0deg)";
     currentRotation = 0;
-    renderNames();
-    renderResults();
-    updateSpinButton();
+    loadState();
     alert("✅ Đã làm mới dữ liệu thành công!");
   }catch(e){ alert("❌ Lỗi kết nối cơ sở dữ liệu."); }
 }
@@ -1088,7 +1116,6 @@ async function spin(isTieBreaker = false, tiePerson = null){
   setTimeout(async ()=>{
     const record = { result: winner, time: new Date().toISOString(), isTieBreaker: isTieBreaker };
     
-    // Thêm lượt quay mới vào mảng của người chơi
     if(!state[targetName]) state[targetName] = [];
     state[targetName].push(record);
 
