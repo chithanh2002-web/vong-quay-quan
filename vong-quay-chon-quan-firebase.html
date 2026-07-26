@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vòng Quay Chọn Quán</title>
 <meta property="og:title" content="Vòng Quay Chọn Quán 🎡">
-<meta property="og:description" content="Quán nào hôm nay? Bấm vào chọn tên bạn rồi quay ngay!">
+<meta property="og:description" content="Quán nào hôm hôm nay? Bấm vào chọn tên bạn rồi quay ngay!">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -41,7 +41,6 @@
   h1{ text-align:center; font-size:24px; font-weight:800; margin:0 0 4px; cursor:pointer; user-select:none; }
   .sub{ text-align:center; color:var(--chalk-cream-dim); font-size:12px; margin-bottom:12px; line-height:1.35; }
   
-  /* Thanh quản lý phòng (Chỉ hiện khi mở khóa) */
   .room-bar{
     display: flex; gap: 6px; margin-bottom: 12px;
     background: rgba(227,192,105,0.08); border: 1.5px solid rgba(227,192,105,0.3);
@@ -208,7 +207,7 @@
   .tickets{ display:flex; flex-direction:column; gap:4px; }
   .ticket{ display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(242,236,216,0.15); font-size:12.5px; }
   .ticket .who{ font-weight:700; }
-  .ticket .what{ font-weight:600; padding:2px 7px; border-radius:999px; font-size:11px; color:var(--marigold); background:rgba(232,163,61,0.18); }
+  .ticket .what{ font-weight:600; padding:2px 7px; border-radius:999px; font-size:11px; color:var(--marigold); background:rgba(232,163,61,0.18); display:flex; gap:4px; }
   .ticket .what.pending{ color:var(--chalk-cream-dim); font-weight:500; background:none; }
 
   .tally{ margin-top:12px; text-align:center; font-size:12.5px; color:var(--chalk-cream-dim); }
@@ -266,20 +265,28 @@
   <h1 id="mainTitle">Vòng Quay Chọn Quán</h1>
   <div class="sub" id="subTitleText">Quán nào hôm nay? Bấm vào chọn tên bạn rồi quay ngay!</div>
 
-  <!-- Thanh tạo/đổi phòng (Chỉ hiện khi nhập đúng mật khẩu 3 lần bấm tiêu đề) -->
   <div class="room-bar" id="roomBar">
     <input type="text" id="roomInput" class="room-input" placeholder="Nhập tên phòng mới...">
     <button class="room-btn" onclick="switchRoom()">Vào phòng</button>
     <button class="room-btn room-share-btn" onclick="copyRoomLink()" title="Copy link phòng này gửi cho mọi người">📋 Copy Link</button>
   </div>
 
-  <!-- Nút Mở Khóa Âm Thanh Đảm Bảo 100% -->
   <div class="sound-bar" id="soundBar" onclick="forceUnlockSound()">
     🔊 BẤM VÀO ĐÂY ĐỂ BẬT TIẾNG LOA NGAY
   </div>
 
   <div class="admin-panel" id="adminPanel">
     <h4>🎛️ Bảng Điều Khiển Quản Trị</h4>
+    
+    <div style="margin-bottom: 10px;">
+      <label style="font-size: 12px; color: var(--gold); display: block; margin-bottom: 4px;">🎯 Số lượt quay tối đa mỗi người:</label>
+      <select class="admin-select" id="maxSpinsSelect" onchange="changeMaxSpins(this.value)">
+        <option value="1">1 lần quay mỗi người</option>
+        <option value="2">2 lần quay mỗi người</option>
+        <option value="3">3 lần quay mỗi người</option>
+      </select>
+    </div>
+
     <select class="admin-select" id="forcedResultSelect" onchange="changeForcedResult(this.value)">
       <option value="RANDOM">🎲 Ngẫu nhiên hoàn toàn</option>
     </select>
@@ -360,13 +367,12 @@ const urlParams = new URLSearchParams(window.location.search);
 let currentRoom = urlParams.get('room') ? urlParams.get('room').trim().toLowerCase() : "phong-chung";
 const DB_URL = `${BASE_DB_URL}/rooms/${currentRoom}`;
 
-const DEFAULT_NAMES = ["Kiệt","Quý","Vương","Huy","Tra","Thành"];
-let namesList = [...DEFAULT_NAMES];
-
+let namesList = [];
 let OPTIONS = JSON.parse(localStorage.getItem(`lunch_options_${currentRoom}`) || '["112", "Hương Lúa"]');
+let maxAllowedSpins = parseInt(localStorage.getItem(`max_spins_${currentRoom}`) || '1');
 
 let selectedName = null;
-let state = {};
+let state = {}; // Cấu trúc lưu mảng các lượt quay: state[name] = [{result: '...', time: '...'}, ...]
 let spinning = false;
 let currentRotation = 0;
 let celebrated = false;
@@ -417,6 +423,7 @@ function drawWheelAndText(){
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('roomEyebrow').textContent = `Phòng hiện tại: ${currentRoom}`;
   document.getElementById('roomInput').value = currentRoom;
+  document.getElementById('maxSpinsSelect').value = maxAllowedSpins;
   
   drawWheelAndText();
   updateUItexts();
@@ -432,7 +439,6 @@ document.getElementById('mainTitle').addEventListener('click', () => {
     titleClicks = 0;
     const pass = prompt("🔒 Nhập mật khẩu quản trị để tạo/đổi phòng & mở bảng điều khiển:");
     if(pass === "2034"){
-      // Mở cả thanh quản lý phòng và bảng điều khiển quán
       const roomBar = document.getElementById('roomBar');
       roomBar.style.display = roomBar.style.display === 'flex' ? 'none' : 'flex';
 
@@ -468,7 +474,16 @@ function copyRoomLink(){
 function updateUItexts(){
   const shopNamesStr = OPTIONS.join(" hay ");
   const subEl = document.getElementById('subTitleText');
-  if(subEl) subEl.textContent = `${shopNamesStr}? Mỗi người chọn tên mình rồi quay — chống spam F5, mỗi người đúng 1 lượt!`;
+  if(subEl) subEl.textContent = `${shopNamesStr}? Mỗi người được quay ${maxAllowedSpins} lần — chống spam F5!`;
+}
+
+function changeMaxSpins(val){
+  maxAllowedSpins = parseInt(val);
+  localStorage.setItem(`max_spins_${currentRoom}`, maxAllowedSpins);
+  updateUItexts();
+  renderResults();
+  updateSpinButton();
+  alert("✅ Đã đổi số lượt quay tối đa thành: " + maxAllowedSpins + " lần/người");
 }
 
 function renderAdminShopInputs(){
@@ -742,11 +757,22 @@ function renderNames(){
   nameGrid.innerHTML = "";
   const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
   
+  if(validList.length === 0){
+    nameGrid.innerHTML = `<div style="grid-column: span 3; text-align:center; color: var(--marigold); font-weight:700; padding: 20px;">⚠️ Phòng này đã bị xóa hoặc không tồn tại!</div>`;
+    spinBtn.disabled = true;
+    spinBtn.textContent = "Phòng không tồn tại";
+    hint.textContent = "Vui lòng kiểm tra lại đường dẫn link phòng.";
+    return;
+  }
+
   validList.forEach(name=>{
     const btn = document.createElement('button');
     btn.className = 'name-btn';
-    const spun = state[name];
-    btn.disabled = !!spun;
+    
+    const userSpins = state[name] || [];
+    const isDone = userSpins.length >= maxAllowedSpins;
+    
+    btn.disabled = isDone;
     if(selectedName === name) btn.classList.add('selected');
 
     const delBtn = document.createElement('button');
@@ -761,13 +787,14 @@ function renderNames(){
     btn.appendChild(delBtn);
 
     const textSpan = document.createElement('span');
-    textSpan.innerHTML = name + (spun ? '<span class="tag">đã quay</span>' : '');
+    let tagText = isDone ? 'đã xong' : `${userSpins.length}/${maxAllowedSpins} lượt`;
+    textSpan.innerHTML = name + `<span class="tag">${tagText}</span>`;
     btn.appendChild(textSpan);
 
     btn.onclick = (e)=>{
       if(e.target === delBtn) return;
       if(!soundEnabled) forceUnlockSound();
-      if(spinning || spun) return;
+      if(spinning || isDone) return;
       selectedName = name;
       renderNames();
       updateSpinButton();
@@ -843,40 +870,53 @@ async function addNewPlayerWithPassword(){
 }
 
 function updateSpinButton(){
+  const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
+  if(validList.length === 0) return;
+
   if(!selectedName){
     spinBtn.disabled = true;
     spinBtn.textContent = "Chọn tên trước đã";
-    hint.textContent = "Chọn đúng tên của bạn trong danh sách bên trên.";
+    hint.textContent = "Chọn đúng tên của bạn trong danh sách bên上の.";
     return;
   }
-  if(state[selectedName]){
+  
+  const userSpins = state[selectedName] || [];
+  if(userSpins.length >= maxAllowedSpins){
     spinBtn.disabled = true;
-    spinBtn.textContent = "Bạn đã quay rồi";
-    hint.textContent = selectedName + " đã quay ra: " + state[selectedName].result;
+    spinBtn.textContent = "Đã hoàn thành đủ lượt";
+    hint.textContent = selectedName + ` đã quay đủ ${maxAllowedSpins} lượt.`;
     return;
   }
+  
   spinBtn.disabled = spinning;
-  spinBtn.textContent = spinning ? "Đang quay..." : "Quay cho " + selectedName;
-  hint.textContent = spinning ? "" : "Nhấn để quay — chỉ một lần thôi nhé!";
+  spinBtn.textContent = spinning ? "Đang quay..." : `Quay cho ${selectedName} (Lượt ${userSpins.length + 1}/${maxAllowedSpins})`;
+  hint.textContent = spinning ? "" : "Nhấn để quay lượt tiếp theo!";
 }
 
 function renderResults(){
   let counts = {};
   OPTIONS.forEach(s => counts[s] = 0);
-  let doneCount = 0;
+  let totalDoneUsers = 0;
   tickets.innerHTML = "";
   const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
 
+  if(validList.length === 0){
+    tickets.innerHTML = '<div style="text-align:center; color:var(--chalk-cream-dim); padding:10px;">Phòng không tồn tại hoặc đã bị xóa.</div>';
+    barsEl.innerHTML = "";
+    tally.innerHTML = "";
+    return;
+  }
+
   validList.forEach(name=>{
-    const rec = state[name];
+    const userSpins = state[name] || [];
     const row = document.createElement('div');
     row.className = 'ticket';
-    let whatHtml;
-    if(rec){
-      doneCount++;
-      let resShop = rec.result;
-      if(counts[resShop] !== undefined) counts[resShop]++;
-      whatHtml = `<span class="what">${resShop}</span>`;
+    
+    let whatHtml = "";
+    if(userSpins.length > 0){
+      if(userSpins.length >= maxAllowedSpins) totalDoneUsers++;
+      let badges = userSpins.map(s => `<span class="what">${s.result}</span>`).join(" ");
+      whatHtml = `<div>${badges}</div>`;
     } else {
       whatHtml = '<span class="what pending">chưa quay</span>';
     }
@@ -884,11 +924,21 @@ function renderResults(){
     tickets.appendChild(row);
   });
 
-  const total = doneCount;
+  // Tính tổng số lượt quay của tất cả mọi người để làm biểu đồ
+  let totalAllSpins = 0;
+  OPTIONS.forEach(s => counts[s] = 0);
+  validList.forEach(name => {
+    const userSpins = state[name] || [];
+    userSpins.forEach(s => {
+      totalAllSpins++;
+      if(counts[s.result] !== undefined) counts[s.result]++;
+    });
+  });
+
   let barsHtml = "";
   OPTIONS.forEach(s => {
     let cnt = counts[s] || 0;
-    let pct = total ? Math.round(cnt / total * 100) : 0;
+    let pct = totalAllSpins ? Math.round(cnt / totalAllSpins * 100) : 0;
     barsHtml += `
       <div class="bar-row">
         <div class="bar-label"><span>${s}</span><span>${cnt} lượt</span></div>
@@ -898,7 +948,8 @@ function renderResults(){
   });
   barsEl.innerHTML = barsHtml;
 
-  if(doneCount === validList.length && validList.length > 0){
+  // CHỈ KIỂM TRA KẾT QUẢ KHI TẤT CẢ MỌI NGƯỜI ĐÃ QUAY ĐỦ SỐ LƯỢT CÀI ĐẶT
+  if(totalDoneUsers === validList.length && validList.length > 0){
     let maxCount = -1;
     let maxShops = [];
     OPTIONS.forEach(s => {
@@ -917,7 +968,7 @@ function renderResults(){
       tieSelect.innerHTML = "";
       
       validList.forEach(n=>{
-        if(!state[n] || !state[n].isTieBreaker){
+        if(!state[n] || state[n].length < maxAllowedSpins || !state[n].some(s => s.isTieBreaker)){
           const opt = document.createElement('option');
           opt.value = n;
           opt.textContent = n;
@@ -929,12 +980,12 @@ function renderResults(){
       tieBox.style.display = "none";
       const winner = maxShops[0];
       tally.className = 'tally winner';
-      tally.innerHTML = `🏆 Quán thắng: <b>${winner}</b> (${maxCount}/${validList.length} lượt)`;
+      tally.innerHTML = `🏆 Quán thắng chung cuộc: <b>${winner}</b> (${maxCount}/${totalAllSpins} tổng lượt)`;
     }
   } else {
     tieBox.style.display = "none";
     tally.className = 'tally';
-    tally.innerHTML = `${doneCount}/${validList.length} người đã quay, còn ${validList.length - doneCount} người nữa.`;
+    tally.innerHTML = `${totalDoneUsers}/${validList.length} người đã hoàn thành đủ ${maxAllowedSpins} lượt quay.`;
   }
 }
 
@@ -942,19 +993,12 @@ async function loadState(){
   try{
     const pRes = await fetch(DB_URL + "/players.json");
     const pData = pRes.ok ? await pRes.json() : null;
+    
     if(pData){
       let loaded = Array.isArray(pData) ? pData : Object.values(pData);
-      const validPlayers = loaded.map(n => String(n || "").trim()).filter(n => n.length > 0);
-      if(validPlayers.length > 0) namesList = validPlayers;
+      namesList = loaded.map(n => String(n || "").trim()).filter(n => n.length > 0);
     } else {
-      const defaultPayload = {};
-      DEFAULT_NAMES.forEach((name, idx) => { defaultPayload["p" + idx] = name; });
-      await fetch(DB_URL + "/players.json", {
-        method: "PUT",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(defaultPayload)
-      });
-      namesList = [...DEFAULT_NAMES];
+      namesList = [];
     }
 
     const res = await fetch(DB_URL + "/spins.json");
@@ -978,7 +1022,7 @@ async function resetData(){
     await fetch(DB_URL + "/spins.json", { method: "DELETE" });
     await fetch(DB_URL + "/players.json", { method: "DELETE" });
     state = {};
-    namesList = [...DEFAULT_NAMES];
+    namesList = [];
     selectedName = null;
     celebrated = false;
     wheelElement.style.transform = "rotate(0deg)";
@@ -1005,30 +1049,13 @@ async function spin(isTieBreaker = false, tiePerson = null){
 
   if(!soundEnabled) forceUnlockSound();
 
-  if(!isTieBreaker){
-    try {
-      const checkRes = await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json");
-      const checkData = await checkRes.json();
-      if(checkData) {
-        alert("⚠️ Bạn (" + targetName + ") đã thực hiện quay trước đó rồi!");
-        state[targetName] = checkData;
-        renderNames();
-        renderResults();
-        updateSpinButton();
-        return;
-      }
-    } catch(e){}
-  } else {
-    try {
-      const checkRes = await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json");
-      const checkData = await checkRes.json();
-      if(checkData && checkData.isTieBreaker) {
-        alert("⚠️ Người này (" + targetName + ") đã thực hiện lượt đá bàn thắng vàng rồi, không thể quay lại!");
-        state[targetName] = checkData;
-        renderResults();
-        return;
-      }
-    } catch(e){}
+  const userSpins = state[targetName] || [];
+  if(!isTieBreaker && userSpins.length >= maxAllowedSpins){
+    alert("⚠️ Bạn (" + targetName + ") đã quay đủ số lượt cho phép (" + maxAllowedSpins + " lượt) rồi!");
+    renderNames();
+    renderResults();
+    updateSpinButton();
+    return;
   }
 
   spinning = true;
@@ -1060,13 +1087,17 @@ async function spin(isTieBreaker = false, tiePerson = null){
 
   setTimeout(async ()=>{
     const record = { result: winner, time: new Date().toISOString(), isTieBreaker: isTieBreaker };
+    
+    // Thêm lượt quay mới vào mảng của người chơi
+    if(!state[targetName]) state[targetName] = [];
+    state[targetName].push(record);
+
     try{
       await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json", {
         method: "PUT",
         headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(record)
+        body: JSON.stringify(state[targetName])
       });
-      state[targetName] = record;
     }catch(e){ showError("Không lưu được kết quả."); }
 
     spinning = false;
@@ -1076,20 +1107,23 @@ async function spin(isTieBreaker = false, tiePerson = null){
     updateSpinButton();
     
     const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-    let counts = {};
-    OPTIONS.forEach(s => counts[s] = 0);
-    let doneCount = 0;
+    let totalDoneUsers = 0;
     validList.forEach(n => {
-      if(state[n]) {
-        doneCount++;
-        counts[state[n].result]++;
-      }
+      const spins = state[n] || [];
+      if(spins.length >= maxAllowedSpins) totalDoneUsers++;
     });
 
-    if(doneCount === validList.length){
+    if(totalDoneUsers === validList.length){
+      let counts = {};
+      OPTIONS.forEach(s => counts[s] = 0);
+      validList.forEach(n => {
+        (state[n] || []).forEach(s => {
+          if(counts[s.result] !== undefined) counts[s.result]++;
+        });
+      });
+
       let maxCount = -1;
       let maxShops = [];
-      OPTIONS.dates = OPTIONS;
       OPTIONS.forEach(s => {
         if(counts[s] > maxCount){
           maxCount = counts[s];
