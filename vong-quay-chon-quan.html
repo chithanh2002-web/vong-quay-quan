@@ -562,6 +562,7 @@ async function changeMaxSpins(val){
     });
   } catch(e){}
   updateUItexts();
+  renderNames();
   renderResults();
   updateSpinButton();
   alert("✅ Đã đổi số lượt quay tối đa thành: " + maxAllowedSpins + " lần/người");
@@ -872,8 +873,19 @@ function renderNames(){
     
     const userSpins = state[name] || [];
     const normalDone = userSpins.filter(s => (s.round || 0) === 0).length;
-    const isDone = normalDone >= maxAllowedSpins;
-    
+    const normalIsDone = normalDone >= maxAllowedSpins;
+
+    let isDone, tagText;
+    if(tieRound > 0){
+      // Đang trong vòng Bàn Thắng Vàng: khoá theo việc đã đá vòng hoà hiện tại hay chưa
+      const hasCurrentTieSpin = userSpins.some(s => s.isTieBreaker && s.round === tieRound);
+      isDone = hasCurrentTieSpin;
+      tagText = hasCurrentTieSpin ? 'đã đá ⚽' : 'chưa đá ⚽';
+    } else {
+      isDone = normalIsDone;
+      tagText = isDone ? 'đã xong' : `${normalDone}/${maxAllowedSpins} lượt`;
+    }
+
     btn.disabled = isDone;
     if(selectedName === name) btn.classList.add('selected');
 
@@ -889,7 +901,6 @@ function renderNames(){
     btn.appendChild(delBtn);
 
     const textSpan = document.createElement('span');
-    let tagText = isDone ? 'đã xong' : `${normalDone}/${maxAllowedSpins} lượt`;
     textSpan.innerHTML = escapeHtml(name) + `<span class="tag">${escapeHtml(tagText)}</span>`;
     btn.appendChild(textSpan);
 
