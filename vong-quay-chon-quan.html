@@ -1192,9 +1192,14 @@ function setupRealtimeListener(){
       namesList = [];
     }
 
-    state = data.spins || {};
-    Object.keys(state).forEach(k => {
-      if(state[k] && !Array.isArray(state[k])) state[k] = Object.values(state[k]);
+    const rawSpins = data.spins || {};
+    state = {};
+    Object.keys(rawSpins).forEach(k => {
+      let val = rawSpins[k];
+      if(val && !Array.isArray(val)) val = Object.values(val);
+      let decodedKey = k;
+      try { decodedKey = decodeURIComponent(k); } catch(e) { decodedKey = k; }
+      state[decodedKey] = val;
     });
 
     hint.textContent = "Đã kết nối Realtime thành công!";
