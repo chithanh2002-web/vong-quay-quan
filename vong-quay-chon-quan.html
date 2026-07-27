@@ -9,6 +9,9 @@
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Import Firebase SDK (Compat v8) cho realtime listener mượt mà -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <style>
   :root{
     --chalk-bg: #152b1e;
@@ -316,7 +319,7 @@
     <button class="tie-btn" id="tieBtn" onclick="spinTieBreaker()">Quay Bàn Thắng Vàng! ⚽</button>
   </div>
 
-  <div class="hint" id="hint">Đang tải trạng thái của nhóm...</div>
+  <div class="hint" id="hint">Đang kết nối Realtime...</div>
   <div class="err" id="errBox"></div>
   <div class="fair-note">⚖️ Tỉ lệ quay hoàn toàn ngẫu nhiên và bảo mật chống lách luật</div>
 
@@ -335,7 +338,7 @@
     <button class="reset-btn" onclick="resetData()">🔄 Xóa dữ liệu & làm lại từ đầu</button>
   </div>
 
-  <div class="footnote">Mỗi người tự mở link này, chọn đúng tên mình và quay.</div>
+  <div class="footnote">Mỗi người tự mở link này, chọn đúng tên mình và quay. Màn hình TV tự động cập nhật real-time.</div>
 </div>
 
 <div class="congrats-overlay" id="congratsOverlay">
@@ -349,11 +352,17 @@
 </div>
 
 <script>
-const BASE_DB_URL = "https://vong-quay-cdd2d-default-rtdb.asia-southeast1.firebasedatabase.app";
+// Khởi tạo Firebase SDK
+const firebaseConfig = {
+  databaseURL: "https://vong-quay-cdd2d-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
 
 const urlParams = new URLSearchParams(window.location.search);
 let currentRoom = urlParams.get('room') ? urlParams.get('room').trim().toLowerCase() : "phong-chung";
-const DB_URL = `${BASE_DB_URL}/rooms/${currentRoom}`;
+const roomRef = firebase.database().ref("rooms/" + currentRoom);
 
 let namesList = [];
 let OPTIONS = ["112", "Hương Lúa"];
@@ -381,7 +390,6 @@ function escapeHtml(str){
     .replace(/'/g, "&#39;");
 }
 
-// Tự động gán icon sinh động dựa theo tên quán
 function getShopIcon(name){
   const lower = name.toLowerCase();
   if(lower.includes("hino") || lower.includes("sushi") || lower.includes("nhật")) return "🍣";
@@ -432,7 +440,6 @@ function drawWheelAndText(){
   ctx.strokeStyle = "#3a2a1c";
   ctx.stroke();
 
-  // Vẽ chữ và icon sinh động — cỡ chữ tự co giãn theo số lượng quán, tự xuống dòng nếu tên dài
   const textRadius = radius * 0.58;
   const baseFontSize = count <= 3 ? 40 : count <= 4 ? 34 : count <= 5 ? 29 : 25;
   const iconFontSize = baseFontSize + 12;
@@ -449,14 +456,12 @@ function drawWheelAndText(){
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
-    // Vẽ icon phía trên tên quán (không đổ bóng để icon nét gọn)
     ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
     ctx.font = `${iconFontSize}px sans-serif`;
     const icon = getShopIcon(shopName);
     ctx.fillText(icon, 0, -baseFontSize * 0.85);
 
-    // Vẽ tên quán — chữ to hơn, viền mỏng & bóng nhẹ để mềm mắt hơn
     ctx.font = `800 ${baseFontSize}px 'Be Vietnam Pro', sans-serif`;
     const lines = wrapWheelText(ctx, shopName, maxTextWidth);
     const lineHeight = baseFontSize * 1.08;
@@ -478,7 +483,6 @@ function drawWheelAndText(){
   });
 }
 
-// Tự động ngắt tên quán thành tối đa 2 dòng nếu quá dài so với bề rộng lát cắt
 function wrapWheelText(ctx, text, maxWidth){
   const words = String(text).split(' ');
   let lines = [];
@@ -502,7 +506,7 @@ function wrapWheelText(ctx, text, maxWidth){
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('roomEyebrow').textContent = `Phòng hiện tại: ${currentRoom}`;
   document.getElementById('roomInput').value = currentRoom;
-  loadState();
+  setupRealtimeListener();
 });
 
 let titleClicks = 0;
@@ -554,13 +558,7 @@ function updateUItexts(){
 
 async function changeMaxSpins(val){
   maxAllowedSpins = parseInt(val);
-  try {
-    await fetch(DB_URL + "/maxSpins.json", {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(maxAllowedSpins)
-    });
-  } catch(e){}
+  roomRef.child("maxSpins").set(maxAllowedSpins);
   updateUItexts();
   renderNames();
   renderResults();
@@ -622,13 +620,7 @@ function updateForcedSelect(){
 
 async function changeForcedResult(val){
   forcedWinnerSetting = val;
-  try {
-    await fetch(DB_URL + "/forcedWinner.json", {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(val)
-    });
-  } catch(e){}
+  roomRef.child("forcedWinner").set(val);
 
   if(val !== "RANDOM"){
     alert("⚠️ Đã kích hoạt ép kết quả toàn phòng về: " + val);
@@ -649,17 +641,7 @@ async function saveShopNames(){
     return;
   }
   OPTIONS = newArr;
-  
-  try {
-    await fetch(DB_URL + "/options.json", {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(OPTIONS)
-    });
-  } catch(e){
-    alert("❌ Không lưu được danh sách quán lên server.");
-    return;
-  }
+  roomRef.child("options").set(OPTIONS);
 
   updateUItexts();
   drawWheelAndText();
@@ -754,11 +736,7 @@ document.getElementById('historyBox').addEventListener('click', () => {
         let emptyStats = {};
         OPTIONS.forEach(s => emptyStats[s] = 0);
         serverStats = emptyStats;
-        fetch(DB_URL + "/stats.json", {
-          method: "PUT",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify(serverStats)
-        });
+        roomRef.child("stats").set(serverStats);
         renderStatsDisplay();
         alert("✅ Đã đặt lại thống kê về 0 cho toàn phòng thành công!");
       } else {
@@ -831,16 +809,10 @@ function celebrateWin(winnerOption, isFromLiveSpin = false){
   showCongrats(winnerOption);
 }
 
-async function updateStatsHistory(winner){
+function updateStatsHistory(winner){
   if(!serverStats[winner]) serverStats[winner] = 0;
   serverStats[winner]++;
-  try {
-    await fetch(DB_URL + "/stats.json", {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(serverStats)
-    });
-  } catch(e){}
+  roomRef.child("stats").set(serverStats);
   renderStatsDisplay();
 }
 
@@ -877,7 +849,6 @@ function renderNames(){
 
     let isDone, tagText;
     if(tieRound > 0){
-      // Đang trong vòng Bàn Thắng Vàng: khoá theo việc đã đá vòng hoà hiện tại hay chưa
       const hasCurrentTieSpin = userSpins.some(s => s.isTieBreaker && s.round === tieRound);
       isDone = hasCurrentTieSpin;
       tagText = hasCurrentTieSpin ? 'đã đá ⚽' : 'chưa đá ⚽';
@@ -922,30 +893,22 @@ async function removePlayer(nameToRemove){
   if(pass === null) return;
   if(pass !== serverAdminPass){ alert("❌ Mật khẩu không đúng!"); return; }
 
-  try{
-    let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-    cleanList = cleanList.filter(n => n !== nameToRemove);
+  let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
+  cleanList = cleanList.filter(n => n !== nameToRemove);
 
-    const payload = {};
-    cleanList.forEach((name, idx) => { payload["p" + idx] = name; });
+  const payload = {};
+  cleanList.forEach((name, idx) => { payload["p" + idx] = name; });
 
-    const res = await fetch(DB_URL + "/players.json", {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(payload)
-    });
-
-    if(res.ok){
-      namesList = cleanList;
-      if(selectedName === nameToRemove) selectedName = null;
-      await fetch(DB_URL + "/spins/" + encodeURIComponent(nameToRemove) + ".json", { method: "DELETE" });
-      delete state[nameToRemove];
-      renderNames();
-      renderResults();
-      updateSpinButton();
-      alert("✅ Đã xóa thành công!");
-    }
-  }catch(e){ alert("❌ Lỗi kết nối cơ sở dữ liệu."); }
+  await roomRef.child("players").set(payload);
+  await roomRef.child("spins/" + encodeURIComponent(nameToRemove)).remove();
+  
+  namesList = cleanList;
+  if(selectedName === nameToRemove) selectedName = null;
+  delete state[nameToRemove];
+  renderNames();
+  renderResults();
+  updateSpinButton();
+  alert("✅ Đã xóa thành công!");
 }
 
 async function addNewPlayerWithPassword(){
@@ -959,26 +922,16 @@ async function addNewPlayerWithPassword(){
   if(pass === null) return;
   if(pass !== serverAdminPass){ alert("❌ Mật khẩu không đúng!"); return; }
 
-  try{
-    let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
-    cleanList.push(newName);
-    const payload = {};
-    cleanList.forEach((name, idx) => { payload["p" + idx] = name; });
+  let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
+  cleanList.push(newName);
+  const payload = {};
+  cleanList.forEach((name, idx) => { payload["p" + idx] = name; });
 
-    const res = await fetch(DB_URL + "/players.json", {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(payload)
-    });
-
-    if(res.ok){
-      namesList = cleanList;
-      input.value = "";
-      renderNames();
-      renderResults();
-      alert("✅ Đã thêm thành công!");
-    }
-  }catch(e){ alert("❌ Lỗi kết nối cơ sở dữ liệu."); }
+  await roomRef.child("players").set(payload);
+  input.value = "";
+  renderNames();
+  renderResults();
+  alert("✅ Đã thêm thành công!");
 }
 
 function updateSpinButton(){
@@ -1009,15 +962,9 @@ function updateSpinButton(){
 let tieRound = 0;
 let tieCandidates = [];
 
-async function persistTieState(){
-  try{
-    await fetch(DB_URL + "/tieRound.json", {
-      method: "PUT", headers: {"Content-Type":"application/json"}, body: JSON.stringify(tieRound)
-    });
-    await fetch(DB_URL + "/tieCandidates.json", {
-      method: "PUT", headers: {"Content-Type":"application/json"}, body: JSON.stringify(tieCandidates)
-    });
-  }catch(e){}
+function persistTieState(){
+  roomRef.child("tieRound").set(tieRound);
+  roomRef.child("tieCandidates").set(tieCandidates);
 }
 
 function renderResults(){
@@ -1032,7 +979,6 @@ function renderResults(){
     return;
   }
 
-  // Vé của từng người (hiển thị mọi lượt, kể cả bàn thắng vàng)
   validList.forEach(name=>{
     const userSpins = state[name] || [];
     const row = document.createElement('div');
@@ -1049,7 +995,6 @@ function renderResults(){
     tickets.appendChild(row);
   });
 
-  // Vòng chính (round 0) — đây là kết quả "cả nhóm" hiển thị ở thanh bar
   let normalCounts = {};
   OPTIONS.forEach(s => normalCounts[s] = 0);
   let totalNormalSpins = 0;
@@ -1085,7 +1030,6 @@ function renderResults(){
     return;
   }
 
-  // Vòng chính đã xong cho tất cả -> xác định có hoà không (chỉ khi chưa ở vòng bàn thắng vàng nào)
   if(tieRound === 0){
     let maxCount = -1, maxShops = [];
     OPTIONS.forEach(s => {
@@ -1108,7 +1052,6 @@ function renderResults(){
     }
   }
 
-  // Đang trong (các) vòng bàn thắng vàng
   if(tieRound > 0){
     let tieCounts = {};
     tieCandidates.forEach(s => tieCounts[s] = 0);
@@ -1145,7 +1088,6 @@ function renderResults(){
       return;
     }
 
-    // Mọi người đã đá xong vòng bàn thắng vàng hiện tại -> tính kết quả
     let maxCount = -1, maxShops = [];
     tieCandidates.forEach(s => {
       if(tieCounts[s] > maxCount){ maxCount = tieCounts[s]; maxShops = [s]; }
@@ -1153,7 +1095,6 @@ function renderResults(){
     });
 
     if(maxShops.length > 1){
-      // vẫn hoà -> mở vòng bàn thắng vàng tiếp theo giữa các quán vẫn đang hoà
       tieRound += 1;
       tieCandidates = maxShops;
       persistTieState();
@@ -1177,87 +1118,49 @@ function renderResults(){
   }
 }
 
-async function loadState(){
-  try{
-    const passRes = await fetch(DB_URL + "/adminPass.json");
-    const passData = await passRes.json();
-    if(passData){
-      serverAdminPass = String(passData);
-    } else {
-      await fetch(DB_URL + "/adminPass.json", {
-        method: "PUT",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify("2034")
-      });
-      serverAdminPass = "2034";
-    }
-
-    const optRes = await fetch(DB_URL + "/options.json");
-    const optData = await optRes.json();
-    if(optData && Array.isArray(optData) && optData.length > 0){
-      OPTIONS = optData;
-    }
-
-    const maxRes = await fetch(DB_URL + "/maxSpins.json");
-    const maxData = await maxRes.json();
-    if(maxData){
-      maxAllowedSpins = parseInt(maxData);
-      document.getElementById('maxSpinsSelect').value = maxAllowedSpins;
-    }
-
-    const forcedRes = await fetch(DB_URL + "/forcedWinner.json");
-    const forcedData = await forcedRes.json();
-    if(forcedData){
-      forcedWinnerSetting = String(forcedData);
-    } else {
-      forcedWinnerSetting = "RANDOM";
-    }
-
-    const statsRes = await fetch(DB_URL + "/stats.json");
-    const statsData = await statsRes.json();
-    if(statsData){
-      serverStats = statsData;
-    } else {
-      serverStats = {};
-      OPTIONS.forEach(s => serverStats[s] = 0);
-    }
-
-    const tieRoundRes = await fetch(DB_URL + "/tieRound.json");
-    const tieRoundData = await tieRoundRes.json();
-    tieRound = tieRoundData ? parseInt(tieRoundData) : 0;
-
-    const tieCandRes = await fetch(DB_URL + "/tieCandidates.json");
-    const tieCandData = await tieCandRes.json();
-    tieCandidates = (tieCandData && Array.isArray(tieCandData)) ? tieCandData : [];
-
-    const pRes = await fetch(DB_URL + "/players.json");
-    const pData = pRes.ok ? await pRes.json() : null;
+// Thiết lập Realtime Listener với Firebase SDK
+function setupRealtimeListener(){
+  roomRef.on('value', (snapshot) => {
+    const data = snapshot.val() || {};
     
-    if(pData){
-      let loaded = Array.isArray(pData) ? pData : Object.values(pData);
+    serverAdminPass = data.adminPass ? String(data.adminPass) : "2034";
+    if(!data.adminPass) roomRef.child("adminPass").set("2034");
+
+    OPTIONS = (data.options && Array.isArray(data.options) && data.options.length > 0) ? data.options : ["112", "Hương Lúa"];
+    maxAllowedSpins = data.maxSpins ? parseInt(data.maxSpins) : 1;
+    document.getElementById('maxSpinsSelect').value = maxAllowedSpins;
+
+    forcedWinnerSetting = data.forcedWinner ? String(data.forcedWinner) : "RANDOM";
+    serverStats = data.stats || {};
+    OPTIONS.forEach(s => { if(serverStats[s] === undefined) serverStats[s] = 0; });
+
+    tieRound = data.tieRound ? parseInt(data.tieRound) : 0;
+    tieCandidates = (data.tieCandidates && Array.isArray(data.tieCandidates)) ? data.tieCandidates : [];
+
+    if(data.players){
+      let loaded = Array.isArray(data.players) ? data.players : Object.values(data.players);
       namesList = loaded.map(n => String(n || "").trim()).filter(n => n.length > 0);
     } else {
       namesList = [];
     }
 
-    const res = await fetch(DB_URL + "/spins.json");
-    const data = res.ok ? await res.json() : {};
-    state = data || {};
-    // chuẩn hoá: đảm bảo mỗi user có mảng spin, không phải object
+    state = data.spins || {};
     Object.keys(state).forEach(k => {
       if(state[k] && !Array.isArray(state[k])) state[k] = Object.values(state[k]);
     });
-  }catch(e){
-    showError("Không tải được dữ liệu nhóm.");
-  }
-  drawWheelAndText();
-  updateUItexts();
-  renderAdminShopInputs();
-  updateForcedSelect();
-  renderNames();
-  renderResults();
-  updateSpinButton();
-  renderStatsDisplay();
+
+    hint.textContent = "Đã kết nối Realtime thành công!";
+    drawWheelAndText();
+    updateUItexts();
+    renderAdminShopInputs();
+    updateForcedSelect();
+    renderNames();
+    renderResults();
+    updateSpinButton();
+    renderStatsDisplay();
+  }, (error) => {
+    showError("Không kết nối được Realtime database.");
+  });
 }
 
 async function resetData(){
@@ -1265,28 +1168,12 @@ async function resetData(){
   if(pass === null) return;
   if(pass !== serverAdminPass){ alert("❌ Mật khẩu không đúng!"); return; }
   
-  try{
-    await fetch(DB_URL + "/spins.json", { method: "DELETE" });
-    await fetch(DB_URL + "/players.json", { method: "DELETE" });
-    await fetch(DB_URL + "/options.json", { method: "DELETE" });
-    await fetch(DB_URL + "/maxSpins.json", { method: "DELETE" });
-    await fetch(DB_URL + "/forcedWinner.json", { method: "DELETE" });
-    await fetch(DB_URL + "/stats.json", { method: "DELETE" });
-    await fetch(DB_URL + "/tieRound.json", { method: "DELETE" });
-    await fetch(DB_URL + "/tieCandidates.json", { method: "DELETE" });
-    state = {};
-    namesList = [];
-    serverStats = {};
-    forcedWinnerSetting = "RANDOM";
-    tieRound = 0;
-    tieCandidates = [];
-    selectedName = null;
-    celebrated = false;
-    wheelElement.style.transform = "rotate(0deg)";
-    currentRotation = 0;
-    loadState();
-    alert("✅ Đã làm mới dữ liệu toàn phòng thành công!");
-  }catch(e){ alert("❌ Lỗi kết nối cơ sở dữ liệu."); }
+  await roomRef.remove();
+  selectedName = null;
+  celebrated = false;
+  wheelElement.style.transform = "rotate(0deg)";
+  currentRotation = 0;
+  alert("✅ Đã làm mới dữ liệu toàn phòng thành công!");
 }
 
 function pickWinner(pool){
@@ -1312,25 +1199,22 @@ async function spin(isTieBreaker = false, tiePerson = null){
     return;
   }
 
-  try {
-    const checkRes = await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json");
-    const checkData = await checkRes.json();
-    let currentSpins = checkData ? (Array.isArray(checkData) ? checkData : Object.values(checkData)) : [];
+  // Kiểm tra chống lách lượt
+  const snapshot = await roomRef.child("spins/" + encodeURIComponent(targetName)).once('value');
+  let currentSpins = snapshot.val() || [];
+  if(!Array.isArray(currentSpins)) currentSpins = Object.values(currentSpins);
 
-    let normalSpinsCount = currentSpins.filter(s => (s.round || 0) === 0).length;
-    let hasThisTieRound = currentSpins.some(s => s.isTieBreaker && s.round === roundToUse);
+  let normalSpinsCount = currentSpins.filter(s => (s.round || 0) === 0).length;
+  let hasThisTieRound = currentSpins.some(s => s.isTieBreaker && s.round === roundToUse);
 
-    if(!isTieBreaker && normalSpinsCount >= maxAllowedSpins){
-      alert("⚠️ Bạn (" + targetName + ") đã quay đủ số lượt cho phép (" + maxAllowedSpins + " lượt) rồi!");
-      loadState();
-      return;
-    }
-    if(isTieBreaker && hasThisTieRound){
-      alert("⚠️ Bạn (" + targetName + ") đã đá Bàn Thắng Vàng ở vòng này rồi!");
-      loadState();
-      return;
-    }
-  } catch(e){}
+  if(!isTieBreaker && normalSpinsCount >= maxAllowedSpins){
+    alert("⚠️ Bạn (" + targetName + ") đã quay đủ số lượt cho phép (" + maxAllowedSpins + " lượt) rồi!");
+    return;
+  }
+  if(isTieBreaker && hasThisTieRound){
+    alert("⚠️ Bạn (" + targetName + ") đã đá Bàn Thắng Vàng ở vòng này rồi!");
+    return;
+  }
 
   spinning = true;
   updateSpinButton();
@@ -1338,7 +1222,6 @@ async function spin(isTieBreaker = false, tiePerson = null){
 
   pointerEl.classList.add('shake');
 
-  // Vẽ lại bánh xe chỉ với các quán đang hoà khi đá bàn thắng vàng
   const originalOptions = OPTIONS;
   if(isTieBreaker){
     OPTIONS = tieCandidates;
@@ -1372,18 +1255,12 @@ async function spin(isTieBreaker = false, tiePerson = null){
     if(!state[targetName]) state[targetName] = [];
     state[targetName].push(record);
 
-    try{
-      await fetch(DB_URL + "/spins/" + encodeURIComponent(targetName) + ".json", {
-        method: "PUT",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(state[targetName])
-      });
-    }catch(e){ showError("Không lưu được kết quả."); }
+    await roomRef.child("spins/" + encodeURIComponent(targetName)).set(state[targetName]);
 
     spinning = false;
     if(isTieBreaker) tieBtn.disabled = false;
     OPTIONS = isTieBreaker ? originalOptions : OPTIONS;
-    loadState();
+    drawWheelAndText();
   }, 4300);
 }
 
