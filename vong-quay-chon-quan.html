@@ -9,7 +9,7 @@
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<!-- Import Firebase SDK (Compat v8) cho realtime listener mượt mà -->
+<!-- Import Firebase SDK (Compat v8) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <style>
@@ -352,7 +352,6 @@
 </div>
 
 <script>
-// Khởi tạo Firebase SDK
 const firebaseConfig = {
   databaseURL: "https://vong-quay-cdd2d-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
@@ -408,7 +407,9 @@ function drawWheelAndText(){
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-  const count = OPTIONS.length;
+  // Nếu đang đá Bàn Thắng Vàng và có danh sách tieCandidates, ưu tiên vẽ các quán đang hoà
+  let activeOptions = (tieRound > 0 && tieCandidates && tieCandidates.length >= 2) ? tieCandidates : OPTIONS;
+  const count = activeOptions.length;
   if(count === 0) return;
 
   const sliceAngle = (2 * Math.PI) / count;
@@ -416,7 +417,7 @@ function drawWheelAndText(){
   const centerY = 250;
   const radius = 245;
 
-  OPTIONS.forEach((shopName, idx) => {
+  activeOptions.forEach((shopName, idx) => {
     const startAngle = -Math.PI / 2 + sliceAngle * idx;
     const endAngle = startAngle + sliceAngle;
 
@@ -445,7 +446,7 @@ function drawWheelAndText(){
   const iconFontSize = baseFontSize + 12;
   const maxTextWidth = (2 * Math.PI * textRadius / count) * 0.85;
 
-  OPTIONS.forEach((shopName, idx) => {
+  activeOptions.forEach((shopName, idx) => {
     const angle = -Math.PI / 2 + sliceAngle * idx + sliceAngle / 2;
     const x = centerX + textRadius * Math.cos(angle);
     const y = centerY + textRadius * Math.sin(angle);
@@ -1053,6 +1054,11 @@ function renderResults(){
   }
 
   if(tieRound > 0){
+    // Đảm bảo nếu tieCandidates rỗng nhưng đang có tieRound thì khôi phục lại các quán hòa từ vòng trước
+    if(!tieCandidates || tieCandidates.length < 2){
+      tieCandidates = OPTIONS; 
+    }
+
     let tieCounts = {};
     tieCandidates.forEach(s => tieCounts[s] = 0);
     let tieDoneCount = 0;
@@ -1104,6 +1110,7 @@ function renderResults(){
       tieInfoText.innerHTML = `Mọi người cần quay thêm 1 lượt bàn thắng vàng nữa.`;
       tieBtn.disabled = !selectedName;
       tieBtn.textContent = selectedName ? `Quay Bàn Thắng Vàng cho ${selectedName}! ⚽` : `Chưa chọn đúng tên chính chủ`;
+      drawWheelAndText();
       return;
     }
 
@@ -1118,7 +1125,6 @@ function renderResults(){
   }
 }
 
-// Thiết lập Realtime Listener với Firebase SDK
 function setupRealtimeListener(){
   roomRef.on('value', (snapshot) => {
     const data = snapshot.val() || {};
@@ -1135,7 +1141,7 @@ function setupRealtimeListener(){
     OPTIONS.forEach(s => { if(serverStats[s] === undefined) serverStats[s] = 0; });
 
     tieRound = data.tieRound ? parseInt(data.tieRound) : 0;
-    tieCandidates = (data.tieCandidates && Array.isArray(data.tieCandidates)) ? data.tieCandidates : [];
+    tieCandidates = (data.tieCandidates && Array.isArray(data.tieCandidates) && data.tieCandidates.length > 0) ? data.tieCandidates : OPTIONS;
 
     if(data.players){
       let loaded = Array.isArray(data.players) ? data.players : Object.values(data.players);
@@ -1192,14 +1198,8 @@ async function spin(isTieBreaker = false, tiePerson = null){
   if(!soundEnabled) forceUnlockSound();
 
   const roundToUse = isTieBreaker ? tieRound : 0;
-  const pool = isTieBreaker ? tieCandidates : OPTIONS;
+  const pool = (isTieBreaker && tieCandidates && tieCandidates.length >= 2) ? tieCandidates : OPTIONS;
 
-  if(isTieBreaker && (!pool || pool.length < 2)){
-    alert("⚠️ Chưa xác định được danh sách hoà, thử tải lại trang.");
-    return;
-  }
-
-  // Kiểm tra chống lách lượt
   const snapshot = await roomRef.child("spins/" + encodeURIComponent(targetName)).once('value');
   let currentSpins = snapshot.val() || [];
   if(!Array.isArray(currentSpins)) currentSpins = Object.values(currentSpins);
@@ -1221,12 +1221,6 @@ async function spin(isTieBreaker = false, tiePerson = null){
   if(isTieBreaker) tieBtn.disabled = true;
 
   pointerEl.classList.add('shake');
-
-  const originalOptions = OPTIONS;
-  if(isTieBreaker){
-    OPTIONS = tieCandidates;
-    drawWheelAndText();
-  }
 
   let soundTimer = 0;
   let drumInterval = setInterval(()=>{
@@ -1259,7 +1253,6 @@ async function spin(isTieBreaker = false, tiePerson = null){
 
     spinning = false;
     if(isTieBreaker) tieBtn.disabled = false;
-    OPTIONS = isTieBreaker ? originalOptions : OPTIONS;
     drawWheelAndText();
   }, 4300);
 }
