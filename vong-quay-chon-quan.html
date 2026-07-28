@@ -393,13 +393,14 @@
   <div class="admin-panel" id="adminPanel">
     <h4>🎛️ Bảng Điều Khiển Quản Trị</h4>
     <div style="margin-bottom: 10px;">
-      <label style="font-size: 12px; color: var(--gold); display: block; margin-bottom: 4px;">🎯 Số lượt quay tối đa mỗi người:</label>
-      <select class="admin-select" id="maxSpinsSelect" onchange="changeMaxSpins(this.value)">
-        <option value="1">1 lần quay</option>
-        <option value="2">2 lần quay</option>
-      </select>
+      <label style="font-size: 12px; color: var(--gold); display: block; margin-bottom: 4px;">🎯 Danh sách các quán ăn:</label>
+      <div class="admin-shops-box" id="adminShopsBox"></div>
+      <div class="admin-btn-row">
+        <button class="admin-action-btn admin-add-shop" onclick="addShopInputRow()">+ Thêm quán</button>
+        <button class="admin-action-btn admin-save-btn" onclick="saveShopsToFirebase()">💾 Lưu danh sách quán</button>
+      </div>
     </div>
-    <div style="margin-bottom: 10px;">
+    <div style="margin-bottom: 10px; margin-top: 10px;">
       <label style="font-size: 12px; color: var(--gold); display: block; margin-bottom: 4px;">🎯 Số lượng thẻ tối đa trên bàn:</label>
       <select class="admin-select" id="maxCardsSelect" onchange="changeMaxCards(this.value)">
         <option value="4">4 Thẻ</option>
@@ -407,7 +408,7 @@
         <option value="9">9 Thẻ</option>
       </select>
     </div>
-    <button class="admin-action-btn" style="background: var(--brick); color: #fff; width: 100%; padding: 10px; font-weight: 800;" onclick="resetCardGame()">🔄 Làm mới bàn thẻ chơi</button>
+    <button class="admin-action-btn" style="background: var(--brick); color: #fff; width: 100%; padding: 10px; font-weight: 800; margin-top: 4px;" onclick="resetCardGame()">🔄 Làm mới bàn thẻ chơi</button>
   </div>
 
   <!-- Bàn chọn thẻ & lật thẻ nhóm -->
@@ -437,25 +438,8 @@
 
   <button class="spin-btn" id="spinBtn" disabled>Chọn tên trước đã</button>
   
-  <div class="tie-box" id="tieBox">
-    <h3>⚽ HIỆP PHỤ: BÀN THẮNG VÀNG! ⚡</h3>
-    <div class="tie-info" id="tieInfoText">Các quán đang hòa điểm. Cuộc chiến sinh tử bắt đầu!</div>
-    <button class="tie-btn" id="tieBtn" onclick="startCountdownAndSpin(true)">Sút Bàn Thắng Vàng Ngay! 🔥</button>
-  </div>
-
   <div class="hint" id="hint">Đang kết nối Realtime...</div>
   <div class="err" id="errBox"></div>
-
-  <hr class="chalk-line">
-
-  <div class="results-title">Kết quả cả nhóm</div>
-  <div class="bars" id="bars"></div>
-  <div class="tickets" id="tickets"></div>
-  <div class="tally" id="tally"></div>
-  
-  <div class="history-box" id="historyBox">
-    📊 Thống kê lịch sử: <span id="historyStatsText">Đang tải...</span>
-  </div>
 
   <div class="reset-container">
     <button class="newround-btn" onclick="newRound()">🔄 VÁN MỚI</button>
@@ -491,7 +475,6 @@
 </div>
 
 <script>
-// Đã thêm dấu gạch chéo (/) vào cuối databaseURL để khắc phục lỗi kết nối Realtime
 const firebaseConfig = {
   databaseURL: "https://vong-quay-cdd2d-default-rtdb.asia-southeast1.firebasedatabase.app/"
 };
@@ -505,17 +488,12 @@ const roomRef = firebase.database().ref("rooms/" + currentRoom);
 
 let namesList = [];
 let OPTIONS = ["112", "Hương Lúa"];
-let maxAllowedSpins = 1;
 let serverAdminPassHash = null;
 const DEFAULT_ADMIN_PASS = "2034";
-let forcedWinnerSetting = "RANDOM";
-let serverStats = {};
 
 let selectedName = null;
-let state = {};
 let spinning = false;
 let currentRotation = 0;
-let celebrated = false;
 let audioCtx = null;
 let soundEnabled = false;
 
@@ -573,7 +551,7 @@ function drawWheelAndText(){
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  let activeOptions = (typeof tieRound !== 'undefined' && tieRound > 0 && typeof tieCandidates !== 'undefined' && tieCandidates && tieCandidates.length >= 2) ? tieCandidates : OPTIONS;
+  let activeOptions = OPTIONS;
   const count = activeOptions.length;
   if(count === 0) return;
   const sliceAngle = (2 * Math.PI) / count;
@@ -585,6 +563,16 @@ function drawWheelAndText(){
     ctx.beginPath(); ctx.moveTo(centerX, centerY); ctx.arc(centerX, centerY, radius, startAngle, endAngle); ctx.closePath();
     ctx.fillStyle = WHEEL_COLORS[idx % WHEEL_COLORS.length]; ctx.fill();
     ctx.lineWidth = 3; ctx.strokeStyle = "#f2ecd8"; ctx.stroke();
+
+    // Vẽ chữ tên quán lên vòng quay
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.rotate(startAngle + sliceAngle / 2);
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#f2ecd8";
+    ctx.font = "bold 15px 'Be Vietnam Pro', sans-serif";
+    ctx.fillText(shopName, radius - 20, 6);
+    ctx.restore();
   });
   ctx.beginPath(); ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI); ctx.fillStyle = "#e3c069"; ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = "#3a2a1c"; ctx.stroke();
 }
@@ -604,6 +592,7 @@ document.getElementById('mainTitle').addEventListener('click', async () => {
     if(pass !== null && await checkAdminPass(pass)){
       document.getElementById('roomBar').style.display = 'flex';
       document.getElementById('adminPanel').style.display = 'block';
+      renderAdminShops();
       alert("🔓 Đã mở khóa quản trị!");
     }
   }
@@ -703,6 +692,54 @@ function launchConfetti(){
     layer.appendChild(piece);
   }
   setTimeout(()=>{ layer.remove(); }, 5000);
+}
+
+// Quản lý tạo/sửa quán trong Admin Panel
+function renderAdminShops(){
+  const box = document.getElementById('adminShopsBox');
+  if(!box) return;
+  box.innerHTML = "";
+  OPTIONS.forEach((shopName, idx) => {
+    const row = document.createElement('div');
+    row.className = 'admin-shop-row';
+    row.innerHTML = `
+      <input type="text" class="admin-input shop-name-input" value="${escapeHtml(shopName)}" placeholder="Tên quán...">
+      <button class="admin-del-shop-btn" onclick="this.parentElement.remove()">✕</button>
+    `;
+    box.appendChild(row);
+  });
+}
+
+function addShopInputRow(){
+  const box = document.getElementById('adminShopsBox');
+  if(!box) return;
+  const row = document.createElement('div');
+  row.className = 'admin-shop-row';
+  row.innerHTML = `
+    <input type="text" class="admin-input shop-name-input" value="" placeholder="Tên quán mới...">
+    <button class="admin-del-shop-btn" onclick="this.parentElement.remove()">✕</button>
+  `;
+  box.appendChild(row);
+}
+
+async function saveShopsToFirebase(){
+  const pass = prompt("🔒 Nhập mật khẩu quản trị để lưu:");
+  if(pass === null || !(await checkAdminPass(pass))) return;
+
+  const inputs = document.querySelectorAll('.shop-name-input');
+  let newOptions = [];
+  inputs.forEach(input => {
+    let val = input.value.trim();
+    if(val) newOptions.push(val);
+  });
+
+  if(newOptions.length < 2){
+    alert("⚠️ Cần phải có ít nhất 2 quán để quay!");
+    return;
+  }
+
+  await roomRef.child("options").set(newOptions);
+  alert("✅ Đã lưu danh sách quán thành công!");
 }
 
 // Render bàn lật thẻ
@@ -893,7 +930,6 @@ async function addNewPlayerWithPassword(){
 }
 
 function setupRealtimeListener(){
-  // Ẩn dòng thông báo đang kết nối khi sự kiện nhận dữ liệu kích hoạt thành công
   document.getElementById('hint').textContent = "";
 
   roomRef.on('value', async (snapshot) => {
@@ -919,6 +955,9 @@ function setupRealtimeListener(){
     renderNames();
     renderCardGame();
     updateSpinButton();
+    if(document.getElementById('adminPanel').style.display === 'block'){
+      renderAdminShops();
+    }
   });
 }
 
