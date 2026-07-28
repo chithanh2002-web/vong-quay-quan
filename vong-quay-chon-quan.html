@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vòng Quay Chọn Quán</title>
+<title>Vòng Quay Chọn Quán - Bản Sôi Động Đỉnh Cao</title>
 <meta property="og:title" content="Vòng Quay Chọn Quán 🎡">
 <meta property="og:description" content="Quán nào hôm nay? Bấm vào chọn tên bạn rồi quay ngay!">
 <meta property="og:type" content="website">
@@ -41,14 +41,53 @@
     overflow-x: hidden;
   }
   .board{ width:100%; max-width:480px; transition: filter 0.3s ease; }
-  .board.spinning-active { filter: blur(1.5px); pointer-events: none; }
+  .board.spinning-active { filter: blur(2px); pointer-events: none; }
   .board.spinning-active .wheel-wrap, 
   .board.spinning-active .spin-btn,
-  .board.spinning-active .congrats-overlay { filter: none; pointer-events: auto; }
+  .board.spinning-active .congrats-overlay,
+  .board.spinning-active .mc-banner,
+  .board.spinning-active .fullscreen-btn { filter: none; pointer-events: auto; }
+
+  /* Hiệu ứng chế độ Toàn Màn Hình (Fullscreen) cho TV */
+  body.is-fullscreen {
+    background: #08140e;
+    padding: 10px;
+  }
+  body.is-fullscreen .board {
+    max-width: 850px;
+  }
+  body.is-fullscreen .wheel-frame {
+    width: 340px !important;
+    height: 340px !important;
+  }
+  body.is-fullscreen .names {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  .fullscreen-btn {
+    position: fixed; top: 12px; right: 12px; z-index: 100;
+    background: rgba(227,192,105,0.2); border: 1.5px solid var(--gold);
+    color: var(--gold); padding: 6px 12px; border-radius: 8px; font-weight: 700;
+    font-size: 12px; cursor: pointer; transition: background 0.2s;
+  }
+  .fullscreen-btn:hover { background: rgba(227,192,105,0.4); }
 
   .eyebrow{ text-align:center; font-size:11px; letter-spacing:0.24em; text-transform:uppercase; color:var(--marigold); font-weight:600; margin-bottom:4px; }
   h1{ text-align:center; font-size:24px; font-weight:800; margin:0 0 4px; cursor:pointer; user-select:none; }
   .sub{ text-align:center; color:var(--chalk-cream-dim); font-size:12px; margin-bottom:12px; line-height:1.35; }
+
+  /* Bảng MC / Trợ lý không khí sôi động */
+  .mc-banner {
+    background: linear-gradient(135deg, rgba(232,163,61,0.2), rgba(193,68,46,0.15));
+    border: 1.5px solid var(--marigold); padding: 10px 14px; border-radius: 12px;
+    text-align: center; margin-bottom: 12px; font-size: 13px; font-weight: 700;
+    color: var(--marigold); box-shadow: 0 4px 15px rgba(232,163,61,0.15);
+    animation: mcPulse 2.5s infinite ease-in-out;
+  }
+  @keyframes mcPulse {
+    0%, 100% { border-color: rgba(232,163,61,0.5); }
+    50% { border-color: rgba(232,163,61,1); transform: scale(1.01); }
+  }
   
   .room-bar{
     display: flex; gap: 6px; margin-bottom: 12px;
@@ -154,7 +193,7 @@
   .del-btn:hover{ color: var(--brick); background: rgba(193,68,46,0.15); }
 
   .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin:14px 0 8px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-  .wheel-wrap.active-zoom { transform: scale(1.08); }
+  .wheel-wrap.active-zoom { transform: scale(1.12); }
   .wheel-frame{ position:relative; width:260px; height:260px; }
 
   .light-ring{ position:absolute; inset:-8px; pointer-events:none; z-index:5; border-radius: 50%; }
@@ -168,7 +207,7 @@
     0%, 40%, 100% { background:#5a4a24; box-shadow:0 0 3px 1px rgba(0,0,0,0.35), inset 0 0 2px rgba(0,0,0,0.4); }
     15% { background:#ffe9a8; box-shadow:0 0 12px 5px rgba(255,201,88,0.95), 0 0 22px 9px rgba(255,201,88,0.5); }
   }
-  .light-ring.fast .bulb{ animation-duration: 0.25s !important; }
+  .light-ring.fast .bulb{ animation-duration: 0.2s !important; }
 
   .pointer{
     position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
@@ -176,16 +215,16 @@
     border-top: 20px solid #c1442e; z-index: 50; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.6));
     transform-origin: top center; pointer-events: none;
   }
-  .pointer.shake { animation: pointerShake 0.06s infinite alternate ease-in-out; }
+  .pointer.shake { animation: pointerShake 0.05s infinite alternate ease-in-out; }
   @keyframes pointerShake {
-    0% { transform: translateX(-50%) rotate(-18deg); }
-    100% { transform: translateX(-50%) rotate(18deg); }
+    0% { transform: translateX(-50%) rotate(-20deg); }
+    100% { transform: translateX(-50%) rotate(20deg); }
   }
 
   .wheel-container{
     width:100%; height:100%; border-radius:50%; position:absolute; top:0; left:0;
     box-shadow: 0 12px 35px rgba(0,0,0,0.7), inset 0 0 15px rgba(0,0,0,0.4);
-    transition:transform 4.2s cubic-bezier(0.12,0.85,0.15,1);
+    transition:transform 4.5s cubic-bezier(0.1, 0.82, 0.1, 1);
     overflow: hidden;
     border: 4px solid var(--gold);
   }
@@ -203,26 +242,45 @@
   .spin-btn:active:not(:disabled){ transform:translateY(3px); box-shadow:0 2px 0 #8b5511; }
   .spin-btn:disabled{ background:#453e33; color:#8a8270; border-color:#655c4a; box-shadow:0 5px 0 #2a251d; cursor:not-allowed; opacity:0.8; text-shadow: none; }
   
+  /* Giao diện đặc biệt riêng cho Golden Goal (Bàn Thắng Vàng) */
   .tie-box{
-    margin-top: 14px; padding: 14px; border-radius: 12px; background: rgba(193,68,46,0.2);
-    border: 1.5px solid rgba(193,68,46,0.5); text-align: center; display: none;
-    animation: tiePulse 2s infinite ease-in-out;
+    margin-top: 14px; padding: 16px; border-radius: 14px; background: linear-gradient(135deg, rgba(193,68,46,0.3), rgba(232,163,61,0.25));
+    border: 2px solid #e8a33d; text-align: center; display: none;
+    box-shadow: 0 0 25px rgba(232,163,61,0.3);
+    animation: goldenGoalPulse 1.8s infinite ease-in-out;
   }
-  @keyframes tiePulse {
-    0%, 100% { box-shadow: 0 0 0 rgba(193,68,46,0); }
-    50% { box-shadow: 0 0 15px rgba(193,68,46,0.4); }
+  @keyframes goldenGoalPulse {
+    0%, 100% { border-color: var(--marigold); transform: scale(1); }
+    50% { border-color: #ffffff; transform: scale(1.02); }
   }
-  .tie-box h3{ font-size: 13.5px; color: var(--marigold); margin: 0 0 8px; }
-  .tie-info{ font-size: 13px; color: var(--chalk-cream); margin-bottom: 10px; font-weight: 600; }
+  .tie-box h3{ font-size: 15px; color: #ffe9a8; margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.6); }
+  .tie-info{ font-size: 13px; color: var(--chalk-cream); margin-bottom: 12px; font-weight: 600; line-height: 1.4; }
   .tie-btn{
-    width: 100%; padding: 12px; border-radius: 10px; border: none;
-    background: linear-gradient(180deg, #e8a33d, #b4893a); color: #3a2a1c;
-    font-family: inherit; font-weight: 800; font-size: 14px; cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    width: 100%; padding: 14px; border-radius: 10px; border: 1.5px solid #fff;
+    background: linear-gradient(180deg, #ffca56, #d28c20); color: #241a10;
+    font-family: inherit; font-weight: 800; font-size: 15px; cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
     transition: transform 0.1s;
+    text-transform: uppercase;
   }
-  .tie-btn:active{ transform: scale(0.98); }
+  .tie-btn:active{ transform: scale(0.97); }
   .tie-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
+
+  /* Màn hình đếm ngược kịch tính trước khi quay */
+  .countdown-overlay {
+    position: fixed; inset: 0; z-index: 1005; display: none;
+    align-items: center; justify-content: center;
+    background: rgba(8, 20, 14, 0.85); backdrop-filter: blur(5px);
+  }
+  .countdown-number {
+    font-size: 120px; font-weight: 900; color: var(--marigold);
+    text-shadow: 0 0 30px rgba(232,163,61,0.8), 0 0 60px rgba(193,68,46,0.5);
+    animation: countPop 0.8s infinite alternate ease-in-out;
+  }
+  @keyframes countPop {
+    0% { transform: scale(0.8); opacity: 0.6; }
+    100% { transform: scale(1.2); opacity: 1; }
+  }
 
   .hint{ text-align:center; font-size:12px; color:var(--chalk-cream-dim); margin-top:5px; min-height:16px; }
   .fair-note{ text-align:center; font-size:10.5px; color:rgba(242,236,216,0.45); margin-top:2px; }
@@ -284,7 +342,7 @@
   .congrats-overlay{
     position:fixed; inset:0; z-index:1000; display:none;
     align-items:center; justify-content:center; padding:16px;
-    background:rgba(10,20,14,0.8); backdrop-filter:blur(4px);
+    background:rgba(10,20,14,0.85); backdrop-filter:blur(4px);
     animation: fadeInOverlay 0.25s ease-out;
   }
   @keyframes fadeInOverlay {
@@ -321,10 +379,18 @@
 </style>
 </head>
 <body>
+
+<button class="fullscreen-btn" onclick="toggleFullScreen()" title="Phóng to màn hình cho TV">📺 Phóng to TV</button>
+
 <div class="board" id="mainBoard">
   <div class="eyebrow" id="roomEyebrow">Phòng: Mặc định</div>
   <h1 id="mainTitle">Vòng Quay Chọn Quán</h1>
   <div class="sub" id="subTitleText">Quán nào hôm nay? Bấm vào chọn tên bạn rồi quay ngay!</div>
+
+  <!-- Bảng MC / Trợ lý không khí hoạt náo -->
+  <div class="mc-banner" id="mcBanner">
+    🎙️ MC: "Hôm nay ai sẽ là người gánh team chọn quán đây anh em ơi?!"
+  </div>
 
   <div class="room-bar" id="roomBar">
     <input type="text" id="roomInput" class="room-input" placeholder="Nhập tên phòng mới...">
@@ -333,7 +399,7 @@
   </div>
 
   <div class="sound-bar" id="soundBar" onclick="forceUnlockSound()">
-    🔊 BẤM VÀO ĐÂY ĐỂ BẬT TIẾNG LOA NGAY
+    🔊 BẤM VÀO ĐÂY ĐỂ BẬT TIẾNG LOA & HIỆU ỨNG NGAY
   </div>
 
   <div class="admin-panel" id="adminPanel">
@@ -386,10 +452,11 @@
 
   <button class="spin-btn" id="spinBtn" disabled>Chọn tên trước đã</button>
   
+  <!-- Khu vực giao diện riêng biệt cho Golden Goal (Bàn Thắng Vàng) -->
   <div class="tie-box" id="tieBox">
-    <h3>⚡ Kết quả đang HOÀ! Đá Bàn Thắng Vàng:</h3>
-    <div class="tie-info" id="tieInfoText">Đang chờ người chơi...</div>
-    <button class="tie-btn" id="tieBtn" onclick="spinTieBreaker()">Quay Bàn Thắng Vàng! ⚽</button>
+    <h3>⚽ HIỆP PHỤ: BÀN THẮNG VÀNG! ⚡</h3>
+    <div class="tie-info" id="tieInfoText">Các quán đang hòa điểm. Cuộc chiến sinh tử bắt đầu!</div>
+    <button class="tie-btn" id="tieBtn" onclick="startCountdownAndSpin(true)">Sút Bàn Thắng Vàng Ngay! 🔥</button>
   </div>
 
   <div class="hint" id="hint">Đang kết nối Realtime...</div>
@@ -413,6 +480,11 @@
   </div>
 
   <div class="footnote">Mỗi người tự mở link này, chọn đúng tên mình và quay. Màn hình TV tự động cập nhật real-time.</div>
+</div>
+
+<!-- Lớp overlay đếm ngược kịch tính trước mỗi lần quay -->
+<div class="countdown-overlay" id="countdownOverlay">
+  <div class="countdown-number" id="countdownNumber">3</div>
 </div>
 
 <div class="congrats-overlay" id="congratsOverlay">
@@ -454,6 +526,41 @@ let audioCtx = null;
 let soundEnabled = false;
 
 const WHEEL_COLORS = ["#c1442e", "#e8a33d", "#7fa65c", "#2a4a35", "#b4893a", "#3a2a1c"];
+
+// Danh sách câu nói hoạt náo ngẫu nhiên của MC
+const MC_QUOTES = [
+  "🎙️ MC: 'Nhanh tay chọn tên rồi quay đi anh em ơi, đói bụng lắm rồi đấy!'",
+  "🎙️ MC: 'Ai mà quay trúng quán dở hôm nay là phải bao nước nhé!'",
+  "🎙️ MC: 'Hồi hộp quá, không biết linh tính hôm nay mách bảo quán nào đây!'",
+  "🎙️ MC: 'Đừng lơ đễnh nha, tới lượt bạn quay định mệnh rồi đấy!'",
+  "🎙️ MC: 'Hệ thống đang quét tần số may mắn, chuẩn bị tinh thần reo hò nào!'"
+];
+
+function triggerMcVibe(customText = null){
+  const banner = document.getElementById('mcBanner');
+  if(!banner) return;
+  if(customText){
+    banner.innerHTML = customText;
+  } else {
+    const randomQuote = MC_QUOTES[Math.floor(Math.random() * MC_QUOTES.length)];
+    banner.innerHTML = randomQuote;
+  }
+}
+
+// Thay đổi định dạng Fullscreen tự động tối ưu hiển thị TV
+function toggleFullScreen(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().catch(err => {
+      alert("Trình duyệt không hỗ trợ chế độ toàn màn hình tự động.");
+    });
+    document.body.classList.add('is-fullscreen');
+  } else {
+    if(document.exitFullscreen){
+      document.exitFullscreen();
+    }
+    document.body.classList.remove('is-fullscreen');
+  }
+}
 
 async function sha256Hex(str){
   const data = new TextEncoder().encode(String(str));
@@ -822,13 +929,14 @@ function forceUnlockSound(){
   bar.style.background = "rgba(127,166,92,0.25)";
   bar.style.borderColor = "var(--paddy)";
   bar.style.color = "var(--paddy)";
-  bar.innerHTML = "✅ Âm thanh loa đã sẵn sàng hoạt động!";
+  bar.innerHTML = "✅ Âm thanh loa & hiệu ứng đã sẵn sàng!";
   setTimeout(()=>{ bar.style.display = 'none'; }, 2000);
 }
 
 document.addEventListener('click', () => { if(!soundEnabled) forceUnlockSound(); }, { once: true });
 document.addEventListener('touchstart', () => { if(!soundEnabled) forceUnlockSound(); }, { once: true });
 
+// Âm thanh tạch tạch cơ học khi bánh xe quay
 function playClickSound(){
   try {
     if(!audioCtx){
@@ -840,13 +948,31 @@ function playClickSound(){
     const gain = audioCtx.createGain();
     osc.type = 'square';
     osc.frequency.setValueAtTime(580, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.04);
-    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.05);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     osc.start();
-    osc.stop(audioCtx.currentTime + 0.04);
+    osc.stop(audioCtx.currentTime + 0.05);
+  } catch(e) {}
+}
+
+// Âm thanh đếm ngược kịch tính (beep cao độ tăng dần)
+function playCountdownBeep(isFinal = false){
+  try {
+    if(!audioCtx) return;
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(isFinal ? 880 : 440, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.3);
   } catch(e) {}
 }
 
@@ -911,6 +1037,8 @@ const congratsClose = document.getElementById('congratsClose');
 const pointerEl = document.getElementById('pointerEl');
 const mainBoard = document.getElementById('mainBoard');
 const wheelWrapDiv = document.getElementById('wheelWrapDiv');
+const countdownOverlay = document.getElementById('countdownOverlay');
+const countdownNumber = document.getElementById('countdownNumber');
 
 congratsClose.addEventListener('click', ()=>{ congratsOverlay.style.display = 'none'; });
 
@@ -965,6 +1093,7 @@ function showCongrats(winnerOption){
   congratsServer.textContent = winnerOption;
   congratsMsg.textContent = `Yayyy quán ${winnerOption} thắng rồi nè! Cụng ly nào anh em ơi! 🍻`;
   congratsOverlay.style.display = 'flex';
+  triggerMcVibe(`🎙️ MC: "Tuyệt vời! Quán <b>${winnerOption}</b> đã chính thức giành chiến thắng vinh quang!"`);
 }
 
 async function claimResultOnce(signature){
@@ -1059,6 +1188,7 @@ function renderNames(){
       renderNames();
       updateSpinButton();
       renderResults();
+      triggerMcVibe(`🎙️ MC: "Chào <b>${escapeHtml(name)}</b>! Sẵn sàng bấm nút quay quyết định chưa nào?"`);
     };
     nameGrid.appendChild(btn);
   });
@@ -1107,6 +1237,7 @@ async function addNewPlayerWithPassword(){
   input.value = "";
   renderNames();
   renderResults();
+  triggerMcVibe(`🎙️ MC: "Chào mừng thành viên mới <b>${escapeHtml(newName)}</b> nhập hội!"`);
   alert("✅ Đã thêm thành công!");
 }
 
@@ -1257,20 +1388,21 @@ function renderResults(){
     if(tieDoneCount < validList.length){
       tieBox.style.display = "block";
       tally.className = 'tally winner';
-      tally.innerHTML = `Có sự đồng điểm (${tieCandidates.map(escapeHtml).join(" & ")})! Đá Bàn Thắng Vàng!`;
+      tally.innerHTML = `⚠️ Có sự đồng điểm (${tieCandidates.map(escapeHtml).join(" & ")})! Kích hoạt Bàn Thắng Vàng!`;
+      triggerMcVibe(`🎙️ MC: "Căng thẳng quá! Hòa điểm rồi, bước vào Hiệp phụ Bàn Thắng Vàng ngay lập tức!"`);
 
       const myTieSpin = selectedName ? (state[selectedName] || []).find(s => s.isTieBreaker && s.round === tieRound) : null;
 
       if(selectedName && !myTieSpin){
-        tieInfoText.innerHTML = `Bạn đang chọn: <b>${escapeHtml(selectedName)}</b>. Hãy bấm nút dưới để đá Bàn Thắng Vàng! (${tieDoneCount}/${validList.length} đã đá)`;
+        tieInfoText.innerHTML = `Bạn đang chọn: <b>${escapeHtml(selectedName)}</b>. Hãy bấm nút dưới để sút Bàn Thắng Vàng! (${tieDoneCount}/${validList.length} đã đá)`;
         tieBtn.disabled = false;
-        tieBtn.textContent = `Quay Bàn Thắng Vàng cho ${selectedName}! ⚽`;
+        tieBtn.textContent = `Sút Bàn Thắng Vàng cho ${selectedName}! ⚽`;
       } else if(selectedName && myTieSpin){
-        tieInfoText.innerHTML = `Bạn (${escapeHtml(selectedName)}) đã đá Bàn Thắng Vàng rồi. Đang chờ mọi người (${tieDoneCount}/${validList.length}).`;
+        tieInfoText.innerHTML = `Bạn (${escapeHtml(selectedName)}) đã sút Bàn Thắng Vàng rồi. Đang chờ mọi người (${tieDoneCount}/${validList.length}).`;
         tieBtn.disabled = true;
         tieBtn.textContent = `Đã đá rồi, chờ mọi người...`;
       } else {
-        tieInfoText.innerHTML = `⚠️ Vui lòng <b>chọn đúng tên bạn</b> ở danh sách bên trên để đá Bàn Thắng Vàng! (${tieDoneCount}/${validList.length} đã đá)`;
+        tieInfoText.innerHTML = `⚠️ Vui lòng <b>chọn đúng tên bạn</b> ở danh sách bên trên để sút Bàn Thắng Vàng! (${tieDoneCount}/${validList.length} đã đá)`;
         tieBtn.disabled = true;
         tieBtn.textContent = `Chưa chọn đúng tên chính chủ`;
       }
@@ -1289,10 +1421,10 @@ function renderResults(){
       persistTieState();
       tieBox.style.display = "block";
       tally.className = 'tally winner';
-      tally.innerHTML = `Vẫn hoà giữa (${maxShops.map(escapeHtml).join(" & ")})! Đá tiếp Bàn Thắng Vàng vòng ${tieRound}!`;
-      tieInfoText.innerHTML = `Mọi người cần quay thêm 1 lượt bàn thắng vàng nữa.`;
+      tally.innerHTML = `Vẫn hoà giữa (${maxShops.map(escapeHtml).join(" & ")})! Đá tiếp hiệp phụ vòng ${tieRound}!`;
+      tieInfoText.innerHTML = `Mọi người cần quay thêm 1 lượt bàn thắng vàng nữa để phân định thắng thua.`;
       tieBtn.disabled = !selectedName;
-      tieBtn.textContent = selectedName ? `Quay Bàn Thắng Vàng cho ${selectedName}! ⚽` : `Chưa chọn đúng tên chính chủ`;
+      tieBtn.textContent = selectedName ? `Sút Bàn Thắng Vàng cho ${selectedName}! ⚽` : `Chưa chọn đúng tên chính chủ`;
       drawWheelAndText();
       return;
     }
@@ -1402,6 +1534,7 @@ async function newRound(){
   spinning = false;
   wheelElement.style.transform = "rotate(0deg)";
   currentRotation = 0;
+  triggerMcVibe("🎙️ MC: 'Ván mới bắt đầu! Mọi người điểm danh chọn tên và quay nào!'");
 
   alert("✅ Đã bắt đầu ván mới! Danh sách người chơi và quán được giữ nguyên, mọi người có thể quay lại từ đầu.");
 }
@@ -1414,13 +1547,42 @@ function pickWinner(pool){
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
-async function spin(isTieBreaker = false, tiePerson = null){
+// Hiệu ứng đếm ngược kịch tính 3... 2... 1 trước khi vòng quay chạy
+function startCountdownAndSpin(isTieBreaker = false){
   if(spinning) return;
-  const targetName = isTieBreaker ? tiePerson : selectedName;
-  if(!targetName) return;
+  const targetName = isTieBreaker ? selectedName : selectedName;
+  if(!targetName){
+    alert("⚠️ Vui lòng chọn tên của bạn trước đã!");
+    return;
+  }
 
   if(!soundEnabled) forceUnlockSound();
+  
+  countdownOverlay.style.display = 'flex';
+  let count = 3;
+  countdownNumber.textContent = count;
+  playCountdownBeep(false);
+  triggerMcVibe(`🎙️ MC: "Đếm ngược nào anh em... ${count}!"`);
 
+  let countInterval = setInterval(() => {
+    count--;
+    if(count > 0){
+      countdownNumber.textContent = count;
+      playCountdownBeep(false);
+      triggerMcVibe(`🎙️ MC: "${count}..."`);
+    } else if(count === 0){
+      countdownNumber.textContent = "QUAY!";
+      playCountdownBeep(true);
+      triggerMcVibe(`🎙️ MC: "PHÁT BỘ SƯU TẬP QUAY NGAY LẬP TỨC!"`);
+    } else {
+      clearInterval(countInterval);
+      countdownOverlay.style.display = 'none';
+      executeSpinAction(isTieBreaker, targetName);
+    }
+  }, 900);
+}
+
+async function executeSpinAction(isTieBreaker, targetName){
   const roundToUse = isTieBreaker ? tieRound : 0;
   const pool = (isTieBreaker && tieCandidates && tieCandidates.length >= 2) ? tieCandidates : OPTIONS;
   const winner = pickWinner(pool);
@@ -1474,17 +1636,17 @@ async function spin(isTieBreaker = false, tiePerson = null){
   let drumInterval = setInterval(()=>{
     playClickSound();
     soundTimer += 90;
-    if(soundTimer >= 4200) clearInterval(drumInterval);
+    if(soundTimer >= 4500) clearInterval(drumInterval);
   }, 90);
 
-  setTimeout(()=>{ pointerEl.classList.remove('shake'); if(lightRing) lightRing.classList.remove('fast'); }, 4200);
+  setTimeout(()=>{ pointerEl.classList.remove('shake'); if(lightRing) lightRing.classList.remove('fast'); }, 4500);
 
   const count = pool.length;
   const sliceDeg = 360 / count;
   const winnerIdx = pool.indexOf(winner);
   const segCenterDeg = sliceDeg * winnerIdx + sliceDeg / 2;
   let targetMod = ((360 - segCenterDeg) % 360 + 360) % 360;
-  const finalRotation = currentRotation - (currentRotation % 360) + 7 * 360 + targetMod;
+  const finalRotation = currentRotation - (currentRotation % 360) + 8 * 360 + targetMod;
 
   wheelElement.style.transform = "rotate(" + finalRotation + "deg)";
   currentRotation = finalRotation;
@@ -1495,18 +1657,18 @@ async function spin(isTieBreaker = false, tiePerson = null){
     if(wheelWrapDiv) wheelWrapDiv.classList.remove('active-zoom');
     if(isTieBreaker) tieBtn.disabled = false;
     drawWheelAndText();
-  }, 4300);
+  }, 4600);
 }
 
 function spinTieBreaker(){
   if(!selectedName) {
-    alert("⚠️ Vui lòng chọn đúng tên bạn ở phía trên trước khi đá Bàn Thắng Vàng!");
+    alert("⚠️ Vui lòng chọn đúng tên bạn ở phía trên trước khi sút Bàn Thắng Vàng!");
     return;
   }
-  spin(true, selectedName);
+  startCountdownAndSpin(true);
 }
 
-spinBtn.addEventListener('click', ()=>spin(false));
+spinBtn.addEventListener('click', ()=>startCountdownAndSpin(false));
 </script>
 </body>
 </html>
