@@ -602,11 +602,55 @@ function switchRoom(){
 
 function copyRoomLink(){
   const currentLink = window.location.href;
-  navigator.clipboard.writeText(currentLink).then(() => {
-    alert("✅ Đã copy link phòng thành công! Hãy gửi link này cho mọi người vào quay chung nhé.");
-  }).catch(err => {
-    prompt("Copy link thủ công:", currentLink);
-  });
+
+  // Lớp dự phòng cuối: hiện link ngay trên màn hình (trong ô nhập phòng) và
+  // tự bôi đen sẵn, để người dùng tự bấm giữ -> Copy, phòng khi cả Clipboard
+  // API lẫn document.execCommand đều bị trình duyệt/app chặn.
+  function fallbackShowLink(){
+    const roomBar = document.getElementById('roomBar');
+    const roomInput = document.getElementById('roomInput');
+    if(roomInput){
+      if(roomBar) roomBar.style.display = 'flex';
+      roomInput.value = currentLink;
+      roomInput.focus();
+      roomInput.select();
+      try{ roomInput.setSelectionRange(0, roomInput.value.length); }catch(e){}
+      alert("📋 Trình duyệt/app này chặn tự động copy. Link đã được điền sẵn ở ô phía trên — hãy bấm giữ vào ô đó rồi chọn 'Copy' để sao chép thủ công.");
+    } else {
+      prompt("Copy link thủ công:", currentLink);
+    }
+  }
+
+  // Cách 1: Clipboard API hiện đại — chỉ gọi khi thực sự tồn tại, tránh lỗi
+  // "Cannot read property 'writeText' of undefined" làm crash cả hàm.
+  if(navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext){
+    navigator.clipboard.writeText(currentLink).then(() => {
+      alert("✅ Đã copy link phòng thành công! Hãy gửi link này cho mọi người vào quay chung nhé.");
+    }).catch(() => {
+      fallbackShowLink();
+    });
+    return;
+  }
+
+  // Cách 2: API cũ hơn, vẫn hoạt động trong một số webview không hỗ trợ Clipboard API.
+  try{
+    const temp = document.createElement('textarea');
+    temp.value = currentLink;
+    temp.style.position = 'fixed';
+    temp.style.opacity = '0';
+    document.body.appendChild(temp);
+    temp.focus();
+    temp.select();
+    const copied = document.execCommand('copy');
+    document.body.removeChild(temp);
+    if(copied){
+      alert("✅ Đã copy link phòng thành công! Hãy gửi link này cho mọi người vào quay chung nhé.");
+      return;
+    }
+  }catch(e){}
+
+  // Cách 3: hiện link để copy thủ công.
+  fallbackShowLink();
 }
 
 function updateUItexts(){
