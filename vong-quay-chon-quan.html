@@ -38,8 +38,15 @@
     display:flex;
     justify-content:center;
     padding:24px 16px 40px;
+    overflow-x: hidden;
   }
-  .board{ width:100%; max-width:480px; }
+  .board{ width:100%; max-width:480px; transition: filter 0.3s ease; }
+  .board.spinning-active { filter: blur(1.5px); pointer-events: none; }
+  /* Cho phép tương tác với nút quay và vòng quay ngay cả khi board đang mờ */
+  .board.spinning-active .wheel-wrap, 
+  .board.spinning-active .spin-btn,
+  .board.spinning-active .congrats-overlay { filter: none; pointer-events: auto; }
+
   .eyebrow{ text-align:center; font-size:11px; letter-spacing:0.24em; text-transform:uppercase; color:var(--marigold); font-weight:600; margin-bottom:4px; }
   h1{ text-align:center; font-size:24px; font-weight:800; margin:0 0 4px; cursor:pointer; user-select:none; }
   .sub{ text-align:center; color:var(--chalk-cream-dim); font-size:12px; margin-bottom:12px; line-height:1.35; }
@@ -66,6 +73,7 @@
     background: rgba(227,192,105,0.18); border: 1.5px solid var(--gold);
     padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; cursor: pointer;
     font-size: 13.5px; font-weight: 700; color: var(--gold); transition: background 0.2s; text-align: center;
+    box-shadow: 0 0 15px rgba(227,192,105,0.15);
   }
   .sound-bar:hover{ background: rgba(227,192,105,0.28); }
 
@@ -121,7 +129,12 @@
   .name-btn.selected{
     border-color:var(--gold);
     background:linear-gradient(180deg, rgba(227,192,105,0.28), rgba(227,192,105,0.1));
-    box-shadow:0 0 0 1px rgba(227,192,105,0.4) inset, 0 0 10px rgba(227,192,105,0.25);
+    box-shadow:0 0 0 1px rgba(227,192,105,0.4) inset, 0 0 15px rgba(227,192,105,0.4);
+    animation: pulseSelected 1.5s infinite ease-in-out;
+  }
+  @keyframes pulseSelected {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
   }
   .name-btn.selected::after{
     content:"✓"; position:absolute; top:-6px; right:-6px; width:16px; height:16px;
@@ -141,66 +154,75 @@
   }
   .del-btn:hover{ color: var(--brick); background: rgba(193,68,46,0.15); }
 
-  .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin:14px 0 8px; }
-  .wheel-frame{ position:relative; width:250px; height:250px; }
+  .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin:14px 0 8px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  .wheel-wrap.active-zoom { transform: scale(1.08); }
+  .wheel-frame{ position:relative; width:260px; height:260px; }
 
-  .light-ring{ position:absolute; inset:0; pointer-events:none; z-index:5; }
+  .light-ring{ position:absolute; inset:-8px; pointer-events:none; z-index:5; border-radius: 50%; }
   .bulb{
-    position:absolute; top:50%; left:50%; width:11px; height:11px; margin:-5.5px 0 0 -5.5px;
+    position:absolute; top:50%; left:50%; width:10px; height:10px; margin:-5px 0 0 -5px;
     border-radius:50%; background:#5a4a24;
     box-shadow: 0 0 3px 1px rgba(0,0,0,0.35), inset 0 0 2px rgba(0,0,0,0.4);
     animation: bulbGlow 1.6s ease-in-out infinite;
   }
   @keyframes bulbGlow{
     0%, 40%, 100% { background:#5a4a24; box-shadow:0 0 3px 1px rgba(0,0,0,0.35), inset 0 0 2px rgba(0,0,0,0.4); }
-    15% { background:#ffe9a8; box-shadow:0 0 10px 4px rgba(255,201,88,0.95), 0 0 20px 8px rgba(255,201,88,0.5); }
+    15% { background:#ffe9a8; box-shadow:0 0 12px 5px rgba(255,201,88,0.95), 0 0 22px 9px rgba(255,201,88,0.5); }
   }
-  .light-ring.fast .bulb{ animation-duration: 0.45s; }
+  .light-ring.fast .bulb{ animation-duration: 0.25s !important; }
 
   .pointer{
-    position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
-    width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent;
-    border-top: 18px solid #c1442e; z-index: 50; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.6));
+    position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent;
+    border-top: 20px solid #c1442e; z-index: 50; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.6));
     transform-origin: top center; pointer-events: none;
   }
-  .pointer.shake { animation: pointerShake 0.08s infinite alternate ease-in-out; }
+  .pointer.shake { animation: pointerShake 0.06s infinite alternate ease-in-out; }
   @keyframes pointerShake {
-    0% { transform: translateX(-50%) rotate(-14deg); }
-    100% { transform: translateX(-50%) rotate(14deg); }
+    0% { transform: translateX(-50%) rotate(-18deg); }
+    100% { transform: translateX(-50%) rotate(18deg); }
   }
 
   .wheel-container{
     width:100%; height:100%; border-radius:50%; position:absolute; top:0; left:0;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.7), inset 0 0 15px rgba(0,0,0,0.4);
     transition:transform 4.2s cubic-bezier(0.12,0.85,0.15,1);
     overflow: hidden;
+    border: 4px solid var(--gold);
   }
   .wheel-container canvas { width: 100%; height: 100%; display: block; border-radius: 50%; }
 
   .spin-btn{
-    margin-top:14px; width:100%; padding:14px; border-radius:12px;
-    border:1.5px solid rgba(227,192,105,0.55);
-    background:linear-gradient(180deg, var(--wood-light), var(--wood));
-    color:var(--gold); font-family:inherit; font-weight:800;
-    font-size:16px; letter-spacing:0.03em; cursor:pointer; transition:all 0.15s ease;
-    box-shadow:0 4px 0 #241a10, 0 6px 14px rgba(0,0,0,0.4);
-    text-shadow:0 1px 2px rgba(0,0,0,0.5);
+    margin-top:14px; width:100%; padding:15px; border-radius:12px;
+    border:1.5px solid rgba(227,192,105,0.7);
+    background:linear-gradient(180deg, #f3b552, #c88321);
+    color:#241a10; font-family:inherit; font-weight:800;
+    font-size:16.5px; letter-spacing:0.04em; cursor:pointer; transition:all 0.15s ease;
+    box-shadow:0 5px 0 #8b5511, 0 8px 18px rgba(0,0,0,0.45);
+    text-shadow:0 1px 1px rgba(255,255,255,0.3);
   }
-  .spin-btn:active:not(:disabled){ transform:translateY(3px); box-shadow:0 1px 0 #241a10; }
-  .spin-btn:disabled{ background:#453e33; color:#8a8270; box-shadow:0 5px 0 #2a251d; cursor:not-allowed; opacity:0.8; }
+  .spin-btn:active:not(:disabled){ transform:translateY(3px); box-shadow:0 2px 0 #8b5511; }
+  .spin-btn:disabled{ background:#453e33; color:#8a8270; border-color:#655c4a; box-shadow:0 5px 0 #2a251d; cursor:not-allowed; opacity:0.8; text-shadow: none; }
   
   .tie-box{
-    margin-top: 14px; padding: 14px; border-radius: 12px; background: rgba(193,68,46,0.15);
-    border: 1.5px solid rgba(193,68,46,0.4); text-align: center; display: none;
+    margin-top: 14px; padding: 14px; border-radius: 12px; background: rgba(193,68,46,0.2);
+    border: 1.5px solid rgba(193,68,46,0.5); text-align: center; display: none;
+    animation: tiePulse 2s infinite ease-in-out;
+  }
+  @keyframes tiePulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(193,68,46,0); }
+    50% { box-shadow: 0 0 15px rgba(193,68,46,0.4); }
   }
   .tie-box h3{ font-size: 13.5px; color: var(--marigold); margin: 0 0 8px; }
   .tie-info{ font-size: 13px; color: var(--chalk-cream); margin-bottom: 10px; font-weight: 600; }
   .tie-btn{
-    width: 100%; padding: 11px; border-radius: 10px; border: none;
+    width: 100%; padding: 12px; border-radius: 10px; border: none;
     background: linear-gradient(180deg, #e8a33d, #b4893a); color: #3a2a1c;
     font-family: inherit; font-weight: 800; font-size: 14px; cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    transition: transform 0.1s;
   }
+  .tie-btn:active{ transform: scale(0.98); }
   .tie-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
 
   .hint{ text-align:center; font-size:12px; color:var(--chalk-cream-dim); margin-top:5px; min-height:16px; }
@@ -214,14 +236,22 @@
   .bar-fill{ height:100%; border-radius:999px; transition:width 0.5s ease; background: var(--marigold); }
 
   .tickets{ display:flex; flex-direction:column; gap:4px; }
-  .ticket{ display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(242,236,216,0.15); font-size:12.5px; }
+  .ticket{ 
+    display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border-radius:8px; 
+    background:rgba(255,255,255,0.03); border:1px solid rgba(242,236,216,0.15); font-size:12.5px; 
+    animation: ticketSlideIn 0.3s ease-out;
+  }
+  @keyframes ticketSlideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
   .ticket .who{ font-weight:700; }
-  .ticket .what{ font-weight:600; padding:2px 7px; border-radius:999px; font-size:11px; color:var(--marigold); background:rgba(232,163,61,0.18); display:flex; gap:4px; }
+  .ticket .what{ font-weight:600; padding:2px 8px; border-radius:999px; font-size:11px; color:var(--marigold); background:rgba(232,163,61,0.18); display:flex; gap:4px; }
   .ticket .what.pending{ color:var(--chalk-cream-dim); font-weight:500; background:none; }
 
   .tally{ margin-top:12px; text-align:center; font-size:12.5px; color:var(--chalk-cream-dim); }
   .tally b{ color:var(--chalk-cream); }
-  .tally.winner{ font-size:14.5px; font-weight:800; color:var(--chalk-cream); }
+  .tally.winner{ font-size:14.5px; font-weight:800; color:var(--chalk-cream); text-shadow: 0 0 10px rgba(232,163,61,0.4); }
   
   .history-box{
     margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,0.02);
@@ -255,28 +285,44 @@
   .congrats-overlay{
     position:fixed; inset:0; z-index:1000; display:none;
     align-items:center; justify-content:center; padding:16px;
-    background:rgba(10,20,14,0.72); backdrop-filter:blur(2px);
+    background:rgba(10,20,14,0.8); backdrop-filter:blur(4px);
+    animation: fadeInOverlay 0.25s ease-out;
+  }
+  @keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
   .congrats-card{
-    width:100%; max-width:320px; padding:24px 18px 20px;
-    border-radius:16px; text-align:center;
-    background:linear-gradient(180deg, #2a4a35, #1f3d2b);
-    border:2px solid var(--marigold);
-    box-shadow:0 20px 50px rgba(0,0,0,0.5), 0 0 0 6px rgba(232,163,61,0.12);
+    width:100%; max-width:320px; padding:26px 18px 22px;
+    border-radius:18px; text-align:center;
+    background:linear-gradient(180deg, #2a4a35, #163020);
+    border:2.5px solid var(--marigold);
+    box-shadow:0 25px 60px rgba(0,0,0,0.7), 0 0 0 8px rgba(232,163,61,0.15);
+    animation: bounceCard 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
-  .congrats-card .server-emoji{ font-size:44px; display:block; margin-bottom:4px; }
+  @keyframes bounceCard {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .congrats-card .server-emoji{ font-size:50px; display:block; margin-bottom:4px; animation: bounceEmoji 1s infinite alternate ease-in-out; }
+  @keyframes bounceEmoji {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-8px); }
+  }
   .congrats-card .server-title{ font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:var(--chalk-cream-dim); margin-bottom:4px; }
-  .congrats-card .congrats-server{ font-weight:800; font-size:19px; color:var(--marigold); margin-bottom:8px; }
-  .congrats-card .congrats-msg{ font-size:13.5px; color:var(--chalk-cream); line-height:1.4; font-style:italic; margin-bottom:14px; }
+  .congrats-card .congrats-server{ font-weight:800; font-size:21px; color:var(--marigold); margin-bottom:8px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+  .congrats-card .congrats-msg{ font-size:13.5px; color:var(--chalk-cream); line-height:1.4; font-style:italic; margin-bottom:16px; }
   
   .congrats-close{
-    width: 100%; padding: 11px 22px; border-radius: 999px; border: none; background: var(--brick);
-    color: var(--chalk-cream); font-family: inherit; font-weight: 700; font-size: 13.5px; cursor: pointer;
+    width: 100%; padding: 12px 22px; border-radius: 999px; border: none; background: var(--brick);
+    color: var(--chalk-cream); font-family: inherit; font-weight: 700; font-size: 14px; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(193,68,46,0.4); transition: transform 0.1s;
   }
+  .congrats-close:active{ transform: scale(0.97); }
 </style>
 </head>
 <body>
-<div class="board">
+<div class="board" id="mainBoard">
   <div class="eyebrow" id="roomEyebrow">Phòng: Mặc định</div>
   <h1 id="mainTitle">Vòng Quay Chọn Quán</h1>
   <div class="sub" id="subTitleText">Quán nào hôm nay? Bấm vào chọn tên bạn rồi quay ngay!</div>
@@ -329,7 +375,7 @@
 
   <div class="names" id="nameGrid"></div>
 
-  <div class="wheel-wrap">
+  <div class="wheel-wrap" id="wheelWrapDiv">
     <div class="wheel-frame">
       <div class="light-ring" id="lightRing"></div>
       <div class="pointer" id="pointerEl"></div>
@@ -395,9 +441,7 @@ const roomRef = firebase.database().ref("rooms/" + currentRoom);
 let namesList = [];
 let OPTIONS = ["112", "Hương Lúa"];
 let maxAllowedSpins = 1;
-// Không còn lưu mật khẩu dạng chữ thường: chỉ giữ mã băm SHA-256 của nó.
-// Mặc định tương ứng với mật khẩu gốc "2034".
-let serverAdminPassHash = null; // sẽ được nạp từ Firebase (hoặc tự tạo lần đầu) khi kết nối
+let serverAdminPassHash = null;
 const DEFAULT_ADMIN_PASS = "2034";
 let forcedWinnerSetting = "RANDOM";
 let serverStats = {};
@@ -412,15 +456,12 @@ let soundEnabled = false;
 
 const WHEEL_COLORS = ["#c1442e", "#e8a33d", "#7fa65c", "#2a4a35", "#b4893a", "#3a2a1c"];
 
-// Băm chuỗi bằng SHA-256, trả về chuỗi hex — dùng để không bao giờ phải
-// lưu hoặc so sánh mật khẩu dạng chữ thường (plain text) trên Firebase.
 async function sha256Hex(str){
   const data = new TextEncoder().encode(String(str));
   const digest = await crypto.subtle.digest('SHA-256', data);
   return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// So sánh mật khẩu người dùng nhập với mã băm đang lưu trên phòng.
 async function checkAdminPass(pass){
   if(pass === null || pass === undefined || pass === "") return false;
   if(!serverAdminPassHash) return false;
@@ -428,10 +469,6 @@ async function checkAdminPass(pass){
   return hash === serverAdminPassHash;
 }
 
-// Cho phép admin tự đặt mật khẩu riêng, thay cho mật khẩu mặc định "2034"
-// vốn nằm sẵn trong mã nguồn (ai xem View Source cũng thấy được). Sau khi
-// đổi, mật khẩu thật sự chỉ tồn tại dưới dạng mã băm trên Firebase — không
-// còn lộ ra ở bất cứ đâu trong code.
 async function changeAdminPassword(){
   const currentPass = prompt("🔒 Nhập mật khẩu quản trị HIỆN TẠI để xác nhận:");
   if(currentPass === null) return;
@@ -479,7 +516,6 @@ function drawWheelAndText(){
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-  // Nếu đang đá Bàn Thắng Vàng và có danh sách tieCandidates, ưu tiên vẽ các quán đang hoà
   let activeOptions = (tieRound > 0 && tieCandidates && tieCandidates.length >= 2) ? tieCandidates : OPTIONS;
   const count = activeOptions.length;
   if(count === 0) return;
@@ -617,9 +653,6 @@ function switchRoom(){
 function copyRoomLink(){
   const currentLink = window.location.href;
 
-  // Lớp dự phòng cuối: hiện link ngay trên màn hình (trong ô nhập phòng) và
-  // tự bôi đen sẵn, để người dùng tự bấm giữ -> Copy, phòng khi cả Clipboard
-  // API lẫn document.execCommand đều bị trình duyệt/app chặn.
   function fallbackShowLink(){
     const roomBar = document.getElementById('roomBar');
     const roomInput = document.getElementById('roomInput');
@@ -635,8 +668,6 @@ function copyRoomLink(){
     }
   }
 
-  // Cách 1: Clipboard API hiện đại — chỉ gọi khi thực sự tồn tại, tránh lỗi
-  // "Cannot read property 'writeText' of undefined" làm crash cả hàm.
   if(navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext){
     navigator.clipboard.writeText(currentLink).then(() => {
       alert("✅ Đã copy link phòng thành công! Hãy gửi link này cho mọi người vào quay chung nhé.");
@@ -646,7 +677,6 @@ function copyRoomLink(){
     return;
   }
 
-  // Cách 2: API cũ hơn, vẫn hoạt động trong một số webview không hỗ trợ Clipboard API.
   try{
     const temp = document.createElement('textarea');
     temp.value = currentLink;
@@ -663,7 +693,6 @@ function copyRoomLink(){
     }
   }catch(e){}
 
-  // Cách 3: hiện link để copy thủ công.
   fallbackShowLink();
 }
 
@@ -760,8 +789,6 @@ async function saveShopNames(){
   OPTIONS = newArr;
   roomRef.child("options").set(OPTIONS);
 
-  // Nếu quán đang được "ép kết quả" bị xoá khỏi danh sách mới, tự động chuyển lại
-  // chế độ ngẫu nhiên để tránh cấu hình ép trỏ vào một quán không còn tồn tại.
   if(forcedWinnerSetting !== "RANDOM" && !OPTIONS.includes(forcedWinnerSetting)){
     forcedWinnerSetting = "RANDOM";
     roomRef.child("forcedWinner").set("RANDOM");
@@ -814,13 +841,13 @@ function playClickSound(){
     const gain = audioCtx.createGain();
     osc.type = 'square';
     osc.frequency.setValueAtTime(580, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.05);
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+    osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.04);
+    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     osc.start();
-    osc.stop(audioCtx.currentTime + 0.05);
+    osc.stop(audioCtx.currentTime + 0.04);
   } catch(e) {}
 }
 
@@ -831,20 +858,20 @@ function playWinSound(){
       audioCtx = new AudioContext();
     }
     if(audioCtx.state === 'suspended') audioCtx.resume();
-    const notes = [523.25, 659.25, 783.99, 1046.50];
+    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
     notes.forEach((freq, idx) => {
       setTimeout(() => {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.4);
-      }, idx * 100);
+        osc.stop(audioCtx.currentTime + 0.5);
+      }, idx * 110);
     });
   } catch(e) {}
 }
@@ -883,6 +910,8 @@ const congratsServer = document.getElementById('congratsServer');
 const congratsMsg = document.getElementById('congratsMsg');
 const congratsClose = document.getElementById('congratsClose');
 const pointerEl = document.getElementById('pointerEl');
+const mainBoard = document.getElementById('mainBoard');
+const wheelWrapDiv = document.getElementById('wheelWrapDiv');
 
 congratsClose.addEventListener('click', ()=>{ congratsOverlay.style.display = 'none'; });
 
@@ -894,12 +923,11 @@ const tally = document.getElementById('tally');
 const wheelElement = document.getElementById('wheelElement');
 const lightRing = document.getElementById('lightRing');
 
-// Tạo các bóng đèn nhấp nháy chạy vòng quanh bánh xe (kiểu đèn hội chợ).
 function setupLightRing(){
   if(!lightRing || lightRing.childElementCount) return;
-  const count = 16;
-  const radius = 130; // bán kính đặt đèn, hơi lớn hơn bán kính bánh xe (125px) để đèn nằm ngoài viền
-  const cycle = 1.6; // phải khớp với thời lượng animation bulbGlow trong CSS (giây)
+  const count = 18;
+  const radius = 138; 
+  const cycle = 1.6; 
   for(let i = 0; i < count; i++){
     const bulb = document.createElement('div');
     bulb.className = 'bulb';
@@ -917,20 +945,20 @@ function showError(msg){
 }
 
 function launchConfetti(){
-  const colors = ["#e8a33d","#7fa65c","#c1442e","#f2ecd8"];
+  const colors = ["#e8a33d","#7fa65c","#c1442e","#f2ecd8","#e3c069"];
   const layer = document.createElement('div');
   layer.className = 'confetti-layer';
   document.body.appendChild(layer);
-  for(let i=0; i<90; i++){
+  for(let i=0; i<100; i++){
     const piece = document.createElement('div');
     piece.className = 'confetti-piece';
     piece.style.left = Math.random()*100 + "vw";
     piece.style.background = colors[Math.floor(Math.random()*colors.length)];
-    piece.style.animationDuration = (2.2 + Math.random()*1.8) + "s";
-    piece.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
+    piece.style.animationDuration = (2.2 + Math.random()*2.0) + "s";
+    piece.style.borderRadius = Math.random() > 0.4 ? "50%" : "3px";
     layer.appendChild(piece);
   }
-  setTimeout(()=>{ layer.remove(); }, 4800);
+  setTimeout(()=>{ layer.remove(); }, 5000);
 }
 
 function showCongrats(winnerOption){
@@ -940,15 +968,10 @@ function showCongrats(winnerOption){
   congratsOverlay.style.display = 'flex';
 }
 
-// Dùng Firebase transaction để đảm bảo dù có bao nhiêu người đang mở trang / F5 lại
-// cùng lúc, kết quả thắng của MỘT ván chỉ được cộng vào thống kê đúng MỘT lần.
-// "signature" đại diện duy nhất cho trạng thái ván đấu đã kết thúc (vòng nào, quán nào,
-// dựa trên bao nhiêu lượt) — nếu đã có client khác ghi cùng signature này rồi thì các
-// client sau sẽ bị transaction từ chối và không cộng điểm nữa.
 async function claimResultOnce(signature){
   try {
     const res = await roomRef.child("resultLock").transaction(current => {
-      if(current === signature) return; // đã có người khác claim signature này -> huỷ (abort)
+      if(current === signature) return; 
       return signature;
     });
     return !!(res && res.committed);
@@ -964,7 +987,6 @@ async function handleFinalWinner(winnerOption, signature){
     launchConfetti();
     const claimed = await claimResultOnce(signature);
     if(claimed){
-      // Chỉ client "thắng" transaction mới được cộng điểm, tránh cộng trùng.
       await roomRef.child("stats").child(winnerOption).transaction(cur => (cur || 0) + 1);
     }
   }
@@ -1118,14 +1140,11 @@ let tieRound = 0;
 let tieCandidates = [];
 
 function persistTieState(){
-  // Nhiều client có thể tự tính ra cùng lúc là đang hoà và cùng gọi hàm này.
-  // Dùng transaction có điều kiện: chỉ client nào thấy tieRound trên server còn "cũ hơn"
-  // giá trị mới mới được phép ghi, tránh việc nhiều client ghi đè qua lại lộn xộn.
   const roundToSet = tieRound;
   const candidatesToSet = tieCandidates;
   roomRef.child("tieRound").transaction(current => {
     const cur = current || 0;
-    if(cur >= roundToSet) return; // đã có client khác set rồi -> huỷ
+    if(cur >= roundToSet) return; 
     return roundToSet;
   }).then(res => {
     if(res && res.committed){
@@ -1220,7 +1239,6 @@ function renderResults(){
   }
 
   if(tieRound > 0){
-    // Đảm bảo nếu tieCandidates rỗng nhưng đang có tieRound thì khôi phục lại các quán hòa từ vòng trước
     if(!tieCandidates || tieCandidates.length < 2){
       tieCandidates = OPTIONS; 
     }
@@ -1295,9 +1313,6 @@ function setupRealtimeListener(){
   roomRef.on('value', async (snapshot) => {
     const data = snapshot.val() || {};
 
-    // Chỉ lưu mã băm SHA-256 của mật khẩu, không bao giờ lưu chữ thường.
-    // Nếu phòng được tạo từ bản cũ (còn "adminPass" dạng chữ thường), tự
-    // động băm lại và xoá bản chữ thường đi để không còn rò rỉ mật khẩu.
     if(data.adminPassHash){
       serverAdminPassHash = String(data.adminPassHash);
       if(data.adminPass) roomRef.child("adminPass").remove();
@@ -1368,9 +1383,6 @@ async function newRound(){
   if(pass === null) return;
   if(!(await checkAdminPass(pass))){ alert("❌ Mật khẩu không đúng!"); return; }
 
-  // Nếu bảng admin đang mở và có tên quán vừa thêm/sửa nhưng CHƯA bấm "Lưu",
-  // lưu lại trước khi qua ván mới — tránh mất quán do listener realtime
-  // tải lại dữ liệu cũ từ Firebase ngay sau khi xoá spins/tieRound bên dưới.
   const shopInputs = document.querySelectorAll('.shop-input-field');
   if(shopInputs.length){
     let pendingArr = [];
@@ -1381,9 +1393,6 @@ async function newRound(){
     }
   }
 
-  // Chỉ xoá dữ liệu của VÁN hiện tại (lượt quay, trạng thái hoà, khoá kết quả).
-  // KHÔNG đụng tới: players, options (danh sách quán), stats (thống kê lịch sử),
-  // maxSpins, forcedWinner, adminPass — mọi cấu hình phòng được giữ nguyên.
   await roomRef.child("spins").remove();
   await roomRef.child("tieRound").remove();
   await roomRef.child("tieCandidates").remove();
@@ -1422,26 +1431,28 @@ async function spin(isTieBreaker = false, tiePerson = null){
   updateSpinButton();
   if(isTieBreaker) tieBtn.disabled = true;
 
-  // Đặt chỗ lượt quay một cách NGUYÊN TỬ (atomic transaction) ngay tại đây, TRƯỚC khi
-  // chạy animation. Nếu người này đang quay cùng lúc ở tab/máy khác, transaction sẽ tự
-  // kiểm tra lại số lượt mới nhất và huỷ (abort) nếu đã đủ/đã đá — không thể vượt quá
-  // số lượt cho phép dù bấm nhanh cỡ nào hay mở nhiều thiết bị.
+  // Kích hoạt hiệu ứng dồn dập, hồi hộp: làm mờ nền và phóng to vòng quay
+  if(mainBoard) mainBoard.classList.add('spinning-active');
+  if(wheelWrapDiv) wheelWrapDiv.classList.add('active-zoom');
+
   let txResult;
   try {
     txResult = await roomRef.child("spins/" + encodeURIComponent(targetName)).transaction(current => {
       let arr = current ? (Array.isArray(current) ? current : Object.values(current)) : [];
       if(!isTieBreaker){
         const normalCount = arr.filter(s => (s.round || 0) === 0).length;
-        if(normalCount >= maxAllowedSpins) return; // huỷ transaction
+        if(normalCount >= maxAllowedSpins) return; 
       } else {
         const already = arr.some(s => s.isTieBreaker && s.round === roundToUse);
-        if(already) return; // huỷ transaction
+        if(already) return; 
       }
       arr.push(record);
       return arr;
     });
   } catch(e){
     spinning = false;
+    if(mainBoard) mainBoard.classList.remove('spinning-active');
+    if(wheelWrapDiv) wheelWrapDiv.classList.remove('active-zoom');
     if(isTieBreaker) tieBtn.disabled = false;
     updateSpinButton();
     showError("Lỗi khi ghi lượt quay lên server, vui lòng thử lại.");
@@ -1450,6 +1461,8 @@ async function spin(isTieBreaker = false, tiePerson = null){
 
   if(!txResult || !txResult.committed){
     spinning = false;
+    if(mainBoard) mainBoard.classList.remove('spinning-active');
+    if(wheelWrapDiv) wheelWrapDiv.classList.remove('active-zoom');
     if(isTieBreaker) tieBtn.disabled = false;
     updateSpinButton();
     alert("⚠️ Bạn (" + targetName + ") đã quay đủ lượt cho phép rồi (có thể vừa quay ở tab/máy khác)!");
@@ -1473,13 +1486,15 @@ async function spin(isTieBreaker = false, tiePerson = null){
   const winnerIdx = pool.indexOf(winner);
   const segCenterDeg = sliceDeg * winnerIdx + sliceDeg / 2;
   let targetMod = ((360 - segCenterDeg) % 360 + 360) % 360;
-  const finalRotation = currentRotation - (currentRotation % 360) + 6 * 360 + targetMod;
+  const finalRotation = currentRotation - (currentRotation % 360) + 7 * 360 + targetMod;
 
   wheelElement.style.transform = "rotate(" + finalRotation + "deg)";
   currentRotation = finalRotation;
 
   setTimeout(()=>{
     spinning = false;
+    if(mainBoard) mainBoard.classList.remove('spinning-active');
+    if(wheelWrapDiv) wheelWrapDiv.classList.remove('active-zoom');
     if(isTieBreaker) tieBtn.disabled = false;
     drawWheelAndText();
   }, 4300);
