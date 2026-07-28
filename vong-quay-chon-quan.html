@@ -1234,6 +1234,19 @@ async function newRound(){
   if(pass === null) return;
   if(pass !== serverAdminPass){ alert("❌ Mật khẩu không đúng!"); return; }
 
+  // Nếu bảng admin đang mở và có tên quán vừa thêm/sửa nhưng CHƯA bấm "Lưu",
+  // lưu lại trước khi qua ván mới — tránh mất quán do listener realtime
+  // tải lại dữ liệu cũ từ Firebase ngay sau khi xoá spins/tieRound bên dưới.
+  const shopInputs = document.querySelectorAll('.shop-input-field');
+  if(shopInputs.length){
+    let pendingArr = [];
+    shopInputs.forEach(inp => { const v = inp.value.trim(); if(v) pendingArr.push(v); });
+    if(pendingArr.length >= 2){
+      OPTIONS = pendingArr;
+      await roomRef.child("options").set(OPTIONS);
+    }
+  }
+
   // Chỉ xoá dữ liệu của VÁN hiện tại (lượt quay, trạng thái hoà, khoá kết quả).
   // KHÔNG đụng tới: players, options (danh sách quán), stats (thống kê lịch sử),
   // maxSpins, forcedWinner, adminPass — mọi cấu hình phòng được giữ nguyên.
