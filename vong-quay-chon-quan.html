@@ -376,7 +376,10 @@ const roomRef = firebase.database().ref("rooms/" + currentRoom);
 let namesList = [];
 let OPTIONS = ["112", "Hương Lúa"];
 let maxAllowedSpins = 1;
-let serverAdminPass = "2034";
+// Không còn lưu mật khẩu dạng chữ thường: chỉ giữ mã băm SHA-256 của nó.
+// Mặc định tương ứng với mật khẩu gốc "2034".
+let serverAdminPassHash = null; // sẽ được nạp từ Firebase (hoặc tự tạo lần đầu) khi kết nối
+const DEFAULT_ADMIN_PASS = "2034";
 let forcedWinnerSetting = "RANDOM";
 let serverStats = {};
 
@@ -389,6 +392,22 @@ let audioCtx = null;
 let soundEnabled = false;
 
 const WHEEL_COLORS = ["#c1442e", "#e8a33d", "#7fa65c", "#2a4a35", "#b4893a", "#3a2a1c"];
+
+// Băm chuỗi bằng SHA-256, trả về chuỗi hex — dùng để không bao giờ phải
+// lưu hoặc so sánh mật khẩu dạng chữ thường (plain text) trên Firebase.
+async function sha256Hex(str){
+  const data = new TextEncoder().encode(String(str));
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// So sánh mật khẩu người dùng nhập với mã băm đang lưu trên phòng.
+async function checkAdminPass(pass){
+  if(pass === null || pass === undefined || pass === "") return false;
+  if(!serverAdminPassHash) return false;
+  const hash = await sha256Hex(pass);
+  return hash === serverAdminPassHash;
+}
 
 function escapeHtml(str){
   return String(str)
@@ -521,13 +540,13 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 let titleClicks = 0;
-document.getElementById('mainTitle').addEventListener('click', () => {
+document.getElementById('mainTitle').addEventListener('click', async () => {
   titleClicks++;
   if(titleClicks >= 3){
     titleClicks = 0;
     const pass = prompt("🔒 Nhập mật khẩu quản trị để tạo/đổi phòng & mở bảng điều khiển:");
     if(pass !== null){
-      if(pass === serverAdminPass){
+      if(await checkAdminPass(pass)){
         const roomBar = document.getElementById('roomBar');
         roomBar.style.display = roomBar.style.display === 'flex' ? 'none' : 'flex';
 
@@ -744,13 +763,13 @@ function playWinSound(){
 }
 
 let historyClicks = 0;
-document.getElementById('historyBox').addEventListener('click', () => {
+document.getElementById('historyBox').addEventListener('click', async () => {
   historyClicks++;
   if(historyClicks >= 3){
     historyClicks = 0;
     const pass = prompt("🔒 Nhập mật khẩu quản trị để xóa thống kê lịch sử:");
     if(pass !== null){
-      if(pass === serverAdminPass){
+      if(await checkAdminPass(pass)){
         let emptyStats = {};
         OPTIONS.forEach(s => emptyStats[s] = 0);
         serverStats = emptyStats;
@@ -922,7 +941,7 @@ function renderNames(){
 async function removePlayer(nameToRemove){
   const pass = prompt("🔒 Nhập mật khẩu quản trị để xóa người chơi '" + nameToRemove + "':");
   if(pass === null) return;
-  if(pass !== serverAdminPass){ alert("❌ Mật khẩu không đúng!"); return; }
+  if(!(await checkAdminPass(pass))){ alert("❌ Mật khẩu không đúng!"); return; }
 
   let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
   cleanList = cleanList.filter(n => n !== nameToRemove);
@@ -951,7 +970,7 @@ async function addNewPlayerWithPassword(){
   }
   const pass = prompt("🔒 Nhập mật khẩu để thêm người chơi:");
   if(pass === null) return;
-  if(pass !== serverAdminPass){ alert("❌ Mật khẩu không đúng!"); return; }
+  if(!(await checkAdminPass(pass))){ alert("❌ Mật khẩu không đúng!"); return; }
 
   let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
   cleanList.push(newName);
@@ -1168,11 +1187,21 @@ function renderResults(){
 }
 
 function setupRealtimeListener(){
-  roomRef.on('value', (snapshot) => {
+  roomRef.on('value', async (snapshot) => {
     const data = snapshot.val() || {};
-    
-    serverAdminPass = data.adminPass ? String(data.adminPass) : "2034";
-    if(!data.adminPass) roomRef.child("adminPass").set("2034");
+
+    // Chỉ lưu mã băm SHA-256 của mật khẩu, không bao giờ lưu chữ thường.
+    // Nếu phòng được tạo từ bản cũ (còn "adminPass" dạng chữ thường), tự
+    // động băm lại và xoá bản chữ thường đi để không còn rò rỉ mật khẩu.
+    if(data.adminPassHash){
+      serverAdminPassHash = String(data.adminPassHash);
+      if(data.adminPass) roomRef.child("adminPass").remove();
+    } else {
+      const plain = data.adminPass ? String(data.adminPass) : DEFAULT_ADMIN_PASS;
+      serverAdminPassHash = await sha256Hex(plain);
+      roomRef.child("adminPassHash").set(serverAdminPassHash);
+      if(data.adminPass) roomRef.child("adminPass").remove();
+    }
 
     OPTIONS = (data.options && Array.isArray(data.options) && data.options.length > 0) ? data.options : ["112", "Hương Lúa"];
     maxAllowedSpins = data.maxSpins ? parseInt(data.maxSpins) : 1;
@@ -1219,7 +1248,7 @@ function setupRealtimeListener(){
 async function resetData(){
   const pass = prompt("Nhập mật khẩu quản trị để reset dữ liệu:");
   if(pass === null) return;
-  if(pass !== serverAdminPass){ alert("❌ Mật khẩu không đúng!"); return; }
+  if(!(await checkAdminPass(pass))){ alert("❌ Mật khẩu không đúng!"); return; }
   
   await roomRef.remove();
   selectedName = null;
@@ -1232,7 +1261,7 @@ async function resetData(){
 async function newRound(){
   const pass = prompt("🔒 Nhập mật khẩu quản trị để bắt đầu ván mới:");
   if(pass === null) return;
-  if(pass !== serverAdminPass){ alert("❌ Mật khẩu không đúng!"); return; }
+  if(!(await checkAdminPass(pass))){ alert("❌ Mật khẩu không đúng!"); return; }
 
   // Nếu bảng admin đang mở và có tên quán vừa thêm/sửa nhưng CHƯA bấm "Lưu",
   // lưu lại trước khi qua ván mới — tránh mất quán do listener realtime
