@@ -143,7 +143,20 @@
 
   .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin:14px 0 8px; }
   .wheel-frame{ position:relative; width:250px; height:250px; }
-  
+
+  .light-ring{ position:absolute; inset:0; pointer-events:none; z-index:5; }
+  .bulb{
+    position:absolute; top:50%; left:50%; width:11px; height:11px; margin:-5.5px 0 0 -5.5px;
+    border-radius:50%; background:#5a4a24;
+    box-shadow: 0 0 3px 1px rgba(0,0,0,0.35), inset 0 0 2px rgba(0,0,0,0.4);
+    animation: bulbGlow 1.6s ease-in-out infinite;
+  }
+  @keyframes bulbGlow{
+    0%, 40%, 100% { background:#5a4a24; box-shadow:0 0 3px 1px rgba(0,0,0,0.35), inset 0 0 2px rgba(0,0,0,0.4); }
+    15% { background:#ffe9a8; box-shadow:0 0 10px 4px rgba(255,201,88,0.95), 0 0 20px 8px rgba(255,201,88,0.5); }
+  }
+  .light-ring.fast .bulb{ animation-duration: 0.45s; }
+
   .pointer{
     position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
     width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent;
@@ -318,6 +331,7 @@
 
   <div class="wheel-wrap">
     <div class="wheel-frame">
+      <div class="light-ring" id="lightRing"></div>
       <div class="pointer" id="pointerEl"></div>
       <div class="wheel-container" id="wheelElement">
         <canvas id="wheelCanvas" width="500" height="500"></canvas>
@@ -878,6 +892,24 @@ const barsEl = document.getElementById('bars');
 const tickets = document.getElementById('tickets');
 const tally = document.getElementById('tally');
 const wheelElement = document.getElementById('wheelElement');
+const lightRing = document.getElementById('lightRing');
+
+// Tạo các bóng đèn nhấp nháy chạy vòng quanh bánh xe (kiểu đèn hội chợ).
+function setupLightRing(){
+  if(!lightRing || lightRing.childElementCount) return;
+  const count = 16;
+  const radius = 130; // bán kính đặt đèn, hơi lớn hơn bán kính bánh xe (125px) để đèn nằm ngoài viền
+  const cycle = 1.6; // phải khớp với thời lượng animation bulbGlow trong CSS (giây)
+  for(let i = 0; i < count; i++){
+    const bulb = document.createElement('div');
+    bulb.className = 'bulb';
+    const angle = (360 / count) * i;
+    bulb.style.transform = `rotate(${angle}deg) translateY(-${radius}px)`;
+    bulb.style.animationDelay = ((cycle / count) * i).toFixed(3) + 's';
+    lightRing.appendChild(bulb);
+  }
+}
+setupLightRing();
 
 function showError(msg){
   errBox.textContent = msg;
@@ -1425,6 +1457,7 @@ async function spin(isTieBreaker = false, tiePerson = null){
   }
 
   pointerEl.classList.add('shake');
+  if(lightRing) lightRing.classList.add('fast');
 
   let soundTimer = 0;
   let drumInterval = setInterval(()=>{
@@ -1433,7 +1466,7 @@ async function spin(isTieBreaker = false, tiePerson = null){
     if(soundTimer >= 4200) clearInterval(drumInterval);
   }, 90);
 
-  setTimeout(()=>{ pointerEl.classList.remove('shake'); }, 4200);
+  setTimeout(()=>{ pointerEl.classList.remove('shake'); if(lightRing) lightRing.classList.remove('fast'); }, 4200);
 
   const count = pool.length;
   const sliceDeg = 360 / count;
