@@ -491,8 +491,9 @@
 </div>
 
 <script>
+// Đã thêm dấu gạch chéo (/) vào cuối databaseURL để khắc phục lỗi kết nối Realtime
 const firebaseConfig = {
-  databaseURL: "https://vong-quay-cdd2d-default-rtdb.asia-southeast1.firebasedatabase.app"
+  databaseURL: "https://vong-quay-cdd2d-default-rtdb.asia-southeast1.firebasedatabase.app/"
 };
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
@@ -572,7 +573,7 @@ function drawWheelAndText(){
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  let activeOptions = (tieRound > 0 && tieCandidates && tieCandidates.length >= 2) ? tieCandidates : OPTIONS;
+  let activeOptions = (typeof tieRound !== 'undefined' && tieRound > 0 && typeof tieCandidates !== 'undefined' && tieCandidates && tieCandidates.length >= 2) ? tieCandidates : OPTIONS;
   const count = activeOptions.length;
   if(count === 0) return;
   const sliceAngle = (2 * Math.PI) / count;
@@ -892,6 +893,9 @@ async function addNewPlayerWithPassword(){
 }
 
 function setupRealtimeListener(){
+  // Ẩn dòng thông báo đang kết nối khi sự kiện nhận dữ liệu kích hoạt thành công
+  document.getElementById('hint').textContent = "";
+
   roomRef.on('value', async (snapshot) => {
     const data = snapshot.val() || {};
     if(data.adminPassHash){
