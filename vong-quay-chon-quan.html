@@ -302,6 +302,11 @@
         <button class="admin-action-btn admin-save-btn" onclick="saveShopNames()">💾 Lưu tất cả</button>
       </div>
     </div>
+
+    <div style="border-top: 1px dashed var(--gold); margin: 8px 0; padding-top: 8px;">
+      <h4 style="margin:0 0 6px;">🔑 Bảo mật:</h4>
+      <button class="admin-action-btn admin-save-btn" style="width:100%" onclick="changeAdminPassword()">🔑 Đổi mật khẩu quản trị</button>
+    </div>
   </div>
 
   <div class="add-player-box">
@@ -407,6 +412,30 @@ async function checkAdminPass(pass){
   if(!serverAdminPassHash) return false;
   const hash = await sha256Hex(pass);
   return hash === serverAdminPassHash;
+}
+
+// Cho phép admin tự đặt mật khẩu riêng, thay cho mật khẩu mặc định "2034"
+// vốn nằm sẵn trong mã nguồn (ai xem View Source cũng thấy được). Sau khi
+// đổi, mật khẩu thật sự chỉ tồn tại dưới dạng mã băm trên Firebase — không
+// còn lộ ra ở bất cứ đâu trong code.
+async function changeAdminPassword(){
+  const currentPass = prompt("🔒 Nhập mật khẩu quản trị HIỆN TẠI để xác nhận:");
+  if(currentPass === null) return;
+  if(!(await checkAdminPass(currentPass))){ alert("❌ Mật khẩu hiện tại không đúng!"); return; }
+
+  const newPass = prompt("🔑 Nhập mật khẩu MỚI (nên khác mặc định, tối thiểu 4 ký tự):");
+  if(newPass === null) return;
+  if(newPass.trim().length < 4){ alert("⚠️ Mật khẩu mới cần ít nhất 4 ký tự!"); return; }
+
+  const confirmPass = prompt("🔑 Nhập lại mật khẩu MỚI để xác nhận:");
+  if(confirmPass === null) return;
+  if(confirmPass !== newPass){ alert("❌ Hai lần nhập không khớp nhau!"); return; }
+
+  const newHash = await sha256Hex(newPass.trim());
+  await roomRef.child("adminPassHash").set(newHash);
+  serverAdminPassHash = newHash;
+
+  alert("✅ Đã đổi mật khẩu quản trị thành công! Hãy nhớ mật khẩu mới, vì bản mặc định trong code sẽ không còn dùng được nữa.");
 }
 
 function escapeHtml(str){
