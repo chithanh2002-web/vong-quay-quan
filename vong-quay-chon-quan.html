@@ -438,7 +438,7 @@
 
   <button class="spin-btn" id="spinBtn" disabled>Chọn tên trước đã</button>
   
-  <div class="hint" id="hint">Đang kết nối Realtime...</div>
+  <div class="hint" id="hint"></div>
   <div class="err" id="errBox"></div>
 
   <div class="reset-container">
@@ -564,17 +564,20 @@ function drawWheelAndText(){
     ctx.fillStyle = WHEEL_COLORS[idx % WHEEL_COLORS.length]; ctx.fill();
     ctx.lineWidth = 3; ctx.strokeStyle = "#f2ecd8"; ctx.stroke();
 
-    // Vẽ chữ tên quán lên vòng quay
+    // Vẽ chữ tên quán to rõ trên vòng quay
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.rotate(startAngle + sliceAngle / 2);
     ctx.textAlign = "right";
-    ctx.fillStyle = "#f2ecd8";
-    ctx.font = "bold 15px 'Be Vietnam Pro', sans-serif";
-    ctx.fillText(shopName, radius - 20, 6);
+    ctx.fillStyle = "#ffffff";
+    // Tăng kích thước font chữ to hơn (22px, đậm nét)
+    ctx.font = "800 22px 'Be Vietnam Pro', sans-serif";
+    ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
+    ctx.shadowBlur = 4;
+    ctx.fillText(shopName, radius - 25, 8);
     ctx.restore();
   });
-  ctx.beginPath(); ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI); ctx.fillStyle = "#e3c069"; ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = "#3a2a1c"; ctx.stroke();
+  ctx.beginPath(); ctx.arc(centerX, centerY, 22, 0, 2 * Math.PI); ctx.fillStyle = "#e3c069"; ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = "#3a2a1c"; ctx.stroke();
 }
 
 window.addEventListener('DOMContentLoaded', () => {
