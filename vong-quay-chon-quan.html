@@ -42,7 +42,6 @@
   }
   .board{ width:100%; max-width:480px; transition: filter 0.3s ease; }
   .board.spinning-active { filter: blur(1.5px); pointer-events: none; }
-  /* Cho phép tương tác với nút quay và vòng quay ngay cả khi board đang mờ */
   .board.spinning-active .wheel-wrap, 
   .board.spinning-active .spin-btn,
   .board.spinning-active .congrats-overlay { filter: none; pointer-events: auto; }
@@ -1431,7 +1430,6 @@ async function spin(isTieBreaker = false, tiePerson = null){
   updateSpinButton();
   if(isTieBreaker) tieBtn.disabled = true;
 
-  // Kích hoạt hiệu ứng dồn dập, hồi hộp: làm mờ nền và phóng to vòng quay
   if(mainBoard) mainBoard.classList.add('spinning-active');
   if(wheelWrapDiv) wheelWrapDiv.classList.add('active-zoom');
 
