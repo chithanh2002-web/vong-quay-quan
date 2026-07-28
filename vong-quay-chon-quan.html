@@ -266,20 +266,25 @@
   .tie-btn:active{ transform: scale(0.97); }
   .tie-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
 
-  /* Màn hình đếm ngược kịch tính trước khi quay */
+  /* Màn hình đếm ngược kịch tính 3, 2, 1 TRƯỚC VÀ SAU khi quay */
   .countdown-overlay {
     position: fixed; inset: 0; z-index: 1005; display: none;
     align-items: center; justify-content: center;
-    background: rgba(8, 20, 14, 0.85); backdrop-filter: blur(5px);
+    background: rgba(8, 20, 14, 0.88); backdrop-filter: blur(6px);
   }
   .countdown-number {
-    font-size: 120px; font-weight: 900; color: var(--marigold);
-    text-shadow: 0 0 30px rgba(232,163,61,0.8), 0 0 60px rgba(193,68,46,0.5);
+    font-size: 130px; font-weight: 900; color: var(--marigold);
+    text-shadow: 0 0 35px rgba(232,163,61,0.8), 0 0 70px rgba(193,68,46,0.6);
     animation: countPop 0.8s infinite alternate ease-in-out;
+    text-align: center;
+  }
+  .countdown-label {
+    position: absolute; bottom: 28%; font-size: 18px; font-weight: 700;
+    color: var(--chalk-cream); letter-spacing: 0.1em; text-transform: uppercase;
   }
   @keyframes countPop {
     0% { transform: scale(0.8); opacity: 0.6; }
-    100% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1.25); opacity: 1; }
   }
 
   .hint{ text-align:center; font-size:12px; color:var(--chalk-cream-dim); margin-top:5px; min-height:16px; }
@@ -387,7 +392,7 @@
   <h1 id="mainTitle">Vòng Quay Chọn Quán</h1>
   <div class="sub" id="subTitleText">Quán nào hôm nay? Bấm vào chọn tên bạn rồi quay ngay!</div>
 
-  <!-- Bảng MC / Trợ lý không khí hoạt náo -->
+  <!-- Bảng MC / Trợ lý không khí sôi động -->
   <div class="mc-banner" id="mcBanner">
     🎙️ MC: "Hôm nay ai sẽ là người gánh team chọn quán đây anh em ơi?!"
   </div>
@@ -482,9 +487,10 @@
   <div class="footnote">Mỗi người tự mở link này, chọn đúng tên mình và quay. Màn hình TV tự động cập nhật real-time.</div>
 </div>
 
-<!-- Lớp overlay đếm ngược kịch tính trước mỗi lần quay -->
+<!-- Lớp overlay đếm ngược kịch tính 3, 2, 1 TRƯỚC và SAU khi quay -->
 <div class="countdown-overlay" id="countdownOverlay">
   <div class="countdown-number" id="countdownNumber">3</div>
+  <div class="countdown-label" id="countdownLabel">Chuẩn bị quay...</div>
 </div>
 
 <div class="congrats-overlay" id="congratsOverlay">
@@ -527,7 +533,6 @@ let soundEnabled = false;
 
 const WHEEL_COLORS = ["#c1442e", "#e8a33d", "#7fa65c", "#2a4a35", "#b4893a", "#3a2a1c"];
 
-// Danh sách câu nói hoạt náo ngẫu nhiên của MC
 const MC_QUOTES = [
   "🎙️ MC: 'Nhanh tay chọn tên rồi quay đi anh em ơi, đói bụng lắm rồi đấy!'",
   "🎙️ MC: 'Ai mà quay trúng quán dở hôm nay là phải bao nước nhé!'",
@@ -547,7 +552,6 @@ function triggerMcVibe(customText = null){
   }
 }
 
-// Thay đổi định dạng Fullscreen tự động tối ưu hiển thị TV
 function toggleFullScreen(){
   if(!document.fullscreenElement){
     document.documentElement.requestFullscreen().catch(err => {
@@ -936,7 +940,6 @@ function forceUnlockSound(){
 document.addEventListener('click', () => { if(!soundEnabled) forceUnlockSound(); }, { once: true });
 document.addEventListener('touchstart', () => { if(!soundEnabled) forceUnlockSound(); }, { once: true });
 
-// Âm thanh tạch tạch cơ học khi bánh xe quay
 function playClickSound(){
   try {
     if(!audioCtx){
@@ -958,7 +961,6 @@ function playClickSound(){
   } catch(e) {}
 }
 
-// Âm thanh đếm ngược kịch tính (beep cao độ tăng dần)
 function playCountdownBeep(isFinal = false){
   try {
     if(!audioCtx) return;
@@ -1039,6 +1041,7 @@ const mainBoard = document.getElementById('mainBoard');
 const wheelWrapDiv = document.getElementById('wheelWrapDiv');
 const countdownOverlay = document.getElementById('countdownOverlay');
 const countdownNumber = document.getElementById('countdownNumber');
+const countdownLabel = document.getElementById('countdownLabel');
 
 congratsClose.addEventListener('click', ()=>{ congratsOverlay.style.display = 'none'; });
 
@@ -1308,7 +1311,7 @@ function renderResults(){
       whatHtml = '<span class="what pending">chưa quay</span>';
     }
     row.innerHTML = `<span class="who">${escapeHtml(name)}</span>${whatHtml}`;
-    tickets.appendChild(row);
+    tickets.apiAppend ? null : tickets.appendChild(row);
   });
 
   let normalCounts = {};
@@ -1547,7 +1550,7 @@ function pickWinner(pool){
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
-// Hiệu ứng đếm ngược kịch tính 3... 2... 1 trước khi vòng quay chạy
+/* HIỆU ỨNG ĐẾM NGƯỢC 3, 2, 1 KỊCH TÍNH KẾT HỢP ĐẾM NGƯỢC CÔNG BỐ KẾT QUẢ */
 function startCountdownAndSpin(isTieBreaker = false){
   if(spinning) return;
   const targetName = isTieBreaker ? selectedName : selectedName;
@@ -1558,9 +1561,11 @@ function startCountdownAndSpin(isTieBreaker = false){
 
   if(!soundEnabled) forceUnlockSound();
   
+  // Giai đoạn 1: Đếm ngược 3, 2, 1 trước khi bánh xe chạy
   countdownOverlay.style.display = 'flex';
   let count = 3;
   countdownNumber.textContent = count;
+  countdownLabel.textContent = "Chuẩn bị quay...";
   playCountdownBeep(false);
   triggerMcVibe(`🎙️ MC: "Đếm ngược nào anh em... ${count}!"`);
 
@@ -1568,12 +1573,14 @@ function startCountdownAndSpin(isTieBreaker = false){
     count--;
     if(count > 0){
       countdownNumber.textContent = count;
+      countdownLabel.textContent = "Chuẩn bị quay...";
       playCountdownBeep(false);
       triggerMcVibe(`🎙️ MC: "${count}..."`);
     } else if(count === 0){
       countdownNumber.textContent = "QUAY!";
+      countdownLabel.textContent = "Bánh xe đang lăn...";
       playCountdownBeep(true);
-      triggerMcVibe(`🎙️ MC: "PHÁT BỘ SƯU TẬP QUAY NGAY LẬP TỨC!"`);
+      triggerMcVibe(`🎙️ MC: "Bánh xe định mệnh đã lăn!"`);
     } else {
       clearInterval(countInterval);
       countdownOverlay.style.display = 'none';
@@ -1651,12 +1658,68 @@ async function executeSpinAction(isTieBreaker, targetName){
   wheelElement.style.transform = "rotate(" + finalRotation + "deg)";
   currentRotation = finalRotation;
 
+  // Sau khi vòng quay dừng hẳn (4.6 giây), tiếp tục bật màn hình đếm ngược 3, 2, 1 rồi mới hiện bảng quán chiến thắng
   setTimeout(()=>{
     spinning = false;
     if(mainBoard) mainBoard.classList.remove('spinning-active');
     if(wheelWrapDiv) wheelWrapDiv.classList.remove('active-zoom');
     if(isTieBreaker) tieBtn.disabled = false;
     drawWheelAndText();
+
+    // Giai đoạn 2: Đếm ngược 3, 2, 1 trước khi bật popup tên quán chiến thắng
+    countdownOverlay.style.display = 'flex';
+    let revealCount = 3;
+    countdownNumber.textContent = revealCount;
+    countdownLabel.textContent = "Công bố quán chiến thắng...";
+    playCountdownBeep(false);
+    triggerMcVibe(`🎙️ MC: "Hồi hộp quá... Chuẩn bị lộ diện quán nào đây!"`);
+
+    let revealInterval = setInterval(() => {
+      revealCount--;
+      if(revealCount > 0){
+        countdownNumber.textContent = revealCount;
+        countdownLabel.textContent = "Công bố quán chiến thắng...";
+        playCountdownBeep(false);
+        triggerMcVibe(`🎙️ MC: "${revealCount}..."`);
+      } else if(revealCount === 0){
+        countdownNumber.textContent = "🎉";
+        countdownLabel.textContent = "Xướng tên quán!";
+        playCountdownBeep(true);
+      } else {
+        clearInterval(revealInterval);
+        countdownOverlay.style.display = 'none';
+        
+        // Hiển thị kết quả cho người chơi
+        const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
+        let normalCounts = {};
+        OPTIONS.forEach(s => normalCounts[s] = 0);
+        validList.forEach(name => {
+          (state[name] || []).filter(s => (s.round || 0) === 0).forEach(s => {
+            if(normalCounts[s.result] !== undefined) normalCounts[s.result]++;
+          });
+        });
+
+        let totalDoneNormal = validList.filter(n => {
+          const c = (state[n] || []).filter(s => (s.round || 0) === 0).length;
+          return c >= maxAllowedSpins;
+        }).length;
+
+        if(totalDoneNormal >= validList.length && tieRound === 0){
+          let maxCount = -1, maxShops = [];
+          OPTIONS.forEach(s => {
+            if(normalCounts[s] > maxCount){ maxCount = normalCounts[s]; maxShops = [s]; }
+            else if(normalCounts[s] === maxCount){ maxShops.push(s); }
+          });
+          if(maxShops.length === 1){
+            handleFinalWinner(maxShops[0], `r0_w${maxShops[0]}_n${validList.length}`);
+          }
+        } else {
+          // Hiển thị chúc mừng đơn lẻ cho lượt quay vừa rồi nếu chưa kết thúc toàn bộ
+          showCongrats(winner);
+        }
+      }
+    }, 900);
+
   }, 4600);
 }
 
