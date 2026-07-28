@@ -170,7 +170,7 @@
   }
   .del-btn:hover{ color: var(--brick); background: rgba(193,68,46,0.15); }
 
-  /* Giao diện khu vực lật thẻ nhóm */
+  /* Bàn lật thẻ chọn người trả tiền */
   .card-game-box {
     background: rgba(227,192,105,0.08); border: 2px solid var(--gold);
     padding: 14px; border-radius: 14px; margin-bottom: 14px; text-align: center;
@@ -192,6 +192,7 @@
   .player-card .card-icon { font-size: 18px; margin-bottom: 2px; }
   .player-card .card-text { font-size: 12px; font-weight: 700; word-break: break-all; }
 
+  /* Vòng quay chọn quán */
   .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin:14px 0 8px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
   .wheel-wrap.active-zoom { transform: scale(1.12); }
   .wheel-frame{ position:relative; width:260px; height:260px; }
@@ -262,7 +263,7 @@
   .tie-btn:active{ transform: scale(0.97); }
   .tie-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
 
-  /* Màn hình đếm ngược từ 1 đến 10 cực kỳ kịch tính */
+  /* Màn hình đếm ngược từ 1 đến 10 kịch tính */
   .countdown-overlay {
     position: fixed; inset: 0; z-index: 1005; display: none;
     align-items: center; justify-content: center; flex-direction: column;
@@ -392,6 +393,13 @@
   <div class="admin-panel" id="adminPanel">
     <h4>🎛️ Bảng Điều Khiển Quản Trị</h4>
     <div style="margin-bottom: 10px;">
+      <label style="font-size: 12px; color: var(--gold); display: block; margin-bottom: 4px;">🎯 Số lượt quay tối đa mỗi người:</label>
+      <select class="admin-select" id="maxSpinsSelect" onchange="changeMaxSpins(this.value)">
+        <option value="1">1 lần quay</option>
+        <option value="2">2 lần quay</option>
+      </select>
+    </div>
+    <div style="margin-bottom: 10px;">
       <label style="font-size: 12px; color: var(--gold); display: block; margin-bottom: 4px;">🎯 Số lượng thẻ tối đa trên bàn:</label>
       <select class="admin-select" id="maxCardsSelect" onchange="changeMaxCards(this.value)">
         <option value="4">4 Thẻ</option>
@@ -399,10 +407,10 @@
         <option value="9">9 Thẻ</option>
       </select>
     </div>
-    <button class="admin-action-btn" style="background: var(--brick); color: #fff; width: 100%; padding: 10px; font-weight: 800;" onclick="resetCardGame()">🔄 Làm mới toàn bộ thẻ chơi</button>
+    <button class="admin-action-btn" style="background: var(--brick); color: #fff; width: 100%; padding: 10px; font-weight: 800;" onclick="resetCardGame()">🔄 Làm mới bàn thẻ chơi</button>
   </div>
 
-  <!-- Khu vực trò chơi chọn thẻ & lật thẻ nhóm -->
+  <!-- Bàn chọn thẻ & lật thẻ nhóm -->
   <div class="card-game-box" id="cardGameBox">
     <h3 id="cardGameTitle">🃏 Bàn Chọn Thẻ Định Mệnh (0/6 đã nhận)</h3>
     <div class="card-game-sub" id="cardGameSub">Bấm vào ô thẻ trống bên dưới để nhận thẻ và ghi tên bạn vào!</div>
@@ -416,6 +424,7 @@
 
   <div class="names" id="nameGrid"></div>
 
+  <!-- Vòng quay chọn quán -->
   <div class="wheel-wrap" id="wheelWrapDiv">
     <div class="wheel-frame">
       <div class="light-ring" id="lightRing"></div>
@@ -454,19 +463,19 @@
   </div>
 </div>
 
-<!-- Màn hình đếm ngược từ 1 đến 10 kịch tính -->
+<!-- Màn hình đếm ngược từ 1 đến 10 kịch tính cho lật thẻ -->
 <div class="countdown-overlay" id="countdownOverlay">
   <div class="countdown-number" id="countdownNumber">1</div>
   <div class="countdown-label" id="countdownLabel">Chuẩn bị lật thẻ định mệnh...</div>
 </div>
 
-<!-- Popup công bố "nạn nhân" trả tiền -->
+<!-- Popup công bố người trả tiền -->
 <div class="congrats-overlay" id="loserOverlay">
   <div class="congrats-card" style="border-color: var(--brick);">
     <span class="server-emoji" id="loserEmoji">💸</span>
     <div class="server-title">Gương mặt vàng thanh toán bữa ăn</div>
     <div class="congrats-server" id="loserNameText" style="color: var(--brick);"></div>
-    <div class="congrats-msg" id="loserMsgText">Chúc mừng bạn đã rút thẻ xui xẻo nhất hôm nay! 🍻</div>
+    <div class="congrats-msg" id="loserMsgText">Chúc mừng bạn đã lật trúng thẻ xui xẻo nhất hôm nay! 🍻</div>
     <button class="congrats-close" onclick="document.getElementById('loserOverlay').style.display='none'" style="background: var(--brick);">Khóc nhẹ một giây! 😭</button>
   </div>
 </div>
@@ -509,9 +518,9 @@ let celebrated = false;
 let audioCtx = null;
 let soundEnabled = false;
 
-// Trạng thái hệ thống lật thẻ nhóm
+// Trạng thái lật thẻ nhóm
 let maxCards = 6;
-let cardSlots = {}; // { 0: "Tên A", 1: "Tên B", ... }
+let cardSlots = {}; 
 let cardGameTriggered = false;
 
 const WHEEL_COLORS = ["#c1442e", "#e8a33d", "#7fa65c", "#2a4a35", "#b4893a", "#3a2a1c"];
@@ -556,14 +565,6 @@ async function checkAdminPass(pass){
 
 function escapeHtml(str){
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
-
-function getShopIcon(name){
-  const lower = name.toLowerCase();
-  if(lower.includes("hino") || lower.includes("sushi")) return "🍣";
-  if(lower.includes("ốc") || lower.includes("hải sản")) return "🐚";
-  if(lower.includes("cơm") || lower.includes("phở")) return "🍲";
-  return "🍽️";
 }
 
 function drawWheelAndText(){
@@ -703,11 +704,10 @@ function launchConfetti(){
   setTimeout(()=>{ layer.remove(); }, 5000);
 }
 
-// Render giao diện bàn lật thẻ
+// Render bàn lật thẻ
 function renderCardGame(){
   const grid = document.getElementById('cardGrid');
   const title = document.getElementById('cardGameTitle');
-  const sub = document.getElementById('cardGameSub');
   if(!grid) return;
 
   grid.innerHTML = "";
@@ -730,7 +730,6 @@ function renderCardGame(){
         alert("⚠️ Vui lòng chọn tên của bạn ở danh sách bên dưới trước khi nhận thẻ!");
         return;
       }
-      // Kiểm tra xem user này đã chọn thẻ nào chưa
       let alreadySelectedIdx = -1;
       Object.keys(cardSlots).forEach(idx => {
         if(cardSlots[idx] === selectedName) alreadySelectedIdx = idx;
@@ -742,14 +741,12 @@ function renderCardGame(){
       }
 
       if(isClaimed && cardName === selectedName){
-        // Hủy chọn thẻ của chính mình
         await roomRef.child("cardSlots/" + i).remove();
         return;
       }
 
       if(!isClaimed){
         if(alreadySelectedIdx !== -1){
-          // Di chuyển thẻ cũ sang thẻ mới
           await roomRef.child("cardSlots/" + alreadySelectedIdx).remove();
         }
         await roomRef.child("cardSlots/" + i).set(selectedName);
@@ -761,14 +758,13 @@ function renderCardGame(){
 
   title.textContent = `🃏 Bàn Chọn Thẻ Định Mệnh (${claimedCount}/${maxCards} đã nhận)`;
   
-  // Kiểm tra điều kiện: Đủ thẻ thì tự động kích hoạt đếm ngược 1->10
   if(claimedCount >= maxCards && claimedCount > 0 && !cardGameTriggered){
     cardGameTriggered = true;
     startCardCountdownAndReveal();
   }
 }
 
-// Đếm ngược từ 1 đến 10 cực kỳ kịch tính rồi lật thẻ bốc thăm ngẫu nhiên
+// Đếm ngược 1-10 lật thẻ
 function startCardCountdownAndReveal(){
   const countdownOverlay = document.getElementById('countdownOverlay');
   const countdownNumber = document.getElementById('countdownNumber');
@@ -792,7 +788,6 @@ function startCardCountdownAndReveal(){
       clearInterval(timer);
       countdownOverlay.style.display = 'none';
 
-      // Bốc thăm ngẫu nhiên đúng 1 người chơi từ danh sách các thẻ đã chọn
       const activePlayers = Object.values(cardSlots).filter(n => !!n);
       const unluckyLoser = activePlayers[Math.floor(Math.random() * activePlayers.length)];
 
@@ -819,7 +814,7 @@ async function changeMaxCards(val){
 }
 
 async function resetCardGame(){
-  const pass = prompt("🔒 Nhập mật khẩu quản trị để làm mới bàn thẻ:");
+  const pass = prompt("🔒 Nhập mật khẩu quản trị:");
   if(pass !== null && await checkAdminPass(pass)){
     await roomRef.child("cardSlots").remove();
     cardGameTriggered = false;
@@ -827,12 +822,15 @@ async function resetCardGame(){
   }
 }
 
+// Phần Vòng quay chọn quán
 function renderNames(){
   nameGrid.innerHTML = "";
   const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
   
   if(validList.length === 0){
     nameGrid.innerHTML = `<div style="grid-column: span 3; text-align:center; color: var(--marigold); font-weight:700; padding: 20px;">⚠️ Chưa có người chơi!</div>`;
+    spinBtn.disabled = true;
+    spinBtn.textContent = "Chưa có người chơi";
     return;
   }
 
@@ -855,10 +853,21 @@ function renderNames(){
       if(!soundEnabled) forceUnlockSound();
       selectedName = name;
       renderNames();
-      triggerMcVibe(`🎙️ MC: "Chào ${escapeHtml(name)}! Bạn đã sẵn sàng chọn thẻ chưa?"`);
+      updateSpinButton();
+      triggerMcVibe(`🎙️ MC: "Chào ${escapeHtml(name)}! Sẵn sàng quay quán chưa?"`);
     };
     nameGrid.appendChild(btn);
   });
+}
+
+function updateSpinButton(){
+  if(!selectedName){
+    spinBtn.disabled = true;
+    spinBtn.textContent = "Chọn tên trước đã";
+    return;
+  }
+  spinBtn.disabled = spinning;
+  spinBtn.textContent = spinning ? "Đang quay..." : `Quay chọn quán cho ${selectedName}`;
 }
 
 async function removePlayer(nameToRemove){
@@ -905,6 +914,7 @@ function setupRealtimeListener(){
     drawWheelAndText();
     renderNames();
     renderCardGame();
+    updateSpinButton();
   });
 }
 
@@ -920,6 +930,54 @@ async function newRound(){
     cardGameTriggered = false;
   }
 }
+
+const nameGrid = document.getElementById('nameGrid');
+const spinBtn = document.getElementById('spinBtn');
+const wheelElement = document.getElementById('wheelElement');
+const pointerEl = document.getElementById('pointerEl');
+const lightRing = document.getElementById('lightRing');
+
+spinBtn.addEventListener('click', () => {
+  if(!selectedName) return;
+  spinning = true;
+  updateSpinButton();
+  pointerEl.classList.add('shake');
+  if(lightRing) lightRing.classList.add('fast');
+
+  let soundTimer = 0;
+  let drumInterval = setInterval(()=>{
+    playClickSound();
+    soundTimer += 90;
+    if(soundTimer >= 4500) clearInterval(drumInterval);
+  }, 90);
+
+  setTimeout(()=>{ pointerEl.classList.remove('shake'); if(lightRing) lightRing.classList.remove('fast'); }, 4500);
+
+  const winner = OPTIONS[Math.floor(Math.random() * OPTIONS.length)];
+  const count = OPTIONS.length;
+  const sliceDeg = 360 / count;
+  const winnerIdx = OPTIONS.indexOf(winner);
+  const segCenterDeg = sliceDeg * winnerIdx + sliceDeg / 2;
+  let targetMod = ((360 - segCenterDeg) % 360 + 360) % 360;
+  const finalRotation = currentRotation - (currentRotation % 360) + 8 * 360 + targetMod;
+
+  wheelElement.style.transform = "rotate(" + finalRotation + "deg)";
+  currentRotation = finalRotation;
+
+  setTimeout(()=>{
+    spinning = false;
+    updateSpinButton();
+    playWinSound();
+    launchConfetti();
+    document.getElementById('congratsServer').textContent = winner;
+    document.getElementById('congratsMsg').textContent = `Quán ${winner} đã được chọn cho bữa nay!`;
+    document.getElementById('congratsOverlay').style.display = 'flex';
+  }, 4600);
+});
+
+document.getElementById('congratsClose').addEventListener('click', () => {
+  document.getElementById('congratsOverlay').style.display = 'none';
+});
 </script>
 </body>
 </html>
