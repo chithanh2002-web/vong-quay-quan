@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vòng Quay May Mắn - Bản Sôi Động Đỉnh Cao</title>
-<meta property="og:title" content="Vòng Quay May Mắn 🎡">
-<meta property="og:description" content="Ai sẽ trúng phần quà may mắn hôm nay? Bấm vào chọn tên bạn rồi quay ngay!">
+<title>Vòng Quay Chọn Quán - Bản Sôi Động Đỉnh Cao</title>
+<meta property="og:title" content="Vòng Quay Chọn Quán 🎡">
+<meta property="og:description" content="Quán nào hôm nay? Bấm vào chọn tên bạn rồi quay ngay!">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -242,7 +242,7 @@
   .spin-btn:active:not(:disabled){ transform:translateY(3px); box-shadow:0 2px 0 #8b5511; }
   .spin-btn:disabled{ background:#453e33; color:#8a8270; border-color:#655c4a; box-shadow:0 5px 0 #2a251d; cursor:not-allowed; opacity:0.8; text-shadow: none; }
   
-  /* Giao diện đặc biệt riêng cho Hiệp phụ / Vòng phụ */
+  /* Giao diện đặc biệt riêng cho Sút Luân Lưu */
   .tie-box{
     margin-top: 14px; padding: 16px; border-radius: 14px; background: linear-gradient(135deg, rgba(193,68,46,0.3), rgba(232,163,61,0.25));
     border: 2px solid #e8a33d; text-align: center; display: none;
@@ -389,12 +389,12 @@
 
 <div class="board" id="mainBoard">
   <div class="eyebrow" id="roomEyebrow">Phòng: Mặc định</div>
-  <h1 id="mainTitle">Vòng Quay May Mắn</h1>
-  <div class="sub" id="subTitleText">Quà tặng nào hôm nay? Bấm vào chọn tên bạn rồi quay ngay!</div>
+  <h1 id="mainTitle">Vòng Quay Chọn Quán</h1>
+  <div class="sub" id="subTitleText">Quán nào hôm nay? Bấm vào chọn tên bạn rồi quay ngay!</div>
 
   <!-- Bảng MC / Trợ lý không khí sôi động -->
   <div class="mc-banner" id="mcBanner">
-    🎙️ MC: "Hôm nay ai sẽ là người may mắn rinh phần quà khủng về nhà đây anh em ơi?!"
+    🎙️ MC: "Hôm nay ai sẽ là người gánh team chọn quán đây anh em ơi?!"
   </div>
 
   <div class="room-bar" id="roomBar">
@@ -424,10 +424,10 @@
     </select>
     
     <div style="border-top: 1px dashed var(--gold); margin: 8px 0; padding-top: 8px;">
-      <h4 style="margin:0 0 6px;">✏️ Quản lý danh sách phần thưởng/mục:</h4>
+      <h4 style="margin:0 0 6px;">✏️ Quản lý danh sách quán:</h4>
       <div class="admin-shops-box" id="adminShopsContainer"></div>
       <div class="admin-btn-row">
-        <button class="admin-action-btn admin-add-shop" onclick="addShopInput()">+ Thêm phần thưởng</button>
+        <button class="admin-action-btn admin-add-shop" onclick="addShopInput()">+ Thêm quán</button>
         <button class="admin-action-btn admin-save-btn" onclick="saveShopNames()">💾 Lưu tất cả</button>
       </div>
     </div>
@@ -457,11 +457,11 @@
 
   <button class="spin-btn" id="spinBtn" disabled>Chọn tên trước đã</button>
   
-  <!-- Khu vực giao diện riêng biệt cho Vòng Phụ / Giải Đặc Biệt -->
+  <!-- Khu vực giao diện riêng biệt cho Sút Luân Lưu -->
   <div class="tie-box" id="tieBox">
-    <h3>🎁 VÒNG PHỤ: SĂN GIẢI ĐẶC BIỆT! ⚡</h3>
-    <div class="tie-info" id="tieInfoText">Các phần thưởng đang bằng điểm nhau. Tiếp tục quay phân định kết quả!</div>
-    <button class="tie-btn" id="tieBtn" onclick="startCountdownAndSpin(true)">Quay Vòng Phụ Ngay! 🔥</button>
+    <h3>⚽ LUÂN LƯU QUYẾT ĐỊNH! ⚡</h3>
+    <div class="tie-info" id="tieInfoText">Các quán đang hòa điểm. Loạt sút luân lưu bắt đầu!</div>
+    <button class="tie-btn" id="tieBtn" onclick="startCountdownAndSpin(true)">Sút Luân Lưu Ngay! 🔥</button>
   </div>
 
   <div class="hint" id="hint">Đang kết nối Realtime...</div>
@@ -480,7 +480,7 @@
   </div>
 
   <div class="reset-container">
-    <button class="newround-btn" onclick="newRound()">🔄 VÁN MỚI (giữ nguyên người chơi & phần thưởng)</button>
+    <button class="newround-btn" onclick="newRound()">🔄 VÁN MỚI (giữ nguyên người chơi & quán)</button>
     <button class="reset-btn" onclick="resetData()">🗑️ Xóa toàn bộ dữ liệu & làm lại từ đầu</button>
   </div>
 
@@ -495,8 +495,8 @@
 
 <div class="congrats-overlay" id="congratsOverlay">
   <div class="congrats-card">
-    <span class="server-emoji" id="congratsEmoji">🎁</span>
-    <div class="server-title" id="congratsTitle">Phần thưởng trúng giải</div>
+    <span class="server-emoji" id="congratsEmoji">🍻</span>
+    <div class="server-title" id="congratsTitle">Quán chiến thắng</div>
     <div class="congrats-server" id="congratsServer"></div>
     <div class="congrats-msg" id="congratsMsg"></div>
     <button class="congrats-close" id="congratsClose">Đã rõ, cảm ơn! 🎉</button>
@@ -516,7 +516,7 @@ let currentRoom = urlParams.get('room') ? urlParams.get('room').trim().toLowerCa
 const roomRef = firebase.database().ref("rooms/" + currentRoom);
 
 let namesList = [];
-let OPTIONS = ["Phần Quà A", "Phần Quà B", "Voucher 50K", "Mất Lượt"];
+let OPTIONS = ["112", "Hương Lúa"];
 let maxAllowedSpins = 1;
 let serverAdminPassHash = null;
 const DEFAULT_ADMIN_PASS = "2034";
@@ -534,9 +534,9 @@ let soundEnabled = false;
 const WHEEL_COLORS = ["#c1442e", "#e8a33d", "#7fa65c", "#2a4a35", "#b4893a", "#3a2a1c"];
 
 const MC_QUOTES = [
-  "🎙️ MC: 'Nhanh tay chọn tên rồi quay đi anh em ơi, kho quà đang chờ đón!'",
-  "🎙️ MC: 'Ai mà quay trúng ô mất lượt hay phạt nước là phải chịu phạt nhé!'",
-  "🎙️ MC: 'Hồi hộp quá, không biết vận may hôm nay gọi tên ai đây!'",
+  "🎙️ MC: 'Nhanh tay chọn tên rồi quay đi anh em ơi, đói bụng lắm rồi đấy!'",
+  "🎙️ MC: 'Ai mà quay trúng quán dở hôm nay là phải bao nước nhé!'",
+  "🎙️ MC: 'Hồi hộp quá, không biết linh tính hôm nay mách bảo quán nào đây!'",
   "🎙️ MC: 'Đừng lơ đễnh nha, tới lượt bạn quay định mệnh rồi đấy!'",
   "🎙️ MC: 'Hệ thống đang quét tần số may mắn, chuẩn bị tinh thần reo hò nào!'"
 ];
@@ -610,12 +610,14 @@ function escapeHtml(str){
 
 function getShopIcon(name){
   const lower = name.toLowerCase();
-  if(lower.includes("voucher") || lower.includes("tiền") || lower.includes("thẻ")) return "🎁";
-  if(lower.includes("quà") || lower.includes("hộp")) return "📦";
-  if(lower.includes("mất") || lower.includes("phạt")) return "❌";
-  if(lower.includes("vàng") || lower.includes("kim cương")) return "💎";
-  if(lower.includes("sao") || lower.includes("may")) return "⭐";
-  return "🎯";
+  if(lower.includes("hino") || lower.includes("sushi") || lower.includes("nhật")) return "🍣";
+  if(lower.includes("tokio") || lower.includes("deli") || lower.includes("mì")) return "🍜";
+  if(lower.includes("ốc") || lower.includes("hải sản")) return "🐚";
+  if(lower.includes("cơm") || lower.includes("phở")) return "🍲";
+  if(lower.includes("gà") || lower.includes("kf")) return "🍗";
+  if(lower.includes("pizza") || lower.includes("ý")) return "🍕";
+  if(lower.includes("cafe") || lower.includes("trà")) return "☕";
+  return "🍽️";
 }
 
 function drawWheelAndText(){
@@ -827,7 +829,7 @@ function renderAdminShopInputs(){
     const row = document.createElement('div');
     row.className = 'admin-shop-row';
     row.innerHTML = `
-      <input type="text" class="admin-input shop-input-field" value="${escapeHtml(shop)}" placeholder="Phần thưởng ${idx+1}">
+      <input type="text" class="admin-input shop-input-field" value="${escapeHtml(shop)}" placeholder="Tên quán ${idx+1}">
       ${OPTIONS.length > 2 ? `<button class="admin-del-shop-btn" onclick="removeShopInput(${idx})">✕</button>` : ''}
     `;
     container.appendChild(row);
@@ -836,20 +838,20 @@ function renderAdminShopInputs(){
 
 function addShopInput(){
   if(OPTIONS.length >= 6){
-    alert("⚠️ Tối đa khoảng 6 phần thưởng trên một vòng quay cho đẹp bạn nhé!");
+    alert("⚠️ Tối đa khoảng 6 quán trên một vòng quay cho đẹp bạn nhé!");
     return;
   }
   const inputs = document.querySelectorAll('.shop-input-field');
   let currentArr = [];
   inputs.forEach(inp => currentArr.push(inp.value.trim()));
-  currentArr.push("Phần Thưởng Mới");
+  currentArr.push("Quán Mới");
   OPTIONS = currentArr;
   renderAdminShopInputs();
 }
 
 function removeShopInput(index){
   if(OPTIONS.length <= 2){
-    alert("⚠️ Cần duy trì ít nhất 2 phần thưởng để quay!");
+    alert("⚠️ Cần duy trì ít nhất 2 quán để quay!");
     return;
   }
   const inputs = document.querySelectorAll('.shop-input-field');
@@ -891,7 +893,7 @@ async function saveShopNames(){
     if(val) newArr.push(val);
   });
   if(newArr.length < 2){
-    alert("⚠️ Vui lòng giữ lại ít nhất 2 phần thưởng hợp lệ!");
+    alert("⚠️ Vui lòng giữ lại ít nhất 2 tên quán hợp lệ!");
     return;
   }
   OPTIONS = newArr;
@@ -907,7 +909,7 @@ async function saveShopNames(){
   updateForcedSelect();
   renderResults();
   renderStatsDisplay();
-  alert("✅ Đã lưu danh sách phần thưởng lên server thành công!");
+  alert("✅ Đã lưu danh sách quán lên server thành công!");
 }
 
 function forceUnlockSound(){
@@ -1091,12 +1093,12 @@ function launchConfetti(){
 }
 
 function showIndividualSpinCongrats(name, shopName){
-  congratsEmoji.textContent = "🎁";
+  congratsEmoji.textContent = "🎯";
   congratsTitle.textContent = "Kết quả lượt quay cá nhân";
   congratsServer.textContent = shopName;
-  congratsMsg.textContent = `${name} vừa quay trúng "${shopName}"! Chúc mừng bạn nhé! 🎉`;
+  congratsMsg.textContent = `${name} vừa quay trúng quán ${shopName}! Đang chờ các thành viên khác hoàn thành lượt...`;
   congratsOverlay.style.display = 'flex';
-  triggerMcVibe(`🎙️ MC: "Chúc mừng <b>${name}</b> đã quay trúng ô <b>${shopName}</b>!"`);
+  triggerMcVibe(`🎙️ MC: "Bạn <b>${name}</b> vừa quay trúng <b>${shopName}</b>!"`);
 }
 
 async function handleFinalWinner(winnerOption, signature){
@@ -1109,12 +1111,12 @@ async function handleFinalWinner(winnerOption, signature){
       await roomRef.child("stats").child(winnerOption).transaction(cur => (cur || 0) + 1);
     }
   }
-  congratsEmoji.textContent = "🏆";
-  congratsTitle.textContent = "Kết quả tổng kết ván";
+  congratsEmoji.textContent = "🍻";
+  congratsTitle.textContent = "Quán chiến thắng chung cuộc";
   congratsServer.textContent = winnerOption;
-  congratsMsg.textContent = `Phần thưởng nổi bật chung cuộc: "${winnerOption}"! Chúc mừng mọi người đã hoàn thành vòng quay! 🌟`;
+  congratsMsg.textContent = `Yayyy quán ${winnerOption} đã thắng toàn ván! Cụng ly nào anh em ơi! 🍻`;
   congratsOverlay.style.display = 'flex';
-  triggerMcVibe(`🎙️ MC: "Tuyệt vời! Phần thưởng nổi bật nhất ván là <b>${winnerOption}</b>!"`);
+  triggerMcVibe(`🎙️ MC: "Tuyệt vời! Quán <b>${winnerOption}</b> đã chính thức giành chiến thắng vinh quang!"`);
 }
 
 async function claimResultOnce(signature){
@@ -1134,7 +1136,7 @@ function renderStatsDisplay(){
   
   let parts = [];
   OPTIONS.forEach(s => {
-    parts.push(`<b>${escapeHtml(s)}</b> (<span>${serverStats[s] || 0}</span>)`);
+    parts.push(`<b>${escapeHtml(s)}</b> thắng (<span>${serverStats[s] || 0}</span>)`);
   });
   const textEl = document.getElementById('historyStatsText');
   if(textEl) textEl.innerHTML = parts.join(" - ");
@@ -1164,7 +1166,7 @@ function renderNames(){
     if(tieRound > 0){
       const hasCurrentTieSpin = userSpins.some(s => s.isTieBreaker && s.round === tieRound);
       isDone = hasCurrentTieSpin;
-      tagText = hasCurrentTieSpin ? 'đã quay ⭐' : 'chưa quay ⭐';
+      tagText = hasCurrentTieSpin ? 'đã đá ⚽' : 'chưa đá ⚽';
     } else {
       isDone = normalIsDone;
       tagText = isDone ? 'đã xong' : `${normalDone}/${maxAllowedSpins} lượt`;
@@ -1196,7 +1198,7 @@ function renderNames(){
       renderNames();
       updateSpinButton();
       renderResults();
-      triggerMcVibe(`🎙️ MC: "Chào <b>${escapeHtml(name)}</b>! Sẵn sàng bấm nút quay may mắn chưa nào?"`);
+      triggerMcVibe(`🎙️ MC: "Chào <b>${escapeHtml(name)}</b>! Sẵn sàng bấm nút quay quyết định chưa nào?"`);
     };
     nameGrid.appendChild(btn);
   });
@@ -1245,7 +1247,7 @@ async function addNewPlayerWithPassword(){
   input.value = "";
   renderNames();
   renderResults();
-  triggerMcVibe(`🎙️ MC: "Chào mừng thành viên mới <b>${escapeHtml(newName)}</b> tham gia quay thưởng!"`);
+  triggerMcVibe(`🎙️ MC: "Chào mừng thành viên mới <b>${escapeHtml(newName)}</b> nhập hội!"`);
   alert("✅ Đã thêm thành công!");
 }
 
@@ -1310,7 +1312,7 @@ function renderResults(){
 
     let whatHtml = "";
     if(userSpins.length > 0){
-      let badges = userSpins.map(s => `<span class="what">${s.isTieBreaker ? '⭐ ' : ''}${escapeHtml(s.result)}</span>`).join(" ");
+      let badges = userSpins.map(s => `<span class="what">${s.isTieBreaker ? '⚽ ' : ''}${escapeHtml(s.result)}</span>`).join(" ");
       whatHtml = `<div>${badges}</div>`;
     } else {
       whatHtml = '<span class="what pending">chưa quay</span>';
@@ -1368,7 +1370,7 @@ function renderResults(){
     } else {
       tieBox.style.display = "none";
       tally.className = 'tally winner';
-      tally.innerHTML = `🏆 Phần thưởng xuất hiện nhiều nhất: <b>${escapeHtml(maxShops[0])}</b> (${maxCount}/${totalNormalSpins} tổng lượt)`;
+      tally.innerHTML = `🏆 Quán thắng chung cuộc: <b>${escapeHtml(maxShops[0])}</b> (${maxCount}/${totalNormalSpins} tổng lượt)`;
       handleFinalWinner(maxShops[0], `r0_w${maxShops[0]}_n${totalNormalSpins}`);
       return;
     }
@@ -1394,21 +1396,21 @@ function renderResults(){
     if(tieDoneCount < validList.length){
       tieBox.style.display = "block";
       tally.className = 'tally winner';
-      tally.innerHTML = `⚠️ Có sự đồng điểm (${tieCandidates.map(escapeHtml).join(" & ")})! Kích hoạt Vòng Phụ May Mắn!`;
-      triggerMcVibe(`🎙️ MC: "Ngang tài ngang sức! Bắt đầu vòng phụ quay đặc biệt ngay lập tức!"`);
+      tally.innerHTML = `⚠️ Có sự đồng điểm (${tieCandidates.map(escapeHtml).join(" & ")})! Kích hoạt Luân Lưu Quyết Định!`;
+      triggerMcVibe(`🎙️ MC: "Căng thẳng quá! Hòa điểm rồi, bước vào loạt sút luân lưu ngay lập tức!"`);
 
       const myTieSpin = selectedName ? (state[selectedName] || []).find(s => s.isTieBreaker && s.round === tieRound) : null;
 
       if(selectedName && !myTieSpin){
-        tieInfoText.innerHTML = `Bạn đang chọn: <b>${escapeHtml(selectedName)}</b>. Hãy bấm nút dưới để quay vòng phụ! (${tieDoneCount}/${validList.length} đã quay)`;
+        tieInfoText.innerHTML = `Bạn đang chọn: <b>${escapeHtml(selectedName)}</b>. Hãy bấm nút dưới để sút luân lưu! (${tieDoneCount}/${validList.length} đã đá)`;
         tieBtn.disabled = false;
-        tieBtn.textContent = `Quay Vòng Phụ cho ${selectedName}! ⭐`;
+        tieBtn.textContent = `Sút Luân Lưu cho ${selectedName}! ⚽`;
       } else if(selectedName && myTieSpin){
-        tieInfoText.innerHTML = `Bạn (${escapeHtml(selectedName)}) đã quay vòng phụ rồi. Đang chờ mọi người (${tieDoneCount}/${validList.length}).`;
+        tieInfoText.innerHTML = `Bạn (${escapeHtml(selectedName)}) đã sút luân lưu rồi. Đang chờ mọi người (${tieDoneCount}/${validList.length}).`;
         tieBtn.disabled = true;
-        tieBtn.textContent = `Đã quay rồi, chờ mọi người...`;
+        tieBtn.textContent = `Đã đá rồi, chờ mọi người...`;
       } else {
-        tieInfoText.innerHTML = `⚠️ Vui lòng <b>chọn đúng tên bạn</b> ở danh sách bên trên để quay vòng phụ! (${tieDoneCount}/${validList.length} đã quay)`;
+        tieInfoText.innerHTML = `⚠️ Vui lòng <b>chọn đúng tên bạn</b> ở danh sách bên trên để sút luân lưu! (${tieDoneCount}/${validList.length} đã đá)`;
         tieBtn.disabled = true;
         tieBtn.textContent = `Chưa chọn đúng tên chính chủ`;
       }
@@ -1427,10 +1429,10 @@ function renderResults(){
       persistTieState();
       tieBox.style.display = "block";
       tally.className = 'tally winner';
-      tally.innerHTML = `Vẫn hoà giữa (${maxShops.map(escapeHtml).join(" & ")})! Tiếp tục vòng phụ vòng ${tieRound}!`;
-      tieInfoText.innerHTML = `Mọi người cần quay thêm 1 lượt phụ nữa để phân định kết quả.`;
+      tally.innerHTML = `Vẫn hoà giữa (${maxShops.map(escapeHtml).join(" & ")})! Đá tiếp hiệp phụ luân lưu vòng ${tieRound}!`;
+      tieInfoText.innerHTML = `Mọi người cần quay thêm 1 lượt luân lưu nữa để phân định thắng thua.`;
       tieBtn.disabled = !selectedName;
-      tieBtn.textContent = selectedName ? `Quay Vòng Phụ cho ${selectedName}! ⭐` : `Chưa chọn đúng tên chính chủ`;
+      tieBtn.textContent = selectedName ? `Sút Luân Lưu cho ${selectedName}! ⚽` : `Chưa chọn đúng tên chính chủ`;
       drawWheelAndText();
       return;
     }
@@ -1438,7 +1440,7 @@ function renderResults(){
     tieBox.style.display = "none";
     const winner = maxShops[0];
     tally.className = 'tally winner';
-    tally.innerHTML = `🏆 Phần thưởng thắng chung cuộc (sau vòng phụ): <b>${escapeHtml(winner)}</b>`;
+    tally.innerHTML = `🏆 Quán thắng chung cuộc (sau Luân Lưu): <b>${escapeHtml(winner)}</b>`;
 
     handleFinalWinner(winner, `r${tieRound}_w${winner}_n${validList.length}`);
   }
@@ -1458,7 +1460,7 @@ function setupRealtimeListener(){
       if(data.adminPass) roomRef.child("adminPass").remove();
     }
 
-    OPTIONS = (data.options && Array.isArray(data.options) && data.options.length > 0) ? data.options : ["Phần Quà A", "Phần Quà B", "Voucher 50K", "Mất Lượt"];
+    OPTIONS = (data.options && Array.isArray(data.options) && data.options.length > 0) ? data.options : ["112", "Hương Lúa"];
     maxAllowedSpins = data.maxSpins ? parseInt(data.maxSpins) : 1;
     document.getElementById('maxSpinsSelect').value = maxAllowedSpins;
 
@@ -1538,9 +1540,9 @@ async function newRound(){
   spinning = false;
   wheelElement.style.transform = "rotate(0deg)";
   currentRotation = 0;
-  triggerMcVibe("🎙️ MC: 'Ván mới bắt đầu! Mọi người điểm danh chọn tên và quay thưởng nào!'");
+  triggerMcVibe("🎙️ MC: 'Ván mới bắt đầu! Mọi người điểm danh chọn tên và quay nào!'");
 
-  alert("✅ Đã bắt đầu ván mới! Danh sách người chơi và phần thưởng được giữ nguyên, mọi người có thể quay lại từ đầu.");
+  alert("✅ Đã bắt đầu ván mới! Danh sách người chơi và quán được giữ nguyên, mọi người có thể quay lại từ đầu.");
 }
 
 function pickWinner(pool){
@@ -1673,7 +1675,7 @@ async function executeSpinAction(isTieBreaker, targetName){
     countdownNumber.textContent = revealCount;
     countdownLabel.textContent = "Công bố kết quả lượt quay...";
     playCountdownBeep(false);
-    triggerMcVibe(`🎙️ MC: "Hồi hộp quá... Chuẩn bị lộ diện phần thưởng!"`);
+    triggerMcVibe(`🎙️ MC: "Hồi hộp quá... Chuẩn bị lộ diện kết quả!"`);
 
     let revealInterval = setInterval(() => {
       revealCount--;
@@ -1684,7 +1686,7 @@ async function executeSpinAction(isTieBreaker, targetName){
         triggerMcVibe(`🎙️ MC: "${revealCount}..."`);
       } else if(revealCount === 0){
         countdownNumber.textContent = "🎉";
-        countdownLabel.textContent = "Xướng tên phần thưởng!";
+        countdownLabel.textContent = "Xướng tên kết quả!";
         playCountdownBeep(true);
       } else {
         clearInterval(revealInterval);
@@ -1716,7 +1718,7 @@ async function executeSpinAction(isTieBreaker, targetName){
 
 function spinTieBreaker(){
   if(!selectedName) {
-    alert("⚠️ Vui lòng chọn đúng tên bạn ở phía trên trước khi quay vòng phụ!");
+    alert("⚠️ Vui lòng chọn đúng tên bạn ở phía trên trước khi sút luân lưu!");
     return;
   }
   startCountdownAndSpin(true);
