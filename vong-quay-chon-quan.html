@@ -496,7 +496,7 @@
 <div class="congrats-overlay" id="congratsOverlay">
   <div class="congrats-card">
     <span class="server-emoji" id="congratsEmoji">🍻</span>
-    <div class="server-title">Quán chiến thắng</div>
+    <div class="server-title" id="congratsTitle">Quán chiến thắng</div>
     <div class="congrats-server" id="congratsServer"></div>
     <div class="congrats-msg" id="congratsMsg"></div>
     <button class="congrats-close" id="congratsClose">Đã rõ, cảm ơn! 🎉</button>
@@ -1033,6 +1033,7 @@ const tieInfoText = document.getElementById('tieInfoText');
 const tieBtn = document.getElementById('tieBtn');
 const congratsOverlay = document.getElementById('congratsOverlay');
 const congratsEmoji = document.getElementById('congratsEmoji');
+const congratsTitle = document.getElementById('congratsTitle');
 const congratsServer = document.getElementById('congratsServer');
 const congratsMsg = document.getElementById('congratsMsg');
 const congratsClose = document.getElementById('congratsClose');
@@ -1091,10 +1092,31 @@ function launchConfetti(){
   setTimeout(()=>{ layer.remove(); }, 5000);
 }
 
-function showCongrats(winnerOption){
+// 1. Popup riêng cho lượt quay cá nhân (tránh nhầm lẫn với tổng kết ván)
+function showIndividualSpinCongrats(name, shopName){
+  congratsEmoji.textContent = "🎯";
+  congratsTitle.textContent = "Kết quả lượt quay cá nhân";
+  congratsServer.textContent = shopName;
+  congratsMsg.textContent = `${name} vừa quay trúng quán ${shopName}! Đang chờ các thành viên khác hoàn thành lượt...`;
+  congratsOverlay.style.display = 'flex';
+  triggerMcVibe(`🎙️ MC: "Bạn <b>${name}</b> vừa quay trúng <b>${shopName}</b>!"`);
+}
+
+// 2. Popup công bố quán chiến thắng CHUNG CUỘC toàn ván
+async function handleFinalWinner(winnerOption, signature){
+  if(!celebrated){
+    celebrated = true;
+    playWinSound();
+    launchConfetti();
+    const claimed = await claimResultOnce(signature);
+    if(claimed){
+      await roomRef.child("stats").child(winnerOption).transaction(cur => (cur || 0) + 1);
+    }
+  }
   congratsEmoji.textContent = "🍻";
+  congratsTitle.textContent = "Quán chiến thắng chung cuộc";
   congratsServer.textContent = winnerOption;
-  congratsMsg.textContent = `Yayyy quán ${winnerOption} thắng rồi nè! Cụng ly nào anh em ơi! 🍻`;
+  congratsMsg.textContent = `Yayyy quán ${winnerOption} đã thắng toàn ván! Cụng ly nào anh em ơi! 🍻`;
   congratsOverlay.style.display = 'flex';
   triggerMcVibe(`🎙️ MC: "Tuyệt vời! Quán <b>${winnerOption}</b> đã chính thức giành chiến thắng vinh quang!"`);
 }
@@ -1109,19 +1131,6 @@ async function claimResultOnce(signature){
   } catch(e){
     return false;
   }
-}
-
-async function handleFinalWinner(winnerOption, signature){
-  if(!celebrated){
-    celebrated = true;
-    playWinSound();
-    launchConfetti();
-    const claimed = await claimResultOnce(signature);
-    if(claimed){
-      await roomRef.child("stats").child(winnerOption).transaction(cur => (cur || 0) + 1);
-    }
-  }
-  showCongrats(winnerOption);
 }
 
 function renderStatsDisplay(){
@@ -1223,7 +1232,7 @@ async function removePlayer(nameToRemove){
 async function addNewPlayerWithPassword(){
   const input = document.getElementById('newPlayerInput');
   const newName = input.value.trim();
-  if(!newName){ alert("Vول lòng nhập tên người chơi!"); return; }
+  if(!newName){ alert("Vui lòng nhập tên người chơi!"); return; }
   if(namesList.some(n => String(n).trim().toLowerCase() === newName.toLowerCase())){
     alert("Tên này đã có trong danh sách rồi!"); return;
   }
@@ -1364,9 +1373,7 @@ function renderResults(){
       tieBox.style.display = "none";
       tally.className = 'tally winner';
       tally.innerHTML = `🏆 Quán thắng chung cuộc: <b>${escapeHtml(maxShops[0])}</b> (${maxCount}/${totalNormalSpins} tổng lượt)`;
-      if(!celebrated){
-        handleFinalWinner(maxShops[0], `r0_w${maxShops[0]}_n${totalNormalSpins}`);
-      }
+      handleFinalWinner(maxShops[0], `r0_w${maxShops[0]}_n${totalNormalSpins}`);
       return;
     }
   }
@@ -1437,9 +1444,7 @@ function renderResults(){
     tally.className = 'tally winner';
     tally.innerHTML = `🏆 Quán thắng chung cuộc (sau Luân Lưu): <b>${escapeHtml(winner)}</b>`;
 
-    if(!celebrated){
-      handleFinalWinner(winner, `r${tieRound}_w${winner}_n${validList.length}`);
-    }
+    handleFinalWinner(winner, `r${tieRound}_w${winner}_n${validList.length}`);
   }
 }
 
@@ -1658,7 +1663,7 @@ async function executeSpinAction(isTieBreaker, targetName){
   wheelElement.style.transform = "rotate(" + finalRotation + "deg)";
   currentRotation = finalRotation;
 
-  // Sau khi vòng quay dừng hẳn (4.6 giây), tiếp tục bật màn hình đếm ngược 3, 2, 1 rồi mới hiện bảng quán chiến thắng
+  // Sau khi vòng quay dừng hẳn (4.6 giây), tiếp tục bật màn hình đếm ngược 3, 2, 1 rồi mới hiển thị thông báo
   setTimeout(()=>{
     spinning = false;
     if(mainBoard) mainBoard.classList.remove('spinning-active');
@@ -1666,30 +1671,30 @@ async function executeSpinAction(isTieBreaker, targetName){
     if(isTieBreaker) tieBtn.disabled = false;
     drawWheelAndText();
 
-    // Giai đoạn 2: Đếm ngược 3, 2, 1 trước khi bật popup tên quán chiến thắng
+    // Giai đoạn 2: Đếm ngược 3, 2, 1 trước khi bật popup kết quả
     countdownOverlay.style.display = 'flex';
     let revealCount = 3;
     countdownNumber.textContent = revealCount;
-    countdownLabel.textContent = "Công bố quán chiến thắng...";
+    countdownLabel.textContent = "Công bố kết quả lượt quay...";
     playCountdownBeep(false);
-    triggerMcVibe(`🎙️ MC: "Hồi hộp quá... Chuẩn bị lộ diện quán nào đây!"`);
+    triggerMcVibe(`🎙️ MC: "Hồi hộp quá... Chuẩn bị lộ diện kết quả!"`);
 
     let revealInterval = setInterval(() => {
       revealCount--;
       if(revealCount > 0){
         countdownNumber.textContent = revealCount;
-        countdownLabel.textContent = "Công bố quán chiến thắng...";
+        countdownLabel.textContent = "Công bố kết quả lượt quay...";
         playCountdownBeep(false);
         triggerMcVibe(`🎙️ MC: "${revealCount}..."`);
       } else if(revealCount === 0){
         countdownNumber.textContent = "🎉";
-        countdownLabel.textContent = "Xướng tên quán!";
+        countdownLabel.textContent = "Xướng tên kết quả!";
         playCountdownBeep(true);
       } else {
         clearInterval(revealInterval);
         countdownOverlay.style.display = 'none';
         
-        // Hiển thị kết quả cho người chơi
+        // Kiểm tra xem đã đủ điều kiện kết thúc toàn ván chưa
         const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
         let normalCounts = {};
         OPTIONS.forEach(s => normalCounts[s] = 0);
@@ -1704,18 +1709,10 @@ async function executeSpinAction(isTieBreaker, targetName){
           return c >= maxAllowedSpins;
         }).length;
 
-        if(totalDoneNormal >= validList.length && tieRound === 0){
-          let maxCount = -1, maxShops = [];
-          OPTIONS.forEach(s => {
-            if(normalCounts[s] > maxCount){ maxCount = normalCounts[s]; maxShops = [s]; }
-            else if(normalCounts[s] === maxCount){ maxShops.push(s); }
-          });
-          if(maxShops.length === 1){
-            handleFinalWinner(maxShops[0], `r0_w${maxShops[0]}_n${validList.length}`);
-          }
-        } else {
-          // Hiển thị chúc mừng đơn lẻ cho lượt quay vừa rồi nếu chưa kết thúc toàn bộ
-          showCongrats(winner);
+        // Nếu đã đủ người quay cho vòng chính và không có tie, renderResults() đã tự xử lý chung cuộc qua handleFinalWinner.
+        // Ngược lại nếu chưa xong ván, hiển thị popup thông báo kết quả CÁ NHÂN thay vì popup thắng chung cuộc.
+        if(!(totalDoneNormal >= validList.length && tieRound === 0)){
+          showIndividualSpinCongrats(targetName, winner);
         }
       }
     }, 900);
