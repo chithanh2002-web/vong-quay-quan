@@ -241,27 +241,6 @@
   }
   .spin-btn:active:not(:disabled){ transform:translateY(3px); box-shadow:0 2px 0 #8b5511; }
   .spin-btn:disabled{ background:#453e33; color:#8a8270; border-color:#655c4a; box-shadow:0 5px 0 #2a251d; cursor:not-allowed; opacity:0.8; text-shadow: none; }
-  
-  .tie-box{
-    margin-top: 14px; padding: 16px; border-radius: 14px; background: linear-gradient(135deg, rgba(193,68,46,0.3), rgba(232,163,61,0.25));
-    border: 2px solid #e8a33d; text-align: center; display: none;
-    box-shadow: 0 0 25px rgba(232,163,61,0.3);
-    animation: goldenGoalPulse 1.8s infinite ease-in-out;
-  }
-  @keyframes goldenGoalPulse {
-    0%, 100% { border-color: var(--marigold); transform: scale(1); }
-    50% { border-color: #ffffff; transform: scale(1.02); }
-  }
-  .tie-box h3{ font-size: 15px; color: #ffe9a8; margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.6); }
-  .tie-info{ font-size: 13px; color: var(--chalk-cream); margin-bottom: 12px; font-weight: 600; line-height: 1.4; }
-  .tie-btn{
-    width: 100%; padding: 14px; border-radius: 10px; border: 1.5px solid #fff;
-    background: linear-gradient(180deg, #ffca56, #d28c20); color: #241a10;
-    font-family: inherit; font-weight: 800; font-size: 15px; cursor: pointer;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5); text-transform: uppercase;
-  }
-  .tie-btn:active{ transform: scale(0.97); }
-  .tie-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
 
   /* Màn hình đếm ngược từ 1 đến 10 kịch tính */
   .countdown-overlay {
@@ -284,54 +263,6 @@
   }
 
   .hint{ text-align:center; font-size:12px; color:var(--chalk-cream-dim); margin-top:5px; min-height:16px; }
-  .fair-note{ text-align:center; font-size:10.5px; color:rgba(242,236,216,0.45); margin-top:2px; }
-
-  .results-title{ font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:var(--marigold); font-weight:600; margin-bottom:6px; }
-  .bars{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
-  .bar-row{ display: flex; flex-direction: column; gap: 2px; }
-  .bar-label{ display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; }
-  .bar-track{ height:9px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden; }
-  .bar-fill{ height:100%; border-radius:999px; transition:width 0.5s ease; background: var(--marigold); }
-
-  .tickets{ display:flex; flex-direction:column; gap:4px; }
-  .ticket{ 
-    display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border-radius:8px; 
-    background:rgba(255,255,255,0.03); border:1px solid rgba(242,236,216,0.15); font-size:12.5px; 
-    animation: ticketSlideIn 0.3s ease-out;
-  }
-  @keyframes ticketSlideIn {
-    from { opacity: 0; transform: translateY(-6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .ticket .who{ font-weight:700; }
-  .ticket .what{ font-weight:600; padding:2px 8px; border-radius:999px; font-size:11px; color:var(--marigold); background:rgba(232,163,61,0.18); display:flex; gap:4px; }
-  .ticket .what.pending{ color:var(--chalk-cream-dim); font-weight:500; background:none; }
-
-  .tally{ margin-top:12px; text-align:center; font-size:12.5px; color:var(--chalk-cream-dim); }
-  .tally b{ color:var(--chalk-cream); }
-  .tally.winner{ font-size:14.5px; font-weight:800; color:var(--chalk-cream); text-shadow: 0 0 10px rgba(232,163,61,0.4); }
-  
-  .history-box{
-    margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(242,236,216,0.1); font-size: 12px; color: var(--chalk-cream-dim); text-align: center;
-    cursor: pointer; user-select: none; line-height: 1.5;
-  }
-  .history-box b{ color: var(--marigold); }
-
-  .reset-container { margin-top: 14px; text-align: center; }
-  .newround-btn{
-    display: block; width: 100%; margin: 0 0 8px; padding: 11px; border-radius: 10px;
-    border: 1.5px solid var(--marigold); background: rgba(232,163,61,0.15); color: var(--marigold);
-    font-family: inherit; font-weight: 800; font-size: 13.5px; cursor: pointer; transition: background 0.2s;
-  }
-  .newround-btn:hover{ background: rgba(232,163,61,0.28); }
-  .reset-btn {
-    background: none; border: none; color: rgba(242,236,216,0.4);
-    font-size: 11px; cursor: pointer; text-decoration: underline; font-family: inherit; padding: 4px 8px;
-  }
-  .reset-btn:hover { color: var(--marigold); }
-
-  .footnote{ margin-top:10px; text-align:center; font-size:10.5px; color:rgba(242,236,216,0.4); line-height:1.35; }
   .err{ text-align:center; font-size:11px; color:#e8a33d; margin-top:4px; display:none; }
 
   .confetti-layer{ position:fixed; inset:0; pointer-events:none; z-index:999; overflow:hidden; }
@@ -501,6 +432,16 @@ let soundEnabled = false;
 let maxCards = 6;
 let cardSlots = {}; 
 let cardGameTriggered = false;
+let serverLoserName = null; // Lưu người thua cố định từ Firebase tránh lỗi F5 lệch
+
+// Trạng thái vòng quay chọn quán (đồng bộ nhiều người)
+let lastWheelResultId = null;
+let wheelSpinningLock = false; // bản sao cục bộ của khoá "đang có người quay" trên server
+
+// Đánh dấu lần đầu tải dữ liệu phòng: nếu kết quả (người thua/quán thắng) đã có sẵn
+// TỪ TRƯỚC khi ta mới mở trang, ta chỉ hiển thị kết quả luôn, KHÔNG replay lại
+// hiệu ứng đếm ngược/quay/confetti như thể nó vừa mới xảy ra.
+let isFirstSnapshot = true;
 
 const WHEEL_COLORS = ["#c1442e", "#e8a33d", "#7fa65c", "#2a4a35", "#b4893a", "#3a2a1c"];
 
@@ -564,17 +505,26 @@ function drawWheelAndText(){
     ctx.fillStyle = WHEEL_COLORS[idx % WHEEL_COLORS.length]; ctx.fill();
     ctx.lineWidth = 3; ctx.strokeStyle = "#f2ecd8"; ctx.stroke();
 
-    // Vẽ chữ tên quán to rõ trên vòng quay
+    // Vẽ chữ tên quán xuôi chiều chuẩn đẹp không bị lộn ngược
     ctx.save();
     ctx.translate(centerX, centerY);
-    ctx.rotate(startAngle + sliceAngle / 2);
-    ctx.textAlign = "right";
+    const midAngle = startAngle + sliceAngle / 2;
+    ctx.rotate(midAngle);
+
+    // Nếu góc chữ nằm ở nửa bên trái vòng quay thì đảo đầu chữ lại để người xem không bị ngửa cổ
+    if (midAngle > Math.PI / 2 && midAngle < 3 * Math.PI / 2) {
+      ctx.rotate(Math.PI);
+      ctx.textAlign = "left";
+      ctx.fillText(shopName, -(radius - 25), 8);
+    } else {
+      ctx.textAlign = "right";
+      ctx.fillText(shopName, radius - 25, 8);
+    }
+
     ctx.fillStyle = "#ffffff";
-    // Tăng kích thước font chữ to hơn (22px, đậm nét)
     ctx.font = "800 22px 'Be Vietnam Pro', sans-serif";
     ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
     ctx.shadowBlur = 4;
-    ctx.fillText(shopName, radius - 25, 8);
     ctx.restore();
   });
   ctx.beginPath(); ctx.arc(centerX, centerY, 22, 0, 2 * Math.PI); ctx.fillStyle = "#e3c069"; ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = "#3a2a1c"; ctx.stroke();
@@ -776,8 +726,14 @@ function renderCardGame(){
         if(cardSlots[idx] === selectedName) alreadySelectedIdx = idx;
       });
 
-      if(isClaimed && cardName !== selectedName && alreadySelectedIdx !== -1){
-        alert("⚠️ Bạn đã nhận 1 thẻ khác rồi!");
+      // Lỗi cũ: bấm vào thẻ NGƯỜI KHÁC đã chọn trong khi bản thân CHƯA chọn thẻ nào
+      // thì không nhánh nào chạy -> im lặng không phản hồi gì. Nay luôn báo rõ lý do.
+      if(isClaimed && cardName !== selectedName){
+        if(alreadySelectedIdx !== -1){
+          alert("⚠️ Bạn đã nhận 1 thẻ khác rồi!");
+        } else {
+          alert("⚠️ Thẻ này đã có người khác chọn rồi, hãy chọn thẻ khác nhé!");
+        }
         return;
       }
 
@@ -799,14 +755,24 @@ function renderCardGame(){
 
   title.textContent = `🃏 Bàn Chọn Thẻ Định Mệnh (${claimedCount}/${maxCards} đã nhận)`;
   
+  // Nếu đã đủ thẻ và trên server chưa có kết quả người thua, tiến hành CHIẾM (claim) quyền
+  // ghi kết quả bằng transaction — đảm bảo dù nhiều máy cùng lúc đủ điều kiện, CHỈ MỘT
+  // giá trị duy nhất được ghi lên Firebase (không còn bị ghi đè/lệch giữa các máy).
   if(claimedCount >= maxCards && claimedCount > 0 && !cardGameTriggered){
     cardGameTriggered = true;
-    startCardCountdownAndReveal();
+    const activePlayers = Object.values(cardSlots).filter(n => !!n);
+    if(activePlayers.length > 0 && !serverLoserName) {
+      const chosenLoser = activePlayers[Math.floor(Math.random() * activePlayers.length)];
+      roomRef.child("loserName").transaction(current => {
+        if(current) return; // đã có máy khác chốt kết quả trước rồi -> huỷ, không ghi đè
+        return chosenLoser;
+      }).catch(()=>{});
+    }
   }
 }
 
-// Đếm ngược 1-10 lật thẻ
-function startCardCountdownAndReveal(){
+// Đếm ngược 1-10 lật thẻ và đồng bộ kết quả
+function startCardCountdownAndReveal(loserName){
   const countdownOverlay = document.getElementById('countdownOverlay');
   const countdownNumber = document.getElementById('countdownNumber');
   const countdownLabel = document.getElementById('countdownLabel');
@@ -828,11 +794,7 @@ function startCardCountdownAndReveal(){
     } else {
       clearInterval(timer);
       countdownOverlay.style.display = 'none';
-
-      const activePlayers = Object.values(cardSlots).filter(n => !!n);
-      const unluckyLoser = activePlayers[Math.floor(Math.random() * activePlayers.length)];
-
-      showLoserResult(unluckyLoser);
+      showLoserResult(loserName);
     }
   }, 900);
 }
@@ -852,13 +814,16 @@ async function changeMaxCards(val){
   maxCards = parseInt(val);
   await roomRef.child("maxCards").set(maxCards);
   await roomRef.child("cardSlots").remove();
+  await roomRef.child("loserName").remove();
 }
 
 async function resetCardGame(){
   const pass = prompt("🔒 Nhập mật khẩu quản trị:");
   if(pass !== null && await checkAdminPass(pass)){
     await roomRef.child("cardSlots").remove();
+    await roomRef.child("loserName").remove();
     cardGameTriggered = false;
+    serverLoserName = null;
     alert("✅ Đã làm mới bàn thẻ!");
   }
 }
@@ -905,6 +870,11 @@ function updateSpinButton(){
   if(!selectedName){
     spinBtn.disabled = true;
     spinBtn.textContent = "Chọn tên trước đã";
+    return;
+  }
+  if(wheelSpinningLock && !spinning){
+    spinBtn.disabled = true;
+    spinBtn.textContent = "Đang có người quay, chờ chút...";
     return;
   }
   spinBtn.disabled = spinning;
@@ -954,6 +924,35 @@ function setupRealtimeListener(){
       namesList = loaded.map(n => String(n || "").trim()).filter(Boolean);
     } else { namesList = []; }
 
+    // Khoá "đang có người quay bánh xe" — coi khoá hết hạn sau 15 giây để phòng trường hợp
+    // ai đó tắt tab/rớt mạng giữa chừng làm phòng bị kẹt (khoá treo) mãi mãi.
+    const rawWheelLock = data.wheelSpinning;
+    wheelSpinningLock = !!(rawWheelLock && (Date.now() - rawWheelLock) < 15000);
+
+    // Kiểm tra kết quả người thua được đồng bộ trên server (tránh F5 bị đổi kết quả)
+    if(data.loserName && data.loserName !== serverLoserName) {
+      serverLoserName = data.loserName;
+      cardGameTriggered = true;
+      if(isFirstSnapshot){
+        // Kết quả này đã có sẵn TỪ TRƯỚC khi ta mở trang -> hiển thị luôn, không replay đếm ngược.
+        showLoserResult(serverLoserName);
+      } else {
+        startCardCountdownAndReveal(serverLoserName);
+      }
+    } else if(!data.loserName) {
+      serverLoserName = null;
+      cardGameTriggered = false;
+    }
+
+    // Kết quả vòng quay chọn quán — đồng bộ hiệu ứng quay cho TẤT CẢ mọi người cùng lúc,
+    // thay vì mỗi máy tự random ra một kết quả khác nhau như bản cũ.
+    if(data.wheelResult && data.wheelResult.id && data.wheelResult.id !== lastWheelResultId){
+      lastWheelResultId = data.wheelResult.id;
+      if(!isFirstSnapshot){
+        runWheelSpinAnimation(data.wheelResult.winner, data.wheelResult.spinner);
+      }
+    }
+
     drawWheelAndText();
     renderNames();
     renderCardGame();
@@ -961,6 +960,8 @@ function setupRealtimeListener(){
     if(document.getElementById('adminPanel').style.display === 'block'){
       renderAdminShops();
     }
+
+    isFirstSnapshot = false;
   });
 }
 
@@ -973,7 +974,10 @@ async function newRound(){
   const pass = prompt("Nhập mật khẩu quản trị ván mới:");
   if(pass !== null && await checkAdminPass(pass)){
     await roomRef.child("cardSlots").remove();
+    await roomRef.child("loserName").remove();
+    await roomRef.child("wheelSpinning").remove();
     cardGameTriggered = false;
+    serverLoserName = null;
   }
 }
 
@@ -982,13 +986,19 @@ const spinBtn = document.getElementById('spinBtn');
 const wheelElement = document.getElementById('wheelElement');
 const pointerEl = document.getElementById('pointerEl');
 const lightRing = document.getElementById('lightRing');
+const mainBoard = document.getElementById('mainBoard');
+const wheelWrapDiv = document.getElementById('wheelWrapDiv');
 
-spinBtn.addEventListener('click', () => {
-  if(!selectedName) return;
+// Hiệu ứng quay thực tế — được gọi ĐỒNG BỘ cho MỌI người trong phòng (kể cả người vừa bấm quay)
+// thông qua listener realtime, đảm bảo ai cũng thấy đúng một kết quả giống nhau, cùng lúc.
+function runWheelSpinAnimation(winner, spinnerName){
+  if(!OPTIONS.includes(winner)) return; // an toàn: danh sách quán vừa bị đổi giữa chừng
   spinning = true;
   updateSpinButton();
+  mainBoard.classList.add('spinning-active');
   pointerEl.classList.add('shake');
   if(lightRing) lightRing.classList.add('fast');
+  triggerMcVibe(`🎙️ MC: "${escapeHtml(spinnerName || "")} đang quay chọn quán, hồi hộp chưa nào!"`);
 
   let soundTimer = 0;
   let drumInterval = setInterval(()=>{
@@ -999,7 +1009,6 @@ spinBtn.addEventListener('click', () => {
 
   setTimeout(()=>{ pointerEl.classList.remove('shake'); if(lightRing) lightRing.classList.remove('fast'); }, 4500);
 
-  const winner = OPTIONS[Math.floor(Math.random() * OPTIONS.length)];
   const count = OPTIONS.length;
   const sliceDeg = 360 / count;
   const winnerIdx = OPTIONS.indexOf(winner);
@@ -1010,16 +1019,67 @@ spinBtn.addEventListener('click', () => {
   wheelElement.style.transform = "rotate(" + finalRotation + "deg)";
   currentRotation = finalRotation;
 
-  setTimeout(()=>{
+  setTimeout(async ()=>{
     spinning = false;
-    updateSpinButton();
+    mainBoard.classList.remove('spinning-active');
+    wheelWrapDiv.classList.add('active-zoom');
+    setTimeout(()=> wheelWrapDiv.classList.remove('active-zoom'), 900);
+
     playWinSound();
     launchConfetti();
     document.getElementById('congratsServer').textContent = winner;
     document.getElementById('congratsMsg').textContent = `Quán ${winner} đã được chọn cho bữa nay!`;
     document.getElementById('congratsOverlay').style.display = 'flex';
+    updateSpinButton();
+
+    // Mở khoá phòng để người khác được quay tiếp (an toàn dù nhiều máy cùng gọi remove()).
+    try { await roomRef.child("wheelSpinning").remove(); } catch(e){}
   }, 4600);
+}
+
+spinBtn.addEventListener('click', async () => {
+  if(!selectedName) return;
+  if(spinning || wheelSpinningLock){
+    alert("⚠️ Đang có người khác quay bánh xe, vui lòng đợi họ quay xong!");
+    return;
+  }
+  if(!soundEnabled) forceUnlockSound();
+
+  // Chiếm khoá "đang quay" bằng transaction NGUYÊN TỬ trước khi ghi kết quả — tránh
+  // trường hợp 2 người bấm quay gần như cùng lúc làm kết quả của nhau bị ghi đè lên nhau.
+  let lockResult;
+  try {
+    lockResult = await roomRef.child("wheelSpinning").transaction(current => {
+      if(current && (Date.now() - current) < 15000) return; // đang có người quay thật -> huỷ
+      return Date.now(); // chiếm khoá (hoặc lấy lại khoá bị treo quá 15s do rớt mạng)
+    });
+  } catch(e){
+    showErrorHint("Lỗi kết nối, vui lòng thử lại.");
+    return;
+  }
+  if(!lockResult || !lockResult.committed){
+    alert("⚠️ Đang có người khác quay bánh xe, vui lòng đợi họ quay xong!");
+    return;
+  }
+
+  const winner = OPTIONS[Math.floor(Math.random() * OPTIONS.length)];
+  const spinId = Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+  try {
+    await roomRef.child("wheelResult").set({ winner, spinner: selectedName, id: spinId, ts: Date.now() });
+  } catch(e){
+    showErrorHint("Lỗi khi ghi kết quả lên server, vui lòng thử lại.");
+    await roomRef.child("wheelSpinning").remove().catch(()=>{});
+  }
+  // Hiệu ứng quay sẽ tự chạy cho mọi người (kể cả người vừa bấm) thông qua listener realtime ở trên.
 });
+
+function showErrorHint(msg){
+  const box = document.getElementById('errBox');
+  if(!box) return;
+  box.textContent = msg;
+  box.style.display = 'block';
+  setTimeout(()=>{ box.style.display = 'none'; }, 3500);
+}
 
 document.getElementById('congratsClose').addEventListener('click', () => {
   document.getElementById('congratsOverlay').style.display = 'none';
