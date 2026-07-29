@@ -1164,7 +1164,7 @@ function renderNames(){
 
     let isDone, tagText;
     if(tieRound > 0){
-      const hasCurrentTieSpin = userSpins.some(s => s.isTieBreaker && s.round === tieRound);
+      const hasCurrentTieSpin = userSpins.some(s => s.isTieBreaker && Number(s.round) === Number(tieRound));
       isDone = hasCurrentTieSpin;
       tagText = hasCurrentTieSpin ? 'đã đá ⚽' : 'chưa đá ⚽';
     } else {
@@ -1386,7 +1386,7 @@ function renderResults(){
     let tieDoneCount = 0;
 
     validList.forEach(n => {
-      const tspin = (state[n] || []).find(s => s.isTieBreaker && s.round === tieRound);
+      const tspin = (state[n] || []).find(s => s.isTieBreaker && Number(s.round) === Number(tieRound));
       if(tspin){
         tieDoneCount++;
         if(tieCounts[tspin.result] !== undefined) tieCounts[tspin.result]++;
@@ -1399,7 +1399,7 @@ function renderResults(){
       tally.innerHTML = `⚠️ Có sự đồng điểm (${tieCandidates.map(escapeHtml).join(" & ")})! Kích hoạt Luân Lưu Quyết Định!`;
       triggerMcVibe(`🎙️ MC: "Căng thẳng quá! Hòa điểm rồi, bước vào loạt sút luân lưu ngay lập tức!"`);
 
-      const myTieSpin = selectedName ? (state[selectedName] || []).find(s => s.isTieBreaker && s.round === tieRound) : null;
+      const myTieSpin = selectedName ? (state[selectedName] || []).find(s => s.isTieBreaker && Number(s.round) === Number(tieRound)) : null;
 
       if(selectedName && !myTieSpin){
         tieInfoText.innerHTML = `Bạn đang chọn: <b>${escapeHtml(selectedName)}</b>. Hãy bấm nút dưới để sút luân lưu! (${tieDoneCount}/${validList.length} đã đá)`;
@@ -1596,7 +1596,7 @@ async function executeSpinAction(isTieBreaker, targetName){
   const roundToUse = isTieBreaker ? tieRound : 0;
   const pool = (isTieBreaker && tieCandidates && tieCandidates.length >= 2) ? tieCandidates : OPTIONS;
   const winner = pickWinner(pool);
-  const record = { result: winner, time: new Date().toISOString(), isTieBreaker: isTieBreaker, round: roundToUse };
+  const record = { result: winner, time: new Date().toISOString(), isTieBreaker: isTieBreaker, round: Number(roundToUse) };
 
   spinning = true;
   updateSpinButton();
@@ -1613,7 +1613,7 @@ async function executeSpinAction(isTieBreaker, targetName){
         const normalCount = arr.filter(s => (s.round || 0) === 0).length;
         if(normalCount >= maxAllowedSpins) return; 
       } else {
-        const already = arr.some(s => s.isTieBreaker && s.round === roundToUse);
+        const already = arr.some(s => s.isTieBreaker && Number(s.round) === Number(roundToUse));
         if(already) return; 
       }
       arr.push(record);
@@ -1635,7 +1635,7 @@ async function executeSpinAction(isTieBreaker, targetName){
     if(wheelWrapDiv) wheelWrapDiv.classList.remove('active-zoom');
     if(isTieBreaker) tieBtn.disabled = false;
     updateSpinButton();
-    alert("⚠️ Bạn (" + targetName + ") đã quay đủ lượt cho phép rồi (có thể vừa quay ở tab/máy khác)!");
+    alert("⚠️ Bạn (" + targetName + ") đã sút luân lưu cho hiệp này rồi (có thể vừa đá ở tab/máy khác)!");
     return;
   }
 
@@ -1673,19 +1673,19 @@ async function executeSpinAction(isTieBreaker, targetName){
     countdownOverlay.style.display = 'flex';
     let revealCount = 3;
     countdownNumber.textContent = revealCount;
-    countdownLabel.textContent = "Công bố kết quả lượt quay...";
+    countdownLabel.textContent = "Công bố kết quả lượt sút...";
     playCountdownBeep(false);
-    triggerMcVibe(`🎙️ MC: "Hồi hộp quá... Chuẩn bị lộ diện kết quả!"`);
+    triggerMcVibe(`🎙️ MC: "Hồi hộp quá... Sắp lộ diện kết quả sút luân lưu!"`);
 
     let revealInterval = setInterval(() => {
       revealCount--;
       if(revealCount > 0){
         countdownNumber.textContent = revealCount;
-        countdownLabel.textContent = "Công bố kết quả lượt quay...";
+        countdownLabel.textContent = "Công bố kết quả lượt sút...";
         playCountdownBeep(false);
         triggerMcVibe(`🎙️ MC: "${revealCount}..."`);
       } else if(revealCount === 0){
-        countdownNumber.textContent = "🎉";
+        countdownNumber.textContent = "⚽";
         countdownLabel.textContent = "Xướng tên kết quả!";
         playCountdownBeep(true);
       } else {
