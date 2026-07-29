@@ -242,7 +242,7 @@
   .spin-btn:active:not(:disabled){ transform:translateY(3px); box-shadow:0 2px 0 #8b5511; }
   .spin-btn:disabled{ background:#453e33; color:#8a8270; border-color:#655c4a; box-shadow:0 5px 0 #2a251d; cursor:not-allowed; opacity:0.8; text-shadow: none; }
   
-  /* Giao diện đặc biệt riêng cho Golden Goal (Bàn Thắng Vàng) */
+  /* Giao diện đặc biệt riêng cho Sút Luân Lưu */
   .tie-box{
     margin-top: 14px; padding: 16px; border-radius: 14px; background: linear-gradient(135deg, rgba(193,68,46,0.3), rgba(232,163,61,0.25));
     border: 2px solid #e8a33d; text-align: center; display: none;
@@ -457,11 +457,11 @@
 
   <button class="spin-btn" id="spinBtn" disabled>Chọn tên trước đã</button>
   
-  <!-- Khu vực giao diện riêng biệt cho Golden Goal (Bàn Thắng Vàng) -->
+  <!-- Khu vực giao diện riêng biệt cho Sút Luân Lưu -->
   <div class="tie-box" id="tieBox">
-    <h3>⚽ HIỆP PHỤ: BÀN THẮNG VÀNG! ⚡</h3>
-    <div class="tie-info" id="tieInfoText">Các quán đang hòa điểm. Cuộc chiến sinh tử bắt đầu!</div>
-    <button class="tie-btn" id="tieBtn" onclick="startCountdownAndSpin(true)">Sút Bàn Thắng Vàng Ngay! 🔥</button>
+    <h3>⚽ LUÂN LƯU QUYẾT ĐỊNH! ⚡</h3>
+    <div class="tie-info" id="tieInfoText">Các quán đang hòa điểm. Loạt sút luân lưu bắt đầu!</div>
+    <button class="tie-btn" id="tieBtn" onclick="startCountdownAndSpin(true)">Sút Luân Lưu Ngay! 🔥</button>
   </div>
 
   <div class="hint" id="hint">Đang kết nối Realtime...</div>
@@ -1223,7 +1223,7 @@ async function removePlayer(nameToRemove){
 async function addNewPlayerWithPassword(){
   const input = document.getElementById('newPlayerInput');
   const newName = input.value.trim();
-  if(!newName){ alert("Vui lòng nhập tên người chơi!"); return; }
+  if(!newName){ alert("Vول lòng nhập tên người chơi!"); return; }
   if(namesList.some(n => String(n).trim().toLowerCase() === newName.toLowerCase())){
     alert("Tên này đã có trong danh sách rồi!"); return;
   }
@@ -1391,21 +1391,21 @@ function renderResults(){
     if(tieDoneCount < validList.length){
       tieBox.style.display = "block";
       tally.className = 'tally winner';
-      tally.innerHTML = `⚠️ Có sự đồng điểm (${tieCandidates.map(escapeHtml).join(" & ")})! Kích hoạt Bàn Thắng Vàng!`;
-      triggerMcVibe(`🎙️ MC: "Căng thẳng quá! Hòa điểm rồi, bước vào Hiệp phụ Bàn Thắng Vàng ngay lập tức!"`);
+      tally.innerHTML = `⚠️ Có sự đồng điểm (${tieCandidates.map(escapeHtml).join(" & ")})! Kích hoạt Luân Lưu Quyết Định!`;
+      triggerMcVibe(`🎙️ MC: "Căng thẳng quá! Hòa điểm rồi, bước vào loạt sút luân lưu ngay lập tức!"`);
 
       const myTieSpin = selectedName ? (state[selectedName] || []).find(s => s.isTieBreaker && s.round === tieRound) : null;
 
       if(selectedName && !myTieSpin){
-        tieInfoText.innerHTML = `Bạn đang chọn: <b>${escapeHtml(selectedName)}</b>. Hãy bấm nút dưới để sút Bàn Thắng Vàng! (${tieDoneCount}/${validList.length} đã đá)`;
+        tieInfoText.innerHTML = `Bạn đang chọn: <b>${escapeHtml(selectedName)}</b>. Hãy bấm nút dưới để sút luân lưu! (${tieDoneCount}/${validList.length} đã đá)`;
         tieBtn.disabled = false;
-        tieBtn.textContent = `Sút Bàn Thắng Vàng cho ${selectedName}! ⚽`;
+        tieBtn.textContent = `Sút Luân Lưu cho ${selectedName}! ⚽`;
       } else if(selectedName && myTieSpin){
-        tieInfoText.innerHTML = `Bạn (${escapeHtml(selectedName)}) đã sút Bàn Thắng Vàng rồi. Đang chờ mọi người (${tieDoneCount}/${validList.length}).`;
+        tieInfoText.innerHTML = `Bạn (${escapeHtml(selectedName)}) đã sút luân lưu rồi. Đang chờ mọi người (${tieDoneCount}/${validList.length}).`;
         tieBtn.disabled = true;
         tieBtn.textContent = `Đã đá rồi, chờ mọi người...`;
       } else {
-        tieInfoText.innerHTML = `⚠️ Vui lòng <b>chọn đúng tên bạn</b> ở danh sách bên trên để sút Bàn Thắng Vàng! (${tieDoneCount}/${validList.length} đã đá)`;
+        tieInfoText.innerHTML = `⚠️ Vui lòng <b>chọn đúng tên bạn</b> ở danh sách bên trên để sút luân lưu! (${tieDoneCount}/${validList.length} đã đá)`;
         tieBtn.disabled = true;
         tieBtn.textContent = `Chưa chọn đúng tên chính chủ`;
       }
@@ -1424,10 +1424,10 @@ function renderResults(){
       persistTieState();
       tieBox.style.display = "block";
       tally.className = 'tally winner';
-      tally.innerHTML = `Vẫn hoà giữa (${maxShops.map(escapeHtml).join(" & ")})! Đá tiếp hiệp phụ vòng ${tieRound}!`;
-      tieInfoText.innerHTML = `Mọi người cần quay thêm 1 lượt bàn thắng vàng nữa để phân định thắng thua.`;
+      tally.innerHTML = `Vẫn hoà giữa (${maxShops.map(escapeHtml).join(" & ")})! Đá tiếp hiệp phụ luân lưu vòng ${tieRound}!`;
+      tieInfoText.innerHTML = `Mọi người cần quay thêm 1 lượt luân lưu nữa để phân định thắng thua.`;
       tieBtn.disabled = !selectedName;
-      tieBtn.textContent = selectedName ? `Sút Bàn Thắng Vàng cho ${selectedName}! ⚽` : `Chưa chọn đúng tên chính chủ`;
+      tieBtn.textContent = selectedName ? `Sút Luân Lưu cho ${selectedName}! ⚽` : `Chưa chọn đúng tên chính chủ`;
       drawWheelAndText();
       return;
     }
@@ -1435,7 +1435,7 @@ function renderResults(){
     tieBox.style.display = "none";
     const winner = maxShops[0];
     tally.className = 'tally winner';
-    tally.innerHTML = `🏆 Quán thắng chung cuộc (sau Bàn Thắng Vàng): <b>${escapeHtml(winner)}</b>`;
+    tally.innerHTML = `🏆 Quán thắng chung cuộc (sau Luân Lưu): <b>${escapeHtml(winner)}</b>`;
 
     if(!celebrated){
       handleFinalWinner(winner, `r${tieRound}_w${winner}_n${validList.length}`);
@@ -1725,7 +1725,7 @@ async function executeSpinAction(isTieBreaker, targetName){
 
 function spinTieBreaker(){
   if(!selectedName) {
-    alert("⚠️ Vui lòng chọn đúng tên bạn ở phía trên trước khi sút Bàn Thắng Vàng!");
+    alert("⚠️ Vui lòng chọn đúng tên bạn ở phía trên trước khi sút luân lưu!");
     return;
   }
   startCountdownAndSpin(true);
