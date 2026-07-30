@@ -731,20 +731,37 @@ function drawWheelAndText(){
   const centerY = 250;
   const radius = 245;
 
+  // Quán vừa thắng (nếu có) sẽ được tô nổi bật: nhô ra ngoài + viền phát sáng nhấp nháy + chữ to hơn.
+  const highlightIdx = winningHighlightName ? activeOptions.indexOf(winningHighlightName) : -1;
+  const pulse = highlightIdx >= 0 ? (0.5 + 0.5 * Math.sin(Date.now() / 220)) : 0;
+
   activeOptions.forEach((shopName, idx) => {
+    const isWinner = idx === highlightIdx;
     const startAngle = -Math.PI / 2 + sliceAngle * idx;
     const endAngle = startAngle + sliceAngle;
+    const sliceRadius = isWinner ? radius + 6 + pulse * 6 : radius;
 
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
-    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+    ctx.arc(centerX, centerY, sliceRadius, startAngle, endAngle);
     ctx.closePath();
 
     ctx.fillStyle = WHEEL_COLORS[idx % WHEEL_COLORS.length];
     ctx.fill();
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = "#f2ecd8";
-    ctx.stroke();
+
+    if(isWinner){
+      ctx.save();
+      ctx.shadowColor = `rgba(255, 233, 168, ${(0.55 + pulse * 0.4).toFixed(2)})`;
+      ctx.shadowBlur = 22 + pulse * 14;
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = "#ffe9a8";
+      ctx.stroke();
+      ctx.restore();
+    } else {
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#f2ecd8";
+      ctx.stroke();
+    }
   });
 
   ctx.beginPath();
@@ -761,6 +778,8 @@ function drawWheelAndText(){
   const maxTextWidth = (2 * Math.PI * textRadius / count) * 0.85;
 
   activeOptions.forEach((shopName, idx) => {
+    const isWinner = idx === highlightIdx;
+    const scale = isWinner ? 1.22 + pulse * 0.1 : 1;
     const angle = -Math.PI / 2 + sliceAngle * idx + sliceAngle / 2;
     const x = centerX + textRadius * Math.cos(angle);
     const y = centerY + textRadius * Math.sin(angle);
@@ -768,6 +787,7 @@ function drawWheelAndText(){
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle + Math.PI / 2);
+    ctx.scale(scale, scale);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
@@ -782,12 +802,20 @@ function drawWheelAndText(){
     const lineHeight = baseFontSize * 1.08;
     const startY = -((lines.length - 1) * lineHeight) / 2 + baseFontSize * 0.2;
 
-    ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
-    ctx.shadowBlur = 3;
-    ctx.lineWidth = 2;
+    if(isWinner){
+      ctx.shadowColor = `rgba(255, 233, 168, ${(0.8 + pulse * 0.2).toFixed(2)})`;
+      ctx.shadowBlur = 14 + pulse * 10;
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#3a2a1c";
+      ctx.fillStyle = "#fff9e6";
+    } else {
+      ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
+      ctx.shadowBlur = 3;
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#0b3b1e";
+      ctx.fillStyle = "#ffffff";
+    }
     ctx.lineJoin = "round";
-    ctx.strokeStyle = "#0b3b1e";
-    ctx.fillStyle = "#ffffff";
     lines.forEach((line, li) => {
       const ly = startY + li * lineHeight;
       ctx.strokeText(line, 0, ly);
@@ -796,6 +824,23 @@ function drawWheelAndText(){
 
     ctx.restore();
   });
+}
+
+// Bật/tắt hiệu ứng tô nổi bật quán thắng trên bánh xe (nhô ra + phát sáng nhấp nháy).
+let winningHighlightName = null;
+let highlightPulseTimer = null;
+
+function startWinnerHighlight(name){
+  winningHighlightName = name;
+  if(highlightPulseTimer) clearInterval(highlightPulseTimer);
+  highlightPulseTimer = setInterval(drawWheelAndText, 60);
+  drawWheelAndText();
+}
+
+function stopWinnerHighlight(){
+  winningHighlightName = null;
+  if(highlightPulseTimer){ clearInterval(highlightPulseTimer); highlightPulseTimer = null; }
+  drawWheelAndText();
 }
 
 function wrapWheelText(ctx, text, maxWidth){
@@ -1388,6 +1433,7 @@ async function claimResultOnce(signature){
 // người chơi đã đóng nó rồi. Nay showCongrats() nằm HẲN trong khối if(!celebrated) — chỉ
 // hiện đúng 1 lần cho mỗi thiết bị khi kết quả cuối cùng vừa được xác định.
 async function handleFinalWinner(winnerOption, signature){
+  startWinnerHighlight(winnerOption);
   if(!celebrated){
     celebrated = true;
     playWinSound();
@@ -1707,7 +1753,7 @@ function renderResults(){
       tieInfoText.innerHTML = `Mọi người cần sút thêm 1 lượt luân lưu nữa để phân định thắng thua.`;
       tieBtn.disabled = !selectedName;
       tieBtn.textContent = selectedName ? `Sút Luân Lưu cho ${selectedName}! ⚽` : `Chưa chọn đúng tên chính chủ`;
-      drawWheelAndText();
+      stopWinnerHighlight();
       return;
     }
 
@@ -1812,6 +1858,7 @@ async function resetData(){
   serverLoserName = null;
   wheelElement.style.transform = "rotate(0deg)";
   currentRotation = 0;
+  stopWinnerHighlight();
   alert("✅ Đã làm mới dữ liệu toàn phòng thành công!");
 }
 
@@ -1844,6 +1891,7 @@ async function newRound(){
   spinning = false;
   wheelElement.style.transform = "rotate(0deg)";
   currentRotation = 0;
+  stopWinnerHighlight();
   triggerMcVibe("🎙️ MC: 'Ván mới bắt đầu! Mọi người điểm danh chọn tên và quay nào!'");
 
   alert("✅ Đã bắt đầu ván mới! Danh sách người chơi và quán được giữ nguyên, mọi người có thể quay lại từ đầu.");
@@ -1924,6 +1972,7 @@ async function executeSpinAction(isTieBreaker, targetName){
   spinning = true;
   updateSpinButton();
   if(isTieBreaker) tieBtn.disabled = true;
+  stopWinnerHighlight();
 
   if(mainBoard) mainBoard.classList.add('spinning-active');
   if(wheelWrapDiv) wheelWrapDiv.classList.add('active-zoom');
