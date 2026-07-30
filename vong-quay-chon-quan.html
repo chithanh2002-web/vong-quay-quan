@@ -2071,6 +2071,7 @@ async function executeSpinAction(isTieBreaker, targetName){
     if(mainBoard) mainBoard.classList.remove('spinning-active');
     if(wheelWrapDiv) wheelWrapDiv.classList.remove('active-zoom');
     if(isTieBreaker) tieBtn.disabled = false;
+    renderNames();
     updateSpinButton();
     showError("Lỗi khi ghi lượt quay lên server, vui lòng thử lại.");
     return;
@@ -2081,6 +2082,7 @@ async function executeSpinAction(isTieBreaker, targetName){
     if(mainBoard) mainBoard.classList.remove('spinning-active');
     if(wheelWrapDiv) wheelWrapDiv.classList.remove('active-zoom');
     if(isTieBreaker) tieBtn.disabled = false;
+    renderNames();
     updateSpinButton();
     alert("⚠️ Bạn (" + targetName + ") đã quay đủ lượt cho phép rồi (có thể vừa quay ở tab/máy khác)!");
     return;
@@ -2117,6 +2119,14 @@ async function executeSpinAction(isTieBreaker, targetName){
     if(mainBoard) mainBoard.classList.remove('spinning-active');
     if(wheelWrapDiv) wheelWrapDiv.classList.remove('active-zoom');
     if(isTieBreaker) tieBtn.disabled = false;
+    // SỬA LỖI: việc ghi lượt quay lên Firebase (transaction ở trên) xảy ra gần như ngay lập
+    // tức, khiến listener realtime chạy renderNames() lúc "spinning" VẪN CÒN true — làm khoá
+    // (gạch) hết TẤT CẢ tên trong danh sách, không chỉ người vừa quay. Đến khi spinning chuyển
+    // lại thành false ở đây thì không có gì gọi renderNames() lại nữa, nên các nút bị kẹt gạch
+    // mãi cho tới khi F5. Nay gọi lại renderNames() + updateSpinButton() ngay tại đây để mở
+    // khoá lại toàn bộ danh sách tên.
+    renderNames();
+    updateSpinButton();
     drawWheelAndText();
 
     // Giai đoạn 2: Đếm ngược 3, 2, 1 trước khi bật popup kết quả
