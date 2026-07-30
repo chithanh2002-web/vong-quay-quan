@@ -1487,7 +1487,12 @@ function renderNames(){
       tagText = isDone ? 'đã xong' : `${normalDone}/${maxAllowedSpins} lượt`;
     }
 
-    btn.disabled = isDone;
+    // SỬA LỖI: trước đây nút chọn tên bị khoá (disabled) khi đã quay đủ lượt/đã đá xong Sút
+    // Luân Lưu (isDone), khiến người đó không thể BẤM CHỌN LẠI TÊN MÌNH để tham gia Bàn Thẻ
+    // Lật (một tính năng độc lập, không liên quan tới việc đã quay bánh xe hay chưa). Nay chỉ
+    // khoá khi bánh xe đang thực sự quay (spinning) — việc chặn quay lại vẫn được bảo vệ riêng
+    // bởi nút "Quay" (updateSpinButton) và transaction trong executeSpinAction().
+    btn.disabled = spinning;
     if(selectedName === name) btn.classList.add('selected');
 
     const delBtn = document.createElement('button');
@@ -1508,11 +1513,12 @@ function renderNames(){
     btn.onclick = (e)=>{
       if(e.target === delBtn) return;
       if(!soundEnabled) forceUnlockSound();
-      if(spinning || isDone) return;
+      if(spinning) return;
       selectedName = name;
       renderNames();
       updateSpinButton();
       renderResults();
+      renderCardGame();
       triggerMcVibe(`🎙️ MC: "Chào <b>${escapeHtml(name)}</b>! Sẵn sàng bấm nút quay quyết định chưa nào?"`);
     };
     nameGrid.appendChild(btn);
