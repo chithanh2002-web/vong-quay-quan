@@ -143,6 +143,38 @@
   .admin-add-shop{ background: rgba(127,166,92,0.3); border: 1px solid var(--paddy); color: var(--paddy); }
   .admin-save-btn{ background: var(--marigold); color: #3a2a1c; }
 
+  /* Bàn thẻ lật chọn người khao cả team (bật/tắt được trong bảng quản trị) */
+  .card-game-box {
+    background: rgba(227,192,105,0.08); border: 2px solid var(--gold);
+    padding: 14px; border-radius: 14px; margin-bottom: 14px; text-align: center;
+    display: none;
+  }
+  .card-game-box h3 { margin: 0 0 6px; font-size: 14px; color: var(--gold); text-transform: uppercase; }
+  .card-game-sub { font-size: 12px; color: var(--chalk-cream-dim); margin-bottom: 12px; }
+  .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+  .player-card {
+    background: linear-gradient(180deg, #2a4a35, #163020);
+    border: 2px dashed rgba(227,192,105,0.5); border-radius: 10px;
+    padding: 12px 6px; min-height: 65px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
+  }
+  .player-card.claimed {
+    border-style: solid; border-color: var(--gold);
+    background: linear-gradient(180deg, #e8a33d, #b4893a); color: #3a2a1c;
+    box-shadow: 0 4px 12px rgba(232,163,61,0.3); transform: translateY(-2px);
+  }
+  .player-card .card-icon { font-size: 18px; margin-bottom: 2px; }
+  .player-card .card-text { font-size: 12px; font-weight: 700; word-break: break-all; }
+
+  .admin-toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom: 8px; }
+  .admin-toggle-row label{ font-size: 12px; color: var(--gold); }
+  .admin-toggle-btn{
+    flex: 0 0 auto; padding: 8px 14px; border-radius: 8px; border: 1.5px solid var(--brick);
+    background: rgba(193,68,46,0.25); color: var(--brick); font-family: inherit;
+    font-weight: 700; font-size: 12px; cursor: pointer; white-space: nowrap; transition: all 0.2s;
+  }
+  .admin-toggle-btn.on{ border-color: var(--paddy); background: rgba(127,166,92,0.3); color: var(--paddy); }
+
   .add-player-box{ display: flex; gap: 6px; margin-bottom: 12px; }
   .add-player-input{
     flex: 1; padding: 9px 12px; border-radius: 10px; border: 1.5px solid rgba(227,192,105,0.35);
@@ -191,6 +223,28 @@
     padding: 2px 4px; border-radius: 4px; line-height: 1; transition: color 0.2s;
   }
   .del-btn:hover{ color: var(--brick); background: rgba(193,68,46,0.15); }
+
+  /* Bàn Lật Thẻ chọn người khao cả team — bật/tắt được từ bảng quản trị */
+  .card-game-box {
+    background: rgba(227,192,105,0.08); border: 2px solid var(--gold);
+    padding: 14px; border-radius: 14px; margin-bottom: 14px; text-align: center;
+  }
+  .card-game-box h3 { margin: 0 0 6px; font-size: 14px; color: var(--gold); text-transform: uppercase; }
+  .card-game-sub { font-size: 12px; color: var(--chalk-cream-dim); margin-bottom: 12px; }
+  .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 4px; }
+  .player-card {
+    background: linear-gradient(180deg, #2a4a35, #163020);
+    border: 2px dashed rgba(227,192,105,0.5); border-radius: 10px;
+    padding: 12px 6px; min-height: 65px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
+  }
+  .player-card.claimed {
+    border-style: solid; border-color: var(--gold);
+    background: linear-gradient(180deg, #e8a33d, #b4893a); color: #3a2a1c;
+    box-shadow: 0 4px 12px rgba(232,163,61,0.3); transform: translateY(-2px);
+  }
+  .player-card .card-icon { font-size: 18px; margin-bottom: 2px; }
+  .player-card .card-text { font-size: 12px; font-weight: 700; word-break: break-all; }
 
   .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin:14px 0 8px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
   .wheel-wrap.active-zoom { transform: scale(1.12); }
@@ -424,6 +478,14 @@
     </select>
     
     <div style="border-top: 1px dashed var(--gold); margin: 8px 0; padding-top: 8px;">
+      <div class="admin-toggle-row">
+        <label>🃏 Bàn Thẻ Lật (chọn người khao cả team):</label>
+        <button class="admin-toggle-btn" id="cardGameToggleBtn" onclick="toggleCardGame()">Đang tắt</button>
+      </div>
+      <button class="admin-action-btn" style="background: var(--brick); color: #fff; width: 100%; padding: 8px; font-weight: 800;" onclick="resetCardGame()">🔄 Làm mới bàn thẻ lật</button>
+    </div>
+
+    <div style="border-top: 1px dashed var(--gold); margin: 8px 0; padding-top: 8px;">
       <h4 style="margin:0 0 6px;">✏️ Quản lý danh sách quán:</h4>
       <div class="admin-shops-box" id="adminShopsContainer"></div>
       <div class="admin-btn-row">
@@ -444,6 +506,13 @@
   </div>
 
   <div class="names" id="nameGrid"></div>
+
+  <!-- Bàn thẻ lật chọn người khao cả team — chỉ hiện khi admin bật trong bảng quản trị -->
+  <div class="card-game-box" id="cardGameBox">
+    <h3 id="cardGameTitle">🃏 Bàn Chọn Thẻ Định Mệnh (0/0 đã nhận)</h3>
+    <div class="card-game-sub">Chọn đúng tên bạn ở trên, rồi bấm vào 1 ô thẻ bất kỳ bên dưới để nhận thẻ. Đủ thẻ là tự động đếm 1→10 rồi lật!</div>
+    <div class="card-grid" id="cardGrid"></div>
+  </div>
 
   <div class="wheel-wrap" id="wheelWrapDiv">
     <div class="wheel-frame">
@@ -503,6 +572,23 @@
   </div>
 </div>
 
+<!-- Đếm ngược riêng cho Bàn Thẻ Lật: đếm LÊN 1→10 rồi lật thẻ -->
+<div class="countdown-overlay" id="cardCountdownOverlay">
+  <div class="countdown-number" id="cardCountdownNumber">1</div>
+  <div class="countdown-label" id="cardCountdownLabel">Đã đủ thẻ! Đếm ngược lật thẻ định mệnh...</div>
+</div>
+
+<!-- Popup công bố người phải khao cả team -->
+<div class="congrats-overlay" id="loserOverlay">
+  <div class="congrats-card" style="border-color: var(--brick);">
+    <span class="server-emoji" id="loserEmoji">💸</span>
+    <div class="server-title">Gương mặt vàng khao cả team</div>
+    <div class="congrats-server" id="loserNameText" style="color: var(--brick);"></div>
+    <div class="congrats-msg" id="loserMsgText"></div>
+    <button class="congrats-close" onclick="document.getElementById('loserOverlay').style.display='none'" style="background: var(--brick);">Khóc nhẹ một giây! 😭</button>
+  </div>
+</div>
+
 <script>
 const firebaseConfig = {
   databaseURL: "https://vong-quay-cdd2d-default-rtdb.asia-southeast1.firebasedatabase.app"
@@ -530,6 +616,16 @@ let currentRotation = 0;
 let celebrated = false;
 let audioCtx = null;
 let soundEnabled = false;
+
+// Trạng thái Bàn Thẻ Lật (chọn người khao cả team) — bật/tắt được từ bảng quản trị
+let cardGameEnabled = false;
+let cardSlots = {};
+let cardGameTriggered = false;
+let serverLoserName = null;
+
+// Đánh dấu lần đầu tải dữ liệu phòng: nếu kết quả (người khao) đã có sẵn TỪ TRƯỚC khi ta
+// mới mở trang, ta chỉ hiển thị kết quả luôn, KHÔNG replay lại hiệu ứng đếm ngược/confetti.
+let isFirstSnapshot = true;
 
 const WHEEL_COLORS = ["#c1442e", "#e8a33d", "#7fa65c", "#2a4a35", "#b4893a", "#3a2a1c"];
 
@@ -1117,6 +1213,163 @@ function showPersonalResult(winnerOption, isTieBreaker){
   triggerMcVibe(`🎙️ MC: "${escapeHtml(selectedName || "")} vừa ${isTieBreaker ? 'sút luân lưu' : 'quay'} trúng <b>${escapeHtml(winnerOption)}</b>!"`);
 }
 
+// ===================== BÀN THẺ LẬT (chọn người khao cả team) =====================
+
+async function toggleCardGame(){
+  const pass = prompt("🔒 Nhập mật khẩu quản trị:");
+  if(pass === null) return;
+  if(!(await checkAdminPass(pass))){ alert("❌ Mật khẩu không đúng!"); return; }
+  await roomRef.child("cardGameEnabled").set(!cardGameEnabled);
+}
+
+async function resetCardGame(){
+  const pass = prompt("🔒 Nhập mật khẩu quản trị:");
+  if(pass === null) return;
+  if(!(await checkAdminPass(pass))){ alert("❌ Mật khẩu không đúng!"); return; }
+  await roomRef.child("cardSlots").remove();
+  await roomRef.child("loserName").remove();
+  cardGameTriggered = false;
+  serverLoserName = null;
+  alert("✅ Đã làm mới bàn thẻ lật!");
+}
+
+function updateCardGameToggleBtn(){
+  const btn = document.getElementById('cardGameToggleBtn');
+  if(!btn) return;
+  btn.textContent = cardGameEnabled ? "Đang BẬT – bấm để tắt" : "Đang tắt – bấm để BẬT";
+  btn.classList.toggle('on', cardGameEnabled);
+}
+
+// Số thẻ luôn bằng đúng số người chơi hiện tại trong phòng, để ai cũng có 1 thẻ để chọn.
+function renderCardGame(){
+  const box = document.getElementById('cardGameBox');
+  if(!box) return;
+
+  if(!cardGameEnabled){
+    box.style.display = 'none';
+    return;
+  }
+
+  const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
+  const cardCount = validList.length;
+  const grid = document.getElementById('cardGrid');
+  const title = document.getElementById('cardGameTitle');
+
+  if(cardCount < 2){
+    box.style.display = 'block';
+    grid.innerHTML = `<div style="grid-column: span 3; text-align:center; color: var(--marigold); font-weight:700; padding: 14px;">⚠️ Cần ít nhất 2 người chơi để mở Bàn Thẻ Lật!</div>`;
+    title.textContent = `🃏 Bàn Chọn Thẻ Định Mệnh (0/0 đã nhận)`;
+    return;
+  }
+
+  box.style.display = 'block';
+  grid.innerHTML = "";
+  let claimedCount = 0;
+
+  for(let i = 0; i < cardCount; i++){
+    const cardName = cardSlots[i];
+    const isClaimed = !!cardName;
+    if(isClaimed) claimedCount++;
+
+    const card = document.createElement('div');
+    card.className = `player-card ${isClaimed ? 'claimed' : ''}`;
+    card.innerHTML = `
+      <span class="card-icon">${isClaimed ? '👤' : '❓'}</span>
+      <span class="card-text">${isClaimed ? escapeHtml(cardName) : `Thẻ số ${i+1}`}</span>
+    `;
+
+    card.onclick = async () => {
+      if(!selectedName){
+        alert("⚠️ Vui lòng chọn tên của bạn ở danh sách bên trên trước khi nhận thẻ!");
+        return;
+      }
+      let alreadySelectedIdx = -1;
+      Object.keys(cardSlots).forEach(idx => {
+        if(cardSlots[idx] === selectedName) alreadySelectedIdx = idx;
+      });
+
+      if(isClaimed && cardName !== selectedName){
+        if(alreadySelectedIdx !== -1){
+          alert("⚠️ Bạn đã nhận 1 thẻ khác rồi!");
+        } else {
+          alert("⚠️ Thẻ này đã có người khác chọn rồi, hãy chọn thẻ khác nhé!");
+        }
+        return;
+      }
+
+      if(isClaimed && cardName === selectedName){
+        await roomRef.child("cardSlots/" + i).remove();
+        return;
+      }
+
+      if(!isClaimed){
+        if(alreadySelectedIdx !== -1){
+          await roomRef.child("cardSlots/" + alreadySelectedIdx).remove();
+        }
+        await roomRef.child("cardSlots/" + i).set(selectedName);
+      }
+    };
+
+    grid.appendChild(card);
+  }
+
+  title.textContent = `🃏 Bàn Chọn Thẻ Định Mệnh (${claimedCount}/${cardCount} đã nhận)`;
+
+  // Đủ thẻ và server chưa có kết quả -> CHIẾM quyền ghi kết quả bằng transaction, đảm bảo
+  // dù nhiều máy cùng lúc đủ điều kiện thì chỉ MỘT giá trị duy nhất được ghi lên Firebase.
+  if(claimedCount >= cardCount && claimedCount > 0 && !cardGameTriggered){
+    cardGameTriggered = true;
+    const activePlayers = Object.values(cardSlots).filter(n => !!n);
+    if(activePlayers.length > 0 && !serverLoserName){
+      const chosenLoser = activePlayers[Math.floor(Math.random() * activePlayers.length)];
+      roomRef.child("loserName").transaction(current => {
+        if(current) return; // máy khác đã chốt kết quả trước rồi -> huỷ, không ghi đè
+        return chosenLoser;
+      }).catch(()=>{});
+    }
+  }
+}
+
+// Đếm LÊN 1 -> 10 rồi lật thẻ, theo đúng yêu cầu (khác kiểu đếm ngược 3-2-1 của vòng quay).
+function startCardCountdownAndReveal(loserName){
+  const overlay = document.getElementById('cardCountdownOverlay');
+  const numEl = document.getElementById('cardCountdownNumber');
+  const labelEl = document.getElementById('cardCountdownLabel');
+  if(!overlay || !numEl || !labelEl){ showLoserResult(loserName); return; }
+
+  overlay.style.display = 'flex';
+  let count = 1;
+  numEl.textContent = count;
+  labelEl.textContent = "Đã đủ thẻ! Đếm ngược lật thẻ định mệnh...";
+  playCountdownBeep(false);
+  triggerMcVibe(`🎙️ MC: "Đã đủ thẻ chơi! Đếm từ 1 đến 10, thẻ sẽ lật!"`);
+
+  let timer = setInterval(() => {
+    count++;
+    if(count <= 10){
+      numEl.textContent = count;
+      labelEl.textContent = "Hồi hộp chờ thẻ lật...";
+      playCountdownBeep(count === 10);
+      triggerMcVibe(`🎙️ MC: "${count}..."`);
+    } else {
+      clearInterval(timer);
+      overlay.style.display = 'none';
+      showLoserResult(loserName);
+    }
+  }, 500);
+}
+
+function showLoserResult(loserName){
+  playWinSound();
+  launchConfetti();
+  document.getElementById('loserNameText').textContent = loserName;
+  document.getElementById('loserMsgText').innerHTML = `Xin chúc mừng <b>${escapeHtml(loserName)}</b> đã lật trúng thẻ định mệnh, phải khao cả team hôm nay! 🎉`;
+  document.getElementById('loserOverlay').style.display = 'flex';
+  triggerMcVibe(`🎙️ MC: "Chính xác! Gương mặt vàng khao cả team hôm nay gọi tên đại gia <b>${escapeHtml(loserName)}</b>!"`);
+}
+
+// ===================================================================================
+
 async function claimResultOnce(signature){
   try {
     const res = await roomRef.child("resultLock").transaction(current => {
@@ -1511,6 +1764,24 @@ function setupRealtimeListener(){
       state[decodedKey] = val;
     });
 
+    cardGameEnabled = !!data.cardGameEnabled;
+    cardSlots = data.cardSlots || {};
+
+    // Kiểm tra kết quả người khao được đồng bộ trên server (tránh F5 bị đổi kết quả).
+    if(data.loserName && data.loserName !== serverLoserName){
+      serverLoserName = data.loserName;
+      cardGameTriggered = true;
+      if(isFirstSnapshot){
+        // Kết quả đã có sẵn TỪ TRƯỚC khi ta mở trang -> hiển thị luôn, không replay đếm ngược.
+        showLoserResult(serverLoserName);
+      } else {
+        startCardCountdownAndReveal(serverLoserName);
+      }
+    } else if(!data.loserName){
+      serverLoserName = null;
+      cardGameTriggered = false;
+    }
+
     hint.textContent = "Đã kết nối Realtime thành công!";
     drawWheelAndText();
     updateUItexts();
@@ -1518,8 +1789,12 @@ function setupRealtimeListener(){
     updateForcedSelect();
     renderNames();
     renderResults();
+    renderCardGame();
+    updateCardGameToggleBtn();
     updateSpinButton();
     renderStatsDisplay();
+
+    isFirstSnapshot = false;
   }, (error) => {
     showError("Không kết nối được Realtime database.");
   });
@@ -1533,6 +1808,8 @@ async function resetData(){
   await roomRef.remove();
   selectedName = null;
   celebrated = false;
+  cardGameTriggered = false;
+  serverLoserName = null;
   wheelElement.style.transform = "rotate(0deg)";
   currentRotation = 0;
   alert("✅ Đã làm mới dữ liệu toàn phòng thành công!");
@@ -1557,9 +1834,13 @@ async function newRound(){
   await roomRef.child("tieRound").remove();
   await roomRef.child("tieCandidates").remove();
   await roomRef.child("resultLock").remove();
+  await roomRef.child("cardSlots").remove();
+  await roomRef.child("loserName").remove();
 
   selectedName = null;
   celebrated = false;
+  cardGameTriggered = false;
+  serverLoserName = null;
   spinning = false;
   wheelElement.style.transform = "rotate(0deg)";
   currentRotation = 0;
