@@ -163,6 +163,16 @@
     background: linear-gradient(180deg, #e8a33d, #b4893a); color: #3a2a1c;
     box-shadow: 0 4px 12px rgba(232,163,61,0.3); transform: translateY(-2px);
   }
+  .player-card.loser {
+    border-style: solid; border-color: var(--brick);
+    background: linear-gradient(180deg, #c1442e, #7a2418); color: #fff9e6;
+    box-shadow: 0 4px 16px rgba(193,68,46,0.55), 0 0 0 2px rgba(193,68,46,0.35);
+    animation: loserCardPulse 1.2s infinite ease-in-out;
+  }
+  @keyframes loserCardPulse {
+    0%, 100% { transform: translateY(-2px) scale(1); box-shadow: 0 4px 16px rgba(193,68,46,0.55), 0 0 0 2px rgba(193,68,46,0.35); }
+    50% { transform: translateY(-2px) scale(1.06); box-shadow: 0 6px 24px rgba(193,68,46,0.85), 0 0 0 3px rgba(193,68,46,0.55); }
+  }
   .player-card .card-icon { font-size: 18px; margin-bottom: 2px; }
   .player-card .card-text { font-size: 12px; font-weight: 700; word-break: break-all; }
 
@@ -223,28 +233,6 @@
     padding: 2px 4px; border-radius: 4px; line-height: 1; transition: color 0.2s;
   }
   .del-btn:hover{ color: var(--brick); background: rgba(193,68,46,0.15); }
-
-  /* Bàn Lật Thẻ chọn người khao cả team — bật/tắt được từ bảng quản trị */
-  .card-game-box {
-    background: rgba(227,192,105,0.08); border: 2px solid var(--gold);
-    padding: 14px; border-radius: 14px; margin-bottom: 14px; text-align: center;
-  }
-  .card-game-box h3 { margin: 0 0 6px; font-size: 14px; color: var(--gold); text-transform: uppercase; }
-  .card-game-sub { font-size: 12px; color: var(--chalk-cream-dim); margin-bottom: 12px; }
-  .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 4px; }
-  .player-card {
-    background: linear-gradient(180deg, #2a4a35, #163020);
-    border: 2px dashed rgba(227,192,105,0.5); border-radius: 10px;
-    padding: 12px 6px; min-height: 65px; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
-  }
-  .player-card.claimed {
-    border-style: solid; border-color: var(--gold);
-    background: linear-gradient(180deg, #e8a33d, #b4893a); color: #3a2a1c;
-    box-shadow: 0 4px 12px rgba(232,163,61,0.3); transform: translateY(-2px);
-  }
-  .player-card .card-icon { font-size: 18px; margin-bottom: 2px; }
-  .player-card .card-text { font-size: 12px; font-weight: 700; word-break: break-all; }
 
   .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin:14px 0 8px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
   .wheel-wrap.active-zoom { transform: scale(1.12); }
@@ -479,6 +467,10 @@
     
     <div style="border-top: 1px dashed var(--gold); margin: 8px 0; padding-top: 8px;">
       <div class="admin-toggle-row">
+        <label>🎡 Vòng Quay Chọn Quán:</label>
+        <button class="admin-toggle-btn on" id="wheelToggleBtn" onclick="toggleWheelGame()">Đang BẬT – bấm để tắt</button>
+      </div>
+      <div class="admin-toggle-row">
         <label>🃏 Bàn Thẻ Lật (chọn người khao cả team):</label>
         <button class="admin-toggle-btn" id="cardGameToggleBtn" onclick="toggleCardGame()">Đang tắt</button>
       </div>
@@ -514,46 +506,49 @@
     <div class="card-grid" id="cardGrid"></div>
   </div>
 
-  <div class="wheel-wrap" id="wheelWrapDiv">
-    <div class="wheel-frame">
-      <div class="light-ring" id="lightRing"></div>
-      <div class="pointer" id="pointerEl"></div>
-      <div class="wheel-container" id="wheelElement">
-        <canvas id="wheelCanvas" width="500" height="500"></canvas>
+  <!-- Toàn bộ khu vực Vòng Quay Chọn Quán — ẩn/hiện được từ bảng quản trị -->
+  <div id="wheelSection">
+    <div class="wheel-wrap" id="wheelWrapDiv">
+      <div class="wheel-frame">
+        <div class="light-ring" id="lightRing"></div>
+        <div class="pointer" id="pointerEl"></div>
+        <div class="wheel-container" id="wheelElement">
+          <canvas id="wheelCanvas" width="500" height="500"></canvas>
+        </div>
       </div>
     </div>
-  </div>
 
-  <button class="spin-btn" id="spinBtn" disabled>Chọn tên trước đã</button>
-  
-  <!-- Khu vực giao diện riêng biệt cho vòng đấu Sút Luân Lưu khi hòa điểm -->
-  <div class="tie-box" id="tieBox">
-    <h3>⚽ HIỆP PHỤ: SÚT LUÂN LƯU! ⚡</h3>
-    <div class="tie-info" id="tieInfoText">Các quán đang hòa điểm. Cuộc chiến sinh tử bắt đầu!</div>
-    <button class="tie-btn" id="tieBtn" onclick="startCountdownAndSpin(true)">Sút Luân Lưu Ngay! 🔥</button>
-  </div>
+    <button class="spin-btn" id="spinBtn" disabled>Chọn tên trước đã</button>
+    
+    <!-- Khu vực giao diện riêng biệt cho vòng đấu Sút Luân Lưu khi hòa điểm -->
+    <div class="tie-box" id="tieBox">
+      <h3>⚽ HIỆP PHỤ: SÚT LUÂN LƯU! ⚡</h3>
+      <div class="tie-info" id="tieInfoText">Các quán đang hòa điểm. Cuộc chiến sinh tử bắt đầu!</div>
+      <button class="tie-btn" id="tieBtn" onclick="startCountdownAndSpin(true)">Sút Luân Lưu Ngay! 🔥</button>
+    </div>
 
-  <div class="hint" id="hint">Đang kết nối Realtime...</div>
-  <div class="err" id="errBox"></div>
-  <div class="fair-note">⚖️ Tỉ lệ quay hoàn toàn ngẫu nhiên và bảo mật chống lách luật</div>
+    <div class="hint" id="hint">Đang kết nối Realtime...</div>
+    <div class="err" id="errBox"></div>
+    <div class="fair-note">⚖️ Tỉ lệ quay hoàn toàn ngẫu nhiên và bảo mật chống lách luật</div>
 
-  <hr class="chalk-line">
+    <hr class="chalk-line">
 
-  <div class="results-title">Kết quả cả nhóm</div>
-  <div class="bars" id="bars"></div>
-  <div class="tickets" id="tickets"></div>
-  <div class="tally" id="tally"></div>
-  
-  <div class="history-box" id="historyBox">
-    📊 Thống kê lịch sử: <span id="historyStatsText">Đang tải...</span>
+    <div class="results-title">Kết quả cả nhóm</div>
+    <div class="bars" id="bars"></div>
+    <div class="tickets" id="tickets"></div>
+    <div class="tally" id="tally"></div>
+    
+    <div class="history-box" id="historyBox">
+      📊 Thống kê lịch sử: <span id="historyStatsText">Đang tải...</span>
+    </div>
+
+    <div class="footnote">Mỗi người tự mở link này, chọn đúng tên mình và quay. Màn hình TV tự động cập nhật real-time.</div>
   </div>
 
   <div class="reset-container">
     <button class="newround-btn" onclick="newRound()">🔄 VÁN MỚI (giữ nguyên người chơi & quán)</button>
     <button class="reset-btn" onclick="resetData()">🗑️ Xóa toàn bộ dữ liệu & làm lại từ đầu</button>
   </div>
-
-  <div class="footnote">Mỗi người tự mở link này, chọn đúng tên mình và quay. Màn hình TV tự động cập nhật real-time.</div>
 </div>
 
 <!-- Lớp overlay đếm ngược kịch tính 3, 2, 1 TRƯỚC và SAU khi quay -->
@@ -621,7 +616,14 @@ let soundEnabled = false;
 let cardGameEnabled = false;
 let cardSlots = {};
 let cardGameTriggered = false;
+
+// Trạng thái hiện/ẩn của cả khu vực Vòng Quay Chọn Quán — mặc định BẬT để không phá vỡ các
+// phòng cũ đã tồn tại trước khi có tính năng này (chưa có cờ này trong Firebase = coi như bật).
+let wheelEnabled = true;
 let serverLoserName = null;
+// Chỉ set khi thẻ ĐÃ THỰC SỰ LẬT (đồng bộ đúng lúc popup hiện ra) — để không lộ kết quả đỏ
+// trên thẻ trong lúc màn đếm ngược 1→10 còn đang chạy, giữ nguyên sự hồi hộp.
+let revealedLoserName = null;
 
 // Đánh dấu lần đầu tải dữ liệu phòng: nếu kết quả (người khao) đã có sẵn TỪ TRƯỚC khi ta
 // mới mở trang, ta chỉ hiển thị kết quả luôn, KHÔNG replay lại hiệu ứng đếm ngược/confetti.
@@ -1260,6 +1262,25 @@ function showPersonalResult(winnerOption, isTieBreaker){
 
 // ===================== BÀN THẺ LẬT (chọn người khao cả team) =====================
 
+async function toggleWheelGame(){
+  const pass = prompt("🔒 Nhập mật khẩu quản trị:");
+  if(pass === null) return;
+  if(!(await checkAdminPass(pass))){ alert("❌ Mật khẩu không đúng!"); return; }
+  await roomRef.child("wheelEnabled").set(!wheelEnabled);
+}
+
+function updateWheelToggleBtn(){
+  const btn = document.getElementById('wheelToggleBtn');
+  if(!btn) return;
+  btn.textContent = wheelEnabled ? "Đang BẬT – bấm để tắt" : "Đang tắt – bấm để BẬT";
+  btn.classList.toggle('on', wheelEnabled);
+}
+
+function applyWheelVisibility(){
+  const section = document.getElementById('wheelSection');
+  if(section) section.style.display = wheelEnabled ? '' : 'none';
+}
+
 async function toggleCardGame(){
   const pass = prompt("🔒 Nhập mật khẩu quản trị:");
   if(pass === null) return;
@@ -1275,6 +1296,7 @@ async function resetCardGame(){
   await roomRef.child("loserName").remove();
   cardGameTriggered = false;
   serverLoserName = null;
+  revealedLoserName = null;
   alert("✅ Đã làm mới bàn thẻ lật!");
 }
 
@@ -1315,11 +1337,12 @@ function renderCardGame(){
     const cardName = cardSlots[i];
     const isClaimed = !!cardName;
     if(isClaimed) claimedCount++;
+    const isLoser = !!revealedLoserName && cardName === revealedLoserName;
 
     const card = document.createElement('div');
-    card.className = `player-card ${isClaimed ? 'claimed' : ''}`;
+    card.className = `player-card ${isClaimed ? 'claimed' : ''} ${isLoser ? 'loser' : ''}`;
     card.innerHTML = `
-      <span class="card-icon">${isClaimed ? '👤' : '❓'}</span>
+      <span class="card-icon">${isLoser ? '💸' : (isClaimed ? '👤' : '❓')}</span>
       <span class="card-text">${isClaimed ? escapeHtml(cardName) : `Thẻ số ${i+1}`}</span>
     `;
 
@@ -1405,6 +1428,8 @@ function startCardCountdownAndReveal(loserName){
 }
 
 function showLoserResult(loserName){
+  revealedLoserName = loserName;
+  renderCardGame();
   playWinSound();
   launchConfetti();
   document.getElementById('loserNameText').textContent = loserName;
@@ -1816,6 +1841,7 @@ function setupRealtimeListener(){
       state[decodedKey] = val;
     });
 
+    wheelEnabled = data.wheelEnabled === undefined ? true : !!data.wheelEnabled;
     cardGameEnabled = !!data.cardGameEnabled;
     cardSlots = data.cardSlots || {};
 
@@ -1831,10 +1857,13 @@ function setupRealtimeListener(){
       }
     } else if(!data.loserName){
       serverLoserName = null;
+      revealedLoserName = null;
       cardGameTriggered = false;
     }
 
     hint.textContent = "Đã kết nối Realtime thành công!";
+    applyWheelVisibility();
+    updateWheelToggleBtn();
     drawWheelAndText();
     updateUItexts();
     renderAdminShopInputs();
@@ -1862,6 +1891,7 @@ async function resetData(){
   celebrated = false;
   cardGameTriggered = false;
   serverLoserName = null;
+  revealedLoserName = null;
   wheelElement.style.transform = "rotate(0deg)";
   currentRotation = 0;
   stopWinnerHighlight();
@@ -1894,6 +1924,7 @@ async function newRound(){
   celebrated = false;
   cardGameTriggered = false;
   serverLoserName = null;
+  revealedLoserName = null;
   spinning = false;
   wheelElement.style.transform = "rotate(0deg)";
   currentRotation = 0;
