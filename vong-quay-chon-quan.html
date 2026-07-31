@@ -222,6 +222,17 @@
     color:#3a2a1c; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center;
     box-shadow:0 2px 4px rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.5);
   }
+  .name-btn.done{
+    border-color: rgba(127,166,92,0.6);
+    background: linear-gradient(180deg, rgba(127,166,92,0.32), rgba(127,166,92,0.1));
+    box-shadow: 0 0 0 1px rgba(127,166,92,0.35) inset;
+  }
+  .name-btn.done .tag{ color: var(--paddy); font-weight: 700; }
+  .name-btn.done.selected{
+    border-color: var(--gold);
+    background: linear-gradient(180deg, rgba(127,166,92,0.32), rgba(227,192,105,0.14));
+    box-shadow: 0 0 0 1px rgba(227,192,105,0.4) inset, 0 0 15px rgba(227,192,105,0.35);
+  }
   .name-btn:disabled{ opacity:0.4; cursor:not-allowed; }
   .name-btn:disabled > span{ text-decoration:line-through; }
   .name-btn:disabled .tag{ text-decoration:none; }
@@ -1556,6 +1567,7 @@ function renderNames(){
     // khoá khi bánh xe đang thực sự quay (spinning) — việc chặn quay lại vẫn được bảo vệ riêng
     // bởi nút "Quay" (updateSpinButton) và transaction trong executeSpinAction().
     btn.disabled = spinning;
+    btn.classList.toggle('done', isDone);
     if(selectedName === name) btn.classList.add('selected');
 
     const delBtn = document.createElement('button');
