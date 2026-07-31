@@ -1000,9 +1000,16 @@ function copyRoomLink(){
 }
 
 function updateUItexts(){
-  const shopNamesStr = OPTIONS.join(" hay ");
   const subEl = document.getElementById('subTitleText');
-  if(subEl) subEl.textContent = `${shopNamesStr}? Mỗi người được quay ${maxAllowedSpins} lần — chống spam F5!`;
+  if(!subEl) return;
+  if(wheelEnabled){
+    const shopNamesStr = OPTIONS.join(" hay ");
+    subEl.textContent = `${shopNamesStr}? Mỗi người được quay ${maxAllowedSpins} lần — chống spam F5!`;
+  } else if(cardGameEnabled){
+    subEl.textContent = `Chọn đúng tên bạn rồi bấm nhận 1 thẻ định mệnh — ai lật trúng thì khao cả team!`;
+  } else {
+    subEl.textContent = `Chọn tên bạn để tham gia nhé!`;
+  }
 }
 
 async function changeMaxSpins(val){
