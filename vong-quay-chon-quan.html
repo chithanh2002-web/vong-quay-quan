@@ -7,6 +7,9 @@
 <meta property="og:title" content="Vòng Quay May Mắn 🎡">
 <meta property="og:description" content="Quán nào hôm nay? Bấm vào chọn tên bạn rồi quay ngay!">
 <meta property="og:type" content="website">
+<meta name="theme-color" content="#152b1e">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎡</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23152b1e%22/><text x=%2250%22 y=%2268%22 font-size=%2260%22 text-anchor=%22middle%22>🎡</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Import Firebase SDK (Compat v8) -->
@@ -645,6 +648,7 @@ let OPTIONS = ["112", "Hương Lúa"];
 let maxAllowedSpins = 1;
 let serverAdminPassHash = null;
 const DEFAULT_ADMIN_PASS = "2034";
+let usingDefaultAdminPass = false;
 let forcedWinnerSetting = "RANDOM";
 let serverStats = {};
 
@@ -934,7 +938,11 @@ document.getElementById('mainTitle').addEventListener('click', async () => {
 
         const panel = document.getElementById('adminPanel');
         panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-        alert("🔓 Đã mở khóa tính năng quản trị phòng thành công!");
+        if(usingDefaultAdminPass){
+          alert("🔓 Đã mở khóa tính năng quản trị phòng thành công!\n\n⚠️ LƯU Ý BẢO MẬT: phòng này đang dùng mật khẩu MẶC ĐỊNH (ai đọc code cũng đoán được). Hãy vào mục 🔑 Bảo mật bên dưới để đổi mật khẩu riêng ngay!");
+        } else {
+          alert("🔓 Đã mở khóa tính năng quản trị phòng thành công!");
+        }
       } else {
         alert("❌ Mật khẩu sai!");
       }
@@ -1863,10 +1871,14 @@ function setupRealtimeListener(){
 
     if(data.adminPassHash){
       serverAdminPassHash = String(data.adminPassHash);
+      // Cảnh báo bảo mật: hash trùng với mật khẩu mặc định "2034" trong code nghĩa là admin
+      // chưa từng đổi mật khẩu — ai đọc source đều đoán được, nên cần nhắc đổi khi mở bảng quản trị.
+      usingDefaultAdminPass = (serverAdminPassHash === (await sha256Hex(DEFAULT_ADMIN_PASS)));
       if(data.adminPass) roomRef.child("adminPass").remove();
     } else {
       const plain = data.adminPass ? String(data.adminPass) : DEFAULT_ADMIN_PASS;
       serverAdminPassHash = await sha256Hex(plain);
+      usingDefaultAdminPass = (plain === DEFAULT_ADMIN_PASS);
       roomRef.child("adminPassHash").set(serverAdminPassHash);
       if(data.adminPass) roomRef.child("adminPass").remove();
     }
