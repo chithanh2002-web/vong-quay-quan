@@ -49,7 +49,8 @@
   .board.spinning-active .spin-btn,
   .board.spinning-active .congrats-overlay,
   .board.spinning-active .mc-banner,
-  .board.spinning-active .fullscreen-btn { filter: none; pointer-events: auto; }
+  .board.spinning-active .top-controls { filter: none; pointer-events: auto; }
+
 
   /* Hiệu ứng chế độ Toàn Màn Hình (Fullscreen) cho TV */
   body.is-fullscreen {
@@ -67,13 +68,26 @@
     grid-template-columns: repeat(4, 1fr) !important;
   }
 
-  .fullscreen-btn {
+  .top-controls {
     position: fixed; top: 12px; right: 12px; z-index: 100;
+    display: flex; gap: 8px; align-items: center;
+  }
+  .fullscreen-btn, .settings-btn {
     background: rgba(227,192,105,0.2); border: 1.5px solid var(--gold);
     color: var(--gold); padding: 6px 12px; border-radius: 8px; font-weight: 700;
     font-size: 12px; cursor: pointer; transition: background 0.2s;
+    font-family: inherit;
   }
-  .fullscreen-btn:hover { background: rgba(227,192,105,0.4); }
+  .fullscreen-btn:hover, .settings-btn:hover { background: rgba(227,192,105,0.4); }
+  .settings-btn {
+    width: 38px; height: 38px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; border-radius: 10px;
+  }
+  .settings-btn.unlocked {
+    background: rgba(127,166,92,0.3); border-color: var(--paddy); color: var(--paddy);
+  }
+
 
   .eyebrow{ text-align:center; font-size:11px; letter-spacing:0.24em; text-transform:uppercase; color:var(--marigold); font-weight:600; margin-bottom:4px; }
   h1{ text-align:center; font-size:24px; font-weight:800; margin:0 0 4px; cursor:pointer; user-select:none; }
@@ -161,6 +175,12 @@
     padding: 12px 6px; min-height: 65px; display: flex; flex-direction: column;
     align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
   }
+  .player-card:hover:not(.claimed):not(.loser) {
+    border-color: var(--gold);
+    background: linear-gradient(180deg, #345a40, #1c3a28);
+    transform: translateY(-2px);
+  }
+
   .player-card.claimed {
     border-style: solid; border-color: var(--gold);
     background: linear-gradient(180deg, #e8a33d, #b4893a); color: #3a2a1c;
@@ -209,6 +229,12 @@
     color:var(--chalk-cream); font-family:inherit;
     font-weight:700; font-size:13.5px; cursor:pointer; transition:all 0.18s ease;
   }
+  .name-btn:hover:not(:disabled){
+    border-color: rgba(227,192,105,0.65);
+    background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.1));
+    transform: translateY(-1px);
+  }
+
   .name-btn.selected{
     border-color:var(--gold);
     background:linear-gradient(180deg, rgba(227,192,105,0.28), rgba(227,192,105,0.1));
@@ -312,8 +338,12 @@
     transition:transform 4.5s cubic-bezier(0.1, 0.82, 0.1, 1);
     overflow: hidden;
     border: 4px solid var(--gold);
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
   }
   .wheel-container canvas { width: 100%; height: 100%; display: block; border-radius: 50%; }
+
 
   .spin-btn{
     margin-top:14px; width:100%; padding:15px; border-radius:12px;
@@ -466,11 +496,146 @@
     box-shadow: 0 4px 12px rgba(193,68,46,0.4); transition: transform 0.1s;
   }
   .congrats-close:active{ transform: scale(0.97); }
+
+  /* ========== CUSTOM MODAL SYSTEM ========== */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 2000;
+    display: none; align-items: center; justify-content: center;
+    padding: 16px;
+    background: rgba(8, 20, 14, 0.88);
+    backdrop-filter: blur(6px);
+    animation: modalFadeIn 0.22s ease-out;
+  }
+  .modal-overlay.show { display: flex; }
+  @keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .modal-card {
+    width: 100%; max-width: 340px;
+    padding: 24px 20px 20px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #2a4a35, #163020);
+    border: 2.5px solid var(--marigold);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.7), 0 0 0 8px rgba(232,163,61,0.12);
+    animation: modalBounce 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-align: center;
+  }
+  @keyframes modalBounce {
+    from { transform: scale(0.75); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal-icon {
+    font-size: 42px; display: block; margin-bottom: 6px;
+    line-height: 1;
+  }
+  .modal-title {
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--chalk-cream-dim); margin-bottom: 6px; font-weight: 600;
+  }
+  .modal-message {
+    font-size: 15px; color: var(--chalk-cream); line-height: 1.45;
+    margin-bottom: 16px; font-weight: 600;
+    white-space: pre-line;
+  }
+  .modal-input {
+    width: 100%; padding: 12px 14px; border-radius: 10px;
+    border: 1.5px solid var(--gold); background: #152b1e;
+    color: var(--chalk-cream); font-family: inherit; font-size: 14px;
+    margin-bottom: 16px; outline: none; text-align: center;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .modal-input:focus {
+    border-color: var(--marigold);
+    box-shadow: 0 0 0 3px rgba(232,163,61,0.25);
+  }
+  .modal-input::placeholder { color: rgba(242,236,216,0.35); }
+  .modal-btns {
+    display: flex; gap: 10px;
+  }
+  .modal-btn {
+    flex: 1; padding: 12px 10px; border-radius: 999px; border: none;
+    font-family: inherit; font-weight: 700; font-size: 14px;
+    cursor: pointer; transition: transform 0.1s, opacity 0.15s;
+  }
+  .modal-btn:active { transform: scale(0.96); }
+  .modal-btn-primary {
+    background: linear-gradient(180deg, #f3b552, #c88321);
+    color: #241a10;
+    box-shadow: 0 4px 12px rgba(200,131,33,0.4);
+  }
+  .modal-btn-primary:hover { opacity: 0.92; }
+  .modal-btn-danger {
+    background: var(--brick);
+    color: var(--chalk-cream);
+    box-shadow: 0 4px 12px rgba(193,68,46,0.4);
+  }
+  .modal-btn-secondary {
+    background: rgba(242,236,216,0.1);
+    border: 1.5px solid rgba(242,236,216,0.25);
+    color: var(--chalk-cream-dim);
+  }
+  .modal-btn-secondary:hover { background: rgba(242,236,216,0.16); }
+  .modal-btn-single { max-width: 180px; margin: 0 auto; }
+
+  /* ========== ADMIN ACCORDION ========== */
+  .admin-section {
+    border-top: 1px dashed rgba(227,192,105,0.35);
+    margin-top: 6px;
+  }
+  .admin-section:first-of-type { border-top: none; margin-top: 0; }
+  .admin-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: 10px 4px; background: none; border: none;
+    color: var(--gold); font-family: inherit; font-size: 13px; font-weight: 700;
+    cursor: pointer; text-align: left; gap: 8px;
+  }
+  .admin-section-header:hover { color: var(--marigold); }
+  .admin-section-header .chevron {
+    font-size: 11px; transition: transform 0.25s ease; color: var(--chalk-cream-dim);
+  }
+  .admin-section.open .admin-section-header .chevron { transform: rotate(180deg); }
+  .admin-section-body {
+    max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.25s ease;
+    padding: 0 2px;
+  }
+  .admin-section.open .admin-section-body {
+    max-height: 500px; padding: 0 2px 10px;
+  }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 420px) {
+    body { padding: 16px 10px 32px; }
+    h1 { font-size: 20px; }
+    .names { grid-template-columns: repeat(2, 1fr) !important; }
+    .name-btn { font-size: 12.5px; padding: 8px 4px 8px 16px; }
+    .wheel-frame { width: 230px !important; height: 230px !important; }
+    .spin-btn { font-size: 15px; padding: 13px; }
+    .card-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .top-controls { top: 8px; right: 8px; gap: 6px; }
+    .fullscreen-btn { font-size: 11px; padding: 5px 8px; }
+    .settings-btn { width: 34px; height: 34px; font-size: 16px; }
+    .mc-banner { font-size: 12px; padding: 8px 10px; }
+    .add-player-box { flex-direction: column; }
+    .add-player-btn { width: 100%; }
+    .room-bar { flex-wrap: wrap; }
+    .room-btn { flex: 1; }
+  }
+  @media (min-width: 421px) and (max-width: 600px) {
+    .names { grid-template-columns: repeat(3, 1fr); }
+  }
+  body.is-fullscreen .top-controls { top: 8px; right: 8px; }
+  body.is-fullscreen .settings-btn { display: none; }
 </style>
+
+
 </head>
 <body>
 
-<button class="fullscreen-btn" onclick="toggleFullScreen()" title="Phóng to màn hình cho TV">📺 Phóng to TV</button>
+<div class="top-controls">
+  <button class="settings-btn" id="settingsBtn" onclick="openAdminPanel()" title="Cài đặt quản trị">⚙️</button>
+  <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Phóng to màn hình cho TV">📺 TV</button>
+</div>
 
 <div class="board" id="mainBoard">
   <div class="eyebrow" id="roomEyebrow">Phòng: Mặc định</div>
@@ -494,46 +659,74 @@
 
   <div class="admin-panel" id="adminPanel">
     <h4>🎛️ Bảng Điều Khiển Quản Trị</h4>
-    
-    <div style="margin-bottom: 10px;">
-      <label style="font-size: 12px; color: var(--gold); display: block; margin-bottom: 4px;">🎯 Số lượt quay tối đa mỗi người:</label>
-      <select class="admin-select" id="maxSpinsSelect" onchange="changeMaxSpins(this.value)">
-        <option value="1">1 lần quay mỗi người</option>
-        <option value="2">2 lần quay mỗi người</option>
-        <option value="3">3 lần quay mỗi người</option>
-      </select>
-    </div>
 
-    <select class="admin-select" id="forcedResultSelect" onchange="changeForcedResult(this.value)">
-      <option value="RANDOM">🎲 Ngẫu nhiên hoàn toàn</option>
-    </select>
-    
-    <div style="border-top: 1px dashed var(--gold); margin: 8px 0; padding-top: 8px;">
-      <div class="admin-toggle-row">
-        <label>🎡 Vòng Quay May Mắn:</label>
-        <button class="admin-toggle-btn on" id="wheelToggleBtn" onclick="toggleWheelGame()">Đang BẬT – bấm để tắt</button>
-      </div>
-      <div class="admin-toggle-row">
-        <label>🃏 Bàn Thẻ Lật (chọn người khao cả team):</label>
-        <button class="admin-toggle-btn" id="cardGameToggleBtn" onclick="toggleCardGame()">Đang tắt</button>
-      </div>
-      <button class="admin-action-btn" style="background: var(--brick); color: #fff; width: 100%; padding: 8px; font-weight: 800;" onclick="resetCardGame()">🔄 Làm mới bàn thẻ lật</button>
-    </div>
-
-    <div style="border-top: 1px dashed var(--gold); margin: 8px 0; padding-top: 8px;">
-      <h4 style="margin:0 0 6px;">✏️ Quản lý danh sách quán:</h4>
-      <div class="admin-shops-box" id="adminShopsContainer"></div>
-      <div class="admin-btn-row">
-        <button class="admin-action-btn admin-add-shop" onclick="addShopInput()">+ Thêm quán</button>
-        <button class="admin-action-btn admin-save-btn" onclick="saveShopNames()">💾 Lưu tất cả</button>
+    <!-- Section: Cài đặt quay -->
+    <div class="admin-section open" data-section="spin">
+      <button type="button" class="admin-section-header" onclick="toggleAdminSection(this)">
+        <span>🎯 Cài đặt quay</span>
+        <span class="chevron">▼</span>
+      </button>
+      <div class="admin-section-body">
+        <label style="font-size: 12px; color: var(--gold); display: block; margin-bottom: 4px;">Số lượt quay tối đa mỗi người:</label>
+        <select class="admin-select" id="maxSpinsSelect" onchange="changeMaxSpins(this.value)">
+          <option value="1">1 lần quay mỗi người</option>
+          <option value="2">2 lần quay mỗi người</option>
+          <option value="3">3 lần quay mỗi người</option>
+        </select>
+        <label style="font-size: 12px; color: var(--gold); display: block; margin: 8px 0 4px;">Ép kết quả (nếu cần):</label>
+        <select class="admin-select" id="forcedResultSelect" onchange="changeForcedResult(this.value)">
+          <option value="RANDOM">🎲 Ngẫu nhiên hoàn toàn</option>
+        </select>
       </div>
     </div>
 
-    <div style="border-top: 1px dashed var(--gold); margin: 8px 0; padding-top: 8px;">
-      <h4 style="margin:0 0 6px;">🔑 Bảo mật:</h4>
-      <button class="admin-action-btn admin-save-btn" style="width:100%" onclick="changeAdminPassword()">🔑 Đổi mật khẩu quản trị</button>
+    <!-- Section: Bật/Tắt game -->
+    <div class="admin-section" data-section="games">
+      <button type="button" class="admin-section-header" onclick="toggleAdminSection(this)">
+        <span>🎮 Bật / Tắt game</span>
+        <span class="chevron">▼</span>
+      </button>
+      <div class="admin-section-body">
+        <div class="admin-toggle-row">
+          <label>🎡 Vòng Quay May Mắn:</label>
+          <button class="admin-toggle-btn on" id="wheelToggleBtn" onclick="toggleWheelGame()">Đang BẬT – bấm để tắt</button>
+        </div>
+        <div class="admin-toggle-row">
+          <label>🃏 Bàn Thẻ Lật:</label>
+          <button class="admin-toggle-btn" id="cardGameToggleBtn" onclick="toggleCardGame()">Đang tắt</button>
+        </div>
+        <button class="admin-action-btn" style="background: var(--brick); color: #fff; width: 100%; padding: 8px; font-weight: 800; margin-top: 4px;" onclick="resetCardGame()">🔄 Làm mới bàn thẻ lật</button>
+      </div>
+    </div>
+
+    <!-- Section: Quản lý quán -->
+    <div class="admin-section" data-section="shops">
+      <button type="button" class="admin-section-header" onclick="toggleAdminSection(this)">
+        <span>✏️ Danh sách quán</span>
+        <span class="chevron">▼</span>
+      </button>
+      <div class="admin-section-body">
+        <div class="admin-shops-box" id="adminShopsContainer"></div>
+        <div class="admin-btn-row">
+          <button class="admin-action-btn admin-add-shop" onclick="addShopInput()">+ Thêm quán</button>
+          <button class="admin-action-btn admin-save-btn" onclick="saveShopNames()">💾 Lưu tất cả</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Bảo mật & Phòng -->
+    <div class="admin-section" data-section="security">
+      <button type="button" class="admin-section-header" onclick="toggleAdminSection(this)">
+        <span>🔑 Bảo mật & Phòng</span>
+        <span class="chevron">▼</span>
+      </button>
+      <div class="admin-section-body">
+        <button class="admin-action-btn admin-save-btn" style="width:100%; margin-bottom: 8px;" onclick="changeAdminPassword()">🔑 Đổi mật khẩu quản trị</button>
+        <button class="admin-action-btn" style="width:100%; background: rgba(127,166,92,0.25); border: 1px solid var(--paddy); color: var(--paddy);" onclick="document.getElementById('roomBar').style.display = document.getElementById('roomBar').style.display === 'flex' ? 'none' : 'flex'">🏠 Hiện / Ẩn thanh đổi phòng</button>
+      </div>
     </div>
   </div>
+
 
   <div class="add-player-box">
     <input type="text" id="newPlayerInput" class="add-player-input" placeholder="Nhập tên người chơi mới...">
@@ -698,10 +891,155 @@ function triggerMcVibe(customText = null){
   }
 }
 
+/* ========== CUSTOM MODAL SYSTEM (thay alert / prompt) ========== */
+let _modalResolve = null;
+let _modalKeyHandler = null;
+
+function _closeModal(result){
+  const overlay = document.getElementById('customModal');
+  if(overlay) overlay.classList.remove('show');
+  if(_modalKeyHandler){
+    document.removeEventListener('keydown', _modalKeyHandler);
+    _modalKeyHandler = null;
+  }
+  if(_modalResolve){
+    const r = _modalResolve;
+    _modalResolve = null;
+    r(result);
+  }
+}
+
+
+/**
+ * showModal options:
+ *   icon, title, message, input (bool), inputType ('text'|'password'),
+ *   inputPlaceholder, inputValue, confirmText, cancelText, showCancel (bool),
+ *   danger (bool) — primary button màu đỏ
+ * Returns Promise: string (prompt) | true/false (confirm) | true (alert)
+ */
+function showModal(opts = {}){
+  return new Promise(resolve => {
+    _modalResolve = resolve;
+    const overlay = document.getElementById('customModal');
+    const iconEl = document.getElementById('modalIcon');
+    const titleEl = document.getElementById('modalTitle');
+    const msgEl = document.getElementById('modalMessage');
+    const inputEl = document.getElementById('modalInput');
+    const btnsEl = document.getElementById('modalBtns');
+    const confirmBtn = document.getElementById('modalConfirmBtn');
+    const cancelBtn = document.getElementById('modalCancelBtn');
+
+    iconEl.textContent = opts.icon || '💬';
+    titleEl.textContent = opts.title || 'Thông báo';
+    msgEl.textContent = opts.message || '';
+
+    const needInput = !!opts.input;
+    inputEl.style.display = needInput ? 'block' : 'none';
+    if(needInput){
+      inputEl.type = opts.inputType || 'text';
+      inputEl.placeholder = opts.inputPlaceholder || '';
+      inputEl.value = opts.inputValue || '';
+    }
+
+    const showCancel = opts.showCancel !== false && (needInput || opts.confirm !== undefined || opts.cancelText);
+    cancelBtn.style.display = showCancel ? '' : 'none';
+    cancelBtn.textContent = opts.cancelText || 'Hủy';
+
+    confirmBtn.textContent = opts.confirmText || 'OK';
+    confirmBtn.className = 'modal-btn ' + (opts.danger ? 'modal-btn-danger' : 'modal-btn-primary');
+    if(!showCancel){
+      confirmBtn.classList.add('modal-btn-single');
+      btnsEl.style.justifyContent = 'center';
+    } else {
+      confirmBtn.classList.remove('modal-btn-single');
+      btnsEl.style.justifyContent = '';
+    }
+
+    confirmBtn.onclick = () => {
+      if(needInput){
+        _closeModal(inputEl.value);
+      } else {
+        _closeModal(true);
+      }
+    };
+    cancelBtn.onclick = () => _closeModal(needInput ? null : false);
+
+    // Enter / Escape
+    inputEl.onkeydown = (e) => {
+      if(e.key === 'Enter'){ e.preventDefault(); confirmBtn.click(); }
+      if(e.key === 'Escape'){ e.preventDefault(); cancelBtn.click(); }
+    };
+    _modalKeyHandler = (e) => {
+      if(e.key === 'Escape'){ e.preventDefault(); cancelBtn.click(); }
+      if(e.key === 'Enter' && !needInput){ e.preventDefault(); confirmBtn.click(); }
+    };
+    document.addEventListener('keydown', _modalKeyHandler);
+
+    overlay.classList.add('show');
+    if(needInput){
+      setTimeout(() => { inputEl.focus(); inputEl.select(); }, 80);
+    } else {
+      setTimeout(() => confirmBtn.focus(), 80);
+    }
+  });
+}
+
+
+function showAlert(message, opts = {}){
+  return showModal({
+    icon: opts.icon || '✅',
+    title: opts.title || 'Thông báo',
+    message,
+    showCancel: false,
+    confirmText: opts.confirmText || 'Đã hiểu',
+    danger: opts.danger || false
+  });
+}
+
+function showConfirm(message, opts = {}){
+  return showModal({
+    icon: opts.icon || '❓',
+    title: opts.title || 'Xác nhận',
+    message,
+    showCancel: true,
+    confirmText: opts.confirmText || 'Đồng ý',
+    cancelText: opts.cancelText || 'Hủy',
+    danger: opts.danger || false
+  });
+}
+
+function showPrompt(message, opts = {}){
+  return showModal({
+    icon: opts.icon || '✏️',
+    title: opts.title || 'Nhập thông tin',
+    message,
+    input: true,
+    inputType: opts.inputType || 'text',
+    inputPlaceholder: opts.inputPlaceholder || '',
+    inputValue: opts.inputValue || '',
+    showCancel: true,
+    confirmText: opts.confirmText || 'Xác nhận',
+    cancelText: opts.cancelText || 'Hủy',
+    danger: opts.danger || false
+  });
+}
+
+function showPasswordPrompt(message, opts = {}){
+  return showPrompt(message, {
+    icon: opts.icon || '🔒',
+    title: opts.title || 'Bảo mật',
+    inputType: 'password',
+    inputPlaceholder: opts.inputPlaceholder || 'Nhập mật khẩu...',
+    confirmText: opts.confirmText || 'Xác nhận',
+    cancelText: opts.cancelText || 'Hủy',
+    ...opts
+  });
+}
+
 function toggleFullScreen(){
   if(!document.fullscreenElement){
     document.documentElement.requestFullscreen().catch(err => {
-      alert("Trình duyệt không hỗ trợ chế độ toàn màn hình tự động.");
+      showAlert("Trình duyệt không hỗ trợ chế độ toàn màn hình tự động.", { icon: '⚠️', title: 'Không hỗ trợ' });
     });
     document.body.classList.add('is-fullscreen');
   } else {
@@ -711,6 +1049,7 @@ function toggleFullScreen(){
     document.body.classList.remove('is-fullscreen');
   }
 }
+
 
 async function sha256Hex(str){
   const data = new TextEncoder().encode(String(str));
@@ -726,24 +1065,45 @@ async function checkAdminPass(pass){
 }
 
 async function changeAdminPassword(){
-  const currentPass = prompt("🔒 Nhập mật khẩu quản trị HIỆN TẠI để xác nhận:");
+  const currentPass = await showPasswordPrompt("Nhập mật khẩu quản trị HIỆN TẠI để xác nhận:", {
+    title: 'Xác thực quản trị',
+    inputPlaceholder: 'Mật khẩu hiện tại...'
+  });
   if(currentPass === null) return;
-  if(!(await checkAdminPass(currentPass))){ alert("❌ Mật khẩu hiện tại không đúng!"); return; }
+  if(!(await checkAdminPass(currentPass))){
+    await showAlert("Mật khẩu hiện tại không đúng!", { icon: '❌', title: 'Sai mật khẩu', danger: true });
+    return;
+  }
 
-  const newPass = prompt("🔑 Nhập mật khẩu MỚI (nên khác mặc định, tối thiểu 4 ký tự):");
+  const newPass = await showPasswordPrompt("Nhập mật khẩu MỚI (tối thiểu 4 ký tự):", {
+    title: 'Đổi mật khẩu',
+    inputPlaceholder: 'Mật khẩu mới...'
+  });
   if(newPass === null) return;
-  if(newPass.trim().length < 4){ alert("⚠️ Mật khẩu mới cần ít nhất 4 ký tự!"); return; }
+  if(newPass.trim().length < 4){
+    await showAlert("Mật khẩu mới cần ít nhất 4 ký tự!", { icon: '⚠️', title: 'Không hợp lệ' });
+    return;
+  }
 
-  const confirmPass = prompt("🔑 Nhập lại mật khẩu MỚI để xác nhận:");
+  const confirmPass = await showPasswordPrompt("Nhập lại mật khẩu MỚI để xác nhận:", {
+    title: 'Xác nhận mật khẩu',
+    inputPlaceholder: 'Nhập lại mật khẩu mới...'
+  });
   if(confirmPass === null) return;
-  if(confirmPass !== newPass){ alert("❌ Hai lần nhập không khớp nhau!"); return; }
+  if(confirmPass !== newPass){
+    await showAlert("Hai lần nhập không khớp nhau!", { icon: '❌', title: 'Không khớp', danger: true });
+    return;
+  }
 
   const newHash = await sha256Hex(newPass.trim());
   await roomRef.child("adminPassHash").set(newHash);
   serverAdminPassHash = newHash;
 
-  alert("✅ Đã đổi mật khẩu quản trị thành công! Hãy nhớ mật khẩu mới, vì bản mặc định trong code sẽ không còn dùng được nữa.");
+  await showAlert("Đã đổi mật khẩu quản trị thành công!\nHãy nhớ mật khẩu mới, vì bản mặc định trong code sẽ không còn dùng được nữa.", {
+    icon: '✅', title: 'Thành công'
+  });
 }
+
 
 function escapeHtml(str){
   return String(str)
@@ -766,61 +1126,66 @@ function getShopIcon(name){
   return "🍽️";
 }
 
-function drawWheelAndText(){
+// Cache canvas context + fingerprint danh sách quán để tránh vẽ lại không cần thiết
+let _wheelCtx = null;
+let _wheelCacheKey = '';
+let _offscreenWheel = null; // canvas cache phần tĩnh (không highlight)
+
+function getWheelCtx(){
+  if(_wheelCtx) return _wheelCtx;
   const canvas = document.getElementById('wheelCanvas');
-  if(!canvas) return;
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
-  let activeOptions = (tieRound > 0 && tieCandidates && tieCandidates.length >= 2) ? tieCandidates : OPTIONS;
+  if(!canvas) return null;
+  _wheelCtx = canvas.getContext('2d');
+  return _wheelCtx;
+}
+
+function getActiveWheelOptions(){
+  return (tieRound > 0 && tieCandidates && tieCandidates.length >= 2) ? tieCandidates : OPTIONS;
+}
+
+function wheelOptionsKey(opts){
+  return opts.join('\0') + '|' + (winningHighlightName || '');
+}
+
+/** Vẽ 1 lần các múi + chữ lên offscreen (không pulse) */
+function buildStaticWheel(activeOptions){
+  const size = 500;
+  if(!_offscreenWheel){
+    _offscreenWheel = document.createElement('canvas');
+    _offscreenWheel.width = size;
+    _offscreenWheel.height = size;
+  }
+  const octx = _offscreenWheel.getContext('2d');
+  octx.clearRect(0, 0, size, size);
+
   const count = activeOptions.length;
   if(count === 0) return;
 
   const sliceAngle = (2 * Math.PI) / count;
-  const centerX = 250;
-  const centerY = 250;
-  const radius = 245;
-
-  // Quán vừa thắng (nếu có) sẽ được tô nổi bật: nhô ra ngoài + viền phát sáng nhấp nháy + chữ to hơn.
-  const highlightIdx = winningHighlightName ? activeOptions.indexOf(winningHighlightName) : -1;
-  const pulse = highlightIdx >= 0 ? (0.5 + 0.5 * Math.sin(Date.now() / 220)) : 0;
+  const centerX = 250, centerY = 250, radius = 245;
 
   activeOptions.forEach((shopName, idx) => {
-    const isWinner = idx === highlightIdx;
     const startAngle = -Math.PI / 2 + sliceAngle * idx;
     const endAngle = startAngle + sliceAngle;
-    const sliceRadius = isWinner ? radius + 6 + pulse * 6 : radius;
-
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY);
-    ctx.arc(centerX, centerY, sliceRadius, startAngle, endAngle);
-    ctx.closePath();
-
-    ctx.fillStyle = WHEEL_COLORS[idx % WHEEL_COLORS.length];
-    ctx.fill();
-
-    if(isWinner){
-      ctx.save();
-      ctx.shadowColor = `rgba(255, 233, 168, ${(0.55 + pulse * 0.4).toFixed(2)})`;
-      ctx.shadowBlur = 22 + pulse * 14;
-      ctx.lineWidth = 6;
-      ctx.strokeStyle = "#ffe9a8";
-      ctx.stroke();
-      ctx.restore();
-    } else {
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = "#f2ecd8";
-      ctx.stroke();
-    }
+    octx.beginPath();
+    octx.moveTo(centerX, centerY);
+    octx.arc(centerX, centerY, radius, startAngle, endAngle);
+    octx.closePath();
+    octx.fillStyle = WHEEL_COLORS[idx % WHEEL_COLORS.length];
+    octx.fill();
+    octx.lineWidth = 3;
+    octx.strokeStyle = "#f2ecd8";
+    octx.stroke();
   });
 
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
-  ctx.fillStyle = "#e3c069";
-  ctx.fill();
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = "#3a2a1c";
-  ctx.stroke();
+  // Tâm vàng
+  octx.beginPath();
+  octx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
+  octx.fillStyle = "#e3c069";
+  octx.fill();
+  octx.lineWidth = 4;
+  octx.strokeStyle = "#3a2a1c";
+  octx.stroke();
 
   const textRadius = radius * 0.58;
   const baseFontSize = count <= 3 ? 40 : count <= 4 ? 34 : count <= 5 ? 29 : 25;
@@ -828,63 +1193,139 @@ function drawWheelAndText(){
   const maxTextWidth = (2 * Math.PI * textRadius / count) * 0.85;
 
   activeOptions.forEach((shopName, idx) => {
-    const isWinner = idx === highlightIdx;
-    const scale = isWinner ? 1.22 + pulse * 0.1 : 1;
     const angle = -Math.PI / 2 + sliceAngle * idx + sliceAngle / 2;
     const x = centerX + textRadius * Math.cos(angle);
     const y = centerY + textRadius * Math.sin(angle);
-
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angle + Math.PI / 2);
-    ctx.scale(scale, scale);
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    ctx.shadowColor = "transparent";
-    ctx.shadowBlur = 0;
-    ctx.font = `${iconFontSize}px sans-serif`;
-    const icon = getShopIcon(shopName);
-    ctx.fillText(icon, 0, -baseFontSize * 0.85);
-
-    ctx.font = `800 ${baseFontSize}px 'Be Vietnam Pro', sans-serif`;
-    const lines = wrapWheelText(ctx, shopName, maxTextWidth);
+    octx.save();
+    octx.translate(x, y);
+    octx.rotate(angle + Math.PI / 2);
+    octx.textAlign = "center";
+    octx.textBaseline = "middle";
+    octx.font = `${iconFontSize}px sans-serif`;
+    octx.fillText(getShopIcon(shopName), 0, -baseFontSize * 0.85);
+    octx.font = `800 ${baseFontSize}px 'Be Vietnam Pro', sans-serif`;
+    const lines = wrapWheelText(octx, shopName, maxTextWidth);
     const lineHeight = baseFontSize * 1.08;
     const startY = -((lines.length - 1) * lineHeight) / 2 + baseFontSize * 0.2;
-
-    if(isWinner){
-      ctx.shadowColor = `rgba(255, 233, 168, ${(0.8 + pulse * 0.2).toFixed(2)})`;
-      ctx.shadowBlur = 14 + pulse * 10;
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = "#3a2a1c";
-      ctx.fillStyle = "#fff9e6";
-    } else {
-      ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
-      ctx.shadowBlur = 3;
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "#0b3b1e";
-      ctx.fillStyle = "#ffffff";
-    }
-    ctx.lineJoin = "round";
+    octx.shadowColor = "rgba(0, 0, 0, 0.45)";
+    octx.shadowBlur = 3;
+    octx.lineWidth = 2;
+    octx.strokeStyle = "#0b3b1e";
+    octx.fillStyle = "#ffffff";
+    octx.lineJoin = "round";
     lines.forEach((line, li) => {
       const ly = startY + li * lineHeight;
-      ctx.strokeText(line, 0, ly);
-      ctx.fillText(line, 0, ly);
+      octx.strokeText(line, 0, ly);
+      octx.fillText(line, 0, ly);
     });
-
-    ctx.restore();
+    octx.restore();
   });
 }
 
-// Bật/tắt hiệu ứng tô nổi bật quán thắng trên bánh xe (nhô ra + phát sáng nhấp nháy).
+function drawWheelAndText(){
+  const ctx = getWheelCtx();
+  if(!ctx) return;
+
+  const activeOptions = getActiveWheelOptions();
+  const count = activeOptions.length;
+  if(count === 0) return;
+
+  const key = activeOptions.join('\0');
+  if(key !== _wheelCacheKey){
+    _wheelCacheKey = key;
+    buildStaticWheel(activeOptions);
+  }
+
+  // Blit bản tĩnh
+  ctx.clearRect(0, 0, 500, 500);
+  if(_offscreenWheel) ctx.drawImage(_offscreenWheel, 0, 0);
+
+  // Highlight quán thắng (chỉ vẽ thêm lớp pulse, không vẽ lại cả bánh)
+  const highlightIdx = winningHighlightName ? activeOptions.indexOf(winningHighlightName) : -1;
+  if(highlightIdx < 0) return;
+
+  const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 220);
+  const sliceAngle = (2 * Math.PI) / count;
+  const centerX = 250, centerY = 250, radius = 245;
+  const startAngle = -Math.PI / 2 + sliceAngle * highlightIdx;
+  const endAngle = startAngle + sliceAngle;
+  const sliceRadius = radius + 6 + pulse * 6;
+
+  ctx.beginPath();
+  ctx.moveTo(centerX, centerY);
+  ctx.arc(centerX, centerY, sliceRadius, startAngle, endAngle);
+  ctx.closePath();
+  ctx.fillStyle = WHEEL_COLORS[highlightIdx % WHEEL_COLORS.length];
+  ctx.fill();
+  ctx.save();
+  ctx.shadowColor = `rgba(255, 233, 168, ${(0.55 + pulse * 0.4).toFixed(2)})`;
+  ctx.shadowBlur = 22 + pulse * 14;
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = "#ffe9a8";
+  ctx.stroke();
+  ctx.restore();
+
+  // Chữ highlight to hơn
+  const textRadius = radius * 0.58;
+  const baseFontSize = count <= 3 ? 40 : count <= 4 ? 34 : count <= 5 ? 29 : 25;
+  const iconFontSize = baseFontSize + 12;
+  const maxTextWidth = (2 * Math.PI * textRadius / count) * 0.85;
+  const scale = 1.22 + pulse * 0.1;
+  const angle = -Math.PI / 2 + sliceAngle * highlightIdx + sliceAngle / 2;
+  const x = centerX + textRadius * Math.cos(angle);
+  const y = centerY + textRadius * Math.sin(angle);
+  const shopName = activeOptions[highlightIdx];
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle + Math.PI / 2);
+  ctx.scale(scale, scale);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `${iconFontSize}px sans-serif`;
+  ctx.fillText(getShopIcon(shopName), 0, -baseFontSize * 0.85);
+  ctx.font = `800 ${baseFontSize}px 'Be Vietnam Pro', sans-serif`;
+  const lines = wrapWheelText(ctx, shopName, maxTextWidth);
+  const lineHeight = baseFontSize * 1.08;
+  const startY = -((lines.length - 1) * lineHeight) / 2 + baseFontSize * 0.2;
+  ctx.shadowColor = `rgba(255, 233, 168, ${(0.8 + pulse * 0.2).toFixed(2)})`;
+  ctx.shadowBlur = 14 + pulse * 10;
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#3a2a1c";
+  ctx.fillStyle = "#fff9e6";
+  ctx.lineJoin = "round";
+  lines.forEach((line, li) => {
+    const ly = startY + li * lineHeight;
+    ctx.strokeText(line, 0, ly);
+    ctx.fillText(line, 0, ly);
+  });
+  ctx.restore();
+
+  // Vẽ lại tâm để nằm trên highlight
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
+  ctx.fillStyle = "#e3c069";
+  ctx.fill();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "#3a2a1c";
+  ctx.stroke();
+}
+
+// Bật/tắt hiệu ứng tô nổi bật quán thắng – dùng rAF thay setInterval
 let winningHighlightName = null;
-let highlightPulseTimer = null;
+let highlightRafId = null;
 
 function startWinnerHighlight(name){
   winningHighlightName = name;
-  if(highlightPulseTimer) clearInterval(highlightPulseTimer);
-  highlightPulseTimer = setInterval(drawWheelAndText, 60);
-  drawWheelAndText();
+  if(highlightRafId) cancelAnimationFrame(highlightRafId);
+
+  const loop = () => {
+    if(!winningHighlightName) return;
+    drawWheelAndText();
+    highlightRafId = requestAnimationFrame(loop);
+  };
+  highlightRafId = requestAnimationFrame(loop);
+
   const trophy = document.getElementById('trophyBadge');
   const trophyName = document.getElementById('trophyName');
   if(trophyName) trophyName.textContent = name;
@@ -893,11 +1334,12 @@ function startWinnerHighlight(name){
 
 function stopWinnerHighlight(){
   winningHighlightName = null;
-  if(highlightPulseTimer){ clearInterval(highlightPulseTimer); highlightPulseTimer = null; }
+  if(highlightRafId){ cancelAnimationFrame(highlightRafId); highlightRafId = null; }
   drawWheelAndText();
   const trophy = document.getElementById('trophyBadge');
   if(trophy) trophy.classList.remove('show');
 }
+
 
 function wrapWheelText(ctx, text, maxWidth){
   const words = String(text).split(' ');
@@ -925,46 +1367,78 @@ window.addEventListener('DOMContentLoaded', () => {
   setupRealtimeListener();
 });
 
+let adminUnlocked = false;
+
+async function openAdminPanel(){
+  const panel = document.getElementById('adminPanel');
+  const settingsBtn = document.getElementById('settingsBtn');
+
+  // Đã mở rồi thì đóng lại
+  if(panel.style.display === 'block'){
+    panel.style.display = 'none';
+    return;
+  }
+
+  // Đã xác thực trong phiên này thì mở luôn, không hỏi lại mật khẩu
+  if(adminUnlocked){
+    panel.style.display = 'block';
+    return;
+  }
+
+  const pass = await showPasswordPrompt("Nhập mật khẩu quản trị để mở bảng điều khiển:", {
+    title: 'Mở bảng quản trị',
+    inputPlaceholder: 'Mật khẩu quản trị...'
+  });
+  if(pass === null) return;
+
+  if(await checkAdminPass(pass)){
+    adminUnlocked = true;
+    panel.style.display = 'block';
+    if(settingsBtn) settingsBtn.classList.add('unlocked');
+
+    if(usingDefaultAdminPass){
+      await showAlert("Đã mở khóa bảng quản trị!\n\n⚠️ LƯU Ý BẢO MẬT: phòng này đang dùng mật khẩu MẶC ĐỊNH. Hãy vào mục 🔑 Bảo mật để đổi mật khẩu riêng ngay!", {
+        icon: '🔓', title: 'Mở khóa thành công'
+      });
+    }
+  } else {
+    await showAlert("Mật khẩu sai!", { icon: '❌', title: 'Sai mật khẩu', danger: true });
+  }
+}
+
+function toggleAdminSection(headerBtn){
+  const section = headerBtn.closest('.admin-section');
+  if(!section) return;
+  section.classList.toggle('open');
+}
+
+// Giữ triple-click tiêu đề như lối tắt phụ (vẫn hoạt động)
 let titleClicks = 0;
 document.getElementById('mainTitle').addEventListener('click', async () => {
   titleClicks++;
   if(titleClicks >= 3){
     titleClicks = 0;
-    const pass = prompt("🔒 Nhập mật khẩu quản trị để tạo/đổi phòng & mở bảng điều khiển:");
-    if(pass !== null){
-      if(await checkAdminPass(pass)){
-        const roomBar = document.getElementById('roomBar');
-        roomBar.style.display = roomBar.style.display === 'flex' ? 'none' : 'flex';
-
-        const panel = document.getElementById('adminPanel');
-        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-        if(usingDefaultAdminPass){
-          alert("🔓 Đã mở khóa tính năng quản trị phòng thành công!\n\n⚠️ LƯU Ý BẢO MẬT: phòng này đang dùng mật khẩu MẶC ĐỊNH (ai đọc code cũng đoán được). Hãy vào mục 🔑 Bảo mật bên dưới để đổi mật khẩu riêng ngay!");
-        } else {
-          alert("🔓 Đã mở khóa tính năng quản trị phòng thành công!");
-        }
-      } else {
-        alert("❌ Mật khẩu sai!");
-      }
-    }
+    openAdminPanel();
   }
   setTimeout(() => { titleClicks = 0; }, 1500);
 });
 
-function switchRoom(){
+
+async function switchRoom(){
   const roomName = document.getElementById('roomInput').value.trim().toLowerCase();
   if(!roomName){
-    alert("⚠️ Vui lòng nhập tên phòng!");
+    await showAlert("Vui lòng nhập tên phòng!", { icon: '⚠️', title: 'Thiếu thông tin' });
     return;
   }
   const newUrl = window.location.pathname + "?room=" + encodeURIComponent(roomName);
   window.location.href = newUrl;
 }
 
+
 function copyRoomLink(){
   const currentLink = window.location.href;
 
-  function fallbackShowLink(){
+  async function fallbackShowLink(){
     const roomBar = document.getElementById('roomBar');
     const roomInput = document.getElementById('roomInput');
     if(roomInput){
@@ -973,15 +1447,24 @@ function copyRoomLink(){
       roomInput.focus();
       roomInput.select();
       try{ roomInput.setSelectionRange(0, roomInput.value.length); }catch(e){}
-      alert("📋 Trình duyệt/app này chặn tự động copy. Link đã được điền sẵn ở ô phía trên — hãy bấm giữ vào ô đó rồi chọn 'Copy' để sao chép thủ công.");
+      await showAlert("Trình duyệt/app này chặn tự động copy.\nLink đã được điền sẵn ở ô phía trên — hãy bấm giữ vào ô đó rồi chọn 'Copy' để sao chép thủ công.", {
+        icon: '📋', title: 'Copy thủ công'
+      });
     } else {
-      prompt("Copy link thủ công:", currentLink);
+      await showPrompt("Copy link thủ công:", {
+        icon: '📋', title: 'Link phòng',
+        inputValue: currentLink,
+        confirmText: 'Đóng',
+        showCancel: false
+      });
     }
   }
 
   if(navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext){
-    navigator.clipboard.writeText(currentLink).then(() => {
-      alert("✅ Đã copy link phòng thành công! Hãy gửi link này cho mọi người vào quay chung nhé.");
+    navigator.clipboard.writeText(currentLink).then(async () => {
+      await showAlert("Đã copy link phòng thành công!\nHãy gửi link này cho mọi người vào quay chung nhé.", {
+        icon: '✅', title: 'Copy thành công'
+      });
     }).catch(() => {
       fallbackShowLink();
     });
@@ -999,13 +1482,16 @@ function copyRoomLink(){
     const copied = document.execCommand('copy');
     document.body.removeChild(temp);
     if(copied){
-      alert("✅ Đã copy link phòng thành công! Hãy gửi link này cho mọi người vào quay chung nhé.");
+      showAlert("Đã copy link phòng thành công!\nHãy gửi link này cho mọi người vào quay chung nhé.", {
+        icon: '✅', title: 'Copy thành công'
+      });
       return;
     }
   }catch(e){}
 
   fallbackShowLink();
 }
+
 
 function updateUItexts(){
   const subEl = document.getElementById('subTitleText');
@@ -1027,7 +1513,7 @@ async function changeMaxSpins(val){
   renderNames();
   renderResults();
   updateSpinButton();
-  alert("✅ Đã đổi số lượt quay tối đa thành: " + maxAllowedSpins + " lần/người");
+  showAlert("Đã đổi số lượt quay tối đa thành: " + maxAllowedSpins + " lần/người", { icon: '✅', title: 'Thành công' });
 }
 
 function renderAdminShopInputs(){
@@ -1046,7 +1532,7 @@ function renderAdminShopInputs(){
 
 function addShopInput(){
   if(OPTIONS.length >= 6){
-    alert("⚠️ Tối đa khoảng 6 quán trên một vòng quay cho đẹp bạn nhé!");
+    showAlert("Tối đa khoảng 6 quán trên một vòng quay cho đẹp bạn nhé!", { icon: '⚠️', title: 'Giới hạn' });
     return;
   }
   const inputs = document.querySelectorAll('.shop-input-field');
@@ -1059,7 +1545,7 @@ function addShopInput(){
 
 function removeShopInput(index){
   if(OPTIONS.length <= 2){
-    alert("⚠️ Cần duy trì ít nhất 2 quán để quay!");
+    showAlert("Cần duy trì ít nhất 2 quán để quay!", { icon: '⚠️', title: 'Giới hạn' });
     return;
   }
   const inputs = document.querySelectorAll('.shop-input-field');
@@ -1087,9 +1573,9 @@ async function changeForcedResult(val){
   roomRef.child("forcedWinner").set(val);
 
   if(val !== "RANDOM"){
-    alert("⚠️ Đã kích hoạt ép kết quả toàn phòng về: " + val);
+    showAlert("Đã kích hoạt ép kết quả toàn phòng về: " + val, { icon: '⚠️', title: 'Ép kết quả' });
   } else {
-    alert("🎲 Đã chuyển lại chế độ ngẫu nhiên hoàn toàn cho cả phòng!");
+    showAlert("Đã chuyển lại chế độ ngẫu nhiên hoàn toàn cho cả phòng!", { icon: '🎲', title: 'Ngẫu nhiên' });
   }
 }
 
@@ -1101,7 +1587,7 @@ async function saveShopNames(){
     if(val) newArr.push(val);
   });
   if(newArr.length < 2){
-    alert("⚠️ Vui lòng giữ lại ít nhất 2 tên quán hợp lệ!");
+    showAlert("Vui lòng giữ lại ít nhất 2 tên quán hợp lệ!", { icon: '⚠️', title: 'Không hợp lệ' });
     return;
   }
   OPTIONS = newArr;
@@ -1117,106 +1603,212 @@ async function saveShopNames(){
   updateForcedSelect();
   renderResults();
   renderStatsDisplay();
-  alert("✅ Đã lưu danh sách quán lên server thành công!");
+  showAlert("Đã lưu danh sách quán lên server thành công!", { icon: '✅', title: 'Thành công' });
+}
+
+function ensureAudio(){
+  try {
+    if(!audioCtx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AC();
+    }
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    return !!audioCtx;
+  } catch(e){ return false; }
+}
+
+/** Rung haptic – hỗ trợ Android Chrome & một số trình duyệt mobile */
+const canVibrate = typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function';
+
+function vibe(pattern){
+  if(!canVibrate || !soundEnabled) return;
+  try {
+    navigator.vibrate(pattern);
+  } catch(e) {}
+}
+
+function vibeTick(progress){
+  const ms = Math.max(8, Math.round(18 - progress * 12));
+  vibe(ms);
+}
+
+function vibeSpinStart(){
+  vibe([30, 40, 20]);
+}
+
+function vibeLand(){
+  vibe([40, 30, 60]);
+}
+
+function vibeCountdown(isFinal){
+  vibe(isFinal ? [80, 40, 80] : 35);
+}
+
+function vibeWin(){
+  vibe([50, 60, 50, 60, 50, 80, 120]);
 }
 
 function forceUnlockSound(){
+
+  if(!ensureAudio()) return;
   try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    audioCtx = new AudioContext();
-    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const t = audioCtx.currentTime;
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.frequency.setValueAtTime(600, t);
+    gain.gain.setValueAtTime(0.15, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.1);
+    osc.start(t);
+    osc.stop(t + 0.08);
   } catch(e) {}
 
   soundEnabled = true;
+  vibe([15, 30, 15]); // báo haptic đã sẵn sàng (nếu máy hỗ trợ)
   const bar = document.getElementById('soundBar');
-  bar.style.background = "rgba(127,166,92,0.25)";
-  bar.style.borderColor = "var(--paddy)";
-  bar.style.color = "var(--paddy)";
-  bar.innerHTML = "✅ Âm thanh loa & hiệu ứng đã sẵn sàng!";
-  setTimeout(()=>{ bar.style.display = 'none'; }, 2000);
+  if(bar){
+    bar.style.background = "rgba(127,166,92,0.25)";
+    bar.style.borderColor = "var(--paddy)";
+    bar.style.color = "var(--paddy)";
+    bar.innerHTML = canVibrate
+      ? "✅ Âm thanh & rung đã sẵn sàng!"
+      : "✅ Âm thanh loa & hiệu ứng đã sẵn sàng!";
+    setTimeout(()=>{ bar.style.display = 'none'; }, 2000);
+  }
 }
+
 
 document.addEventListener('click', () => { if(!soundEnabled) forceUnlockSound(); }, { once: true });
 document.addEventListener('touchstart', () => { if(!soundEnabled) forceUnlockSound(); }, { once: true });
 
-function playClickSound(){
+/** Tạo oscillator ngắn gọn – tái sử dụng pattern, tránh leak */
+function playTone({ type = 'square', freq = 440, freqEnd = null, duration = 0.08, volume = 0.25, delay = 0 }){
+  if(!soundEnabled || !ensureAudio()) return;
   try {
-    if(!audioCtx){
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
-    }
-    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const t0 = audioCtx.currentTime + delay;
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(580, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.05);
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    if(freqEnd != null) osc.frequency.exponentialRampToValueAtTime(Math.max(freqEnd, 20), t0 + duration);
+    gain.gain.setValueAtTime(volume, t0);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.05);
+    osc.start(t0);
+    osc.stop(t0 + duration + 0.02);
   } catch(e) {}
 }
 
+/** Tick khi bánh xe đi qua mỗi múi – pitch giảm dần theo tiến độ quay */
+function playTickSound(progress = 0){
+  // progress 0→1: nhanh→chậm, pitch cao→thấp
+  const freq = 900 - progress * 450;
+  playTone({ type: 'square', freq, freqEnd: freq * 0.4, duration: 0.04, volume: 0.18 + (1 - progress) * 0.08 });
+}
+
+/** Âm bắt đầu quay – whoosh ngắn */
+function playSpinStartSound(){
+  playTone({ type: 'sawtooth', freq: 180, freqEnd: 60, duration: 0.35, volume: 0.12 });
+  playTone({ type: 'sine', freq: 320, freqEnd: 120, duration: 0.25, volume: 0.1, delay: 0.05 });
+  vibeSpinStart();
+}
+
+/** Âm khi bánh xe dừng hẳn */
+function playLandSound(){
+  playTone({ type: 'triangle', freq: 220, freqEnd: 80, duration: 0.2, volume: 0.3 });
+  playTone({ type: 'sine', freq: 110, freqEnd: 55, duration: 0.28, volume: 0.22, delay: 0.04 });
+  vibeLand();
+}
+
+/** Beep đếm ngược */
 function playCountdownBeep(isFinal = false){
-  try {
-    if(!audioCtx) return;
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(isFinal ? 880 : 440, audioCtx.currentTime);
-    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.3);
-  } catch(e) {}
+  playTone({
+    type: 'sine',
+    freq: isFinal ? 880 : 440,
+    duration: isFinal ? 0.35 : 0.22,
+    volume: isFinal ? 0.35 : 0.28
+  });
+  vibeCountdown(isFinal);
 }
 
+/** Fanfare thắng cuộc */
 function playWinSound(){
-  try {
-    if(!audioCtx){
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
-    }
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
-    notes.forEach((freq, idx) => {
-      setTimeout(() => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.5);
-      }, idx * 110);
-    });
-  } catch(e) {}
+  if(!soundEnabled || !ensureAudio()) return;
+  const notes = [
+    { f: 523.25, d: 0 },
+    { f: 659.25, d: 0.1 },
+    { f: 783.99, d: 0.2 },
+    { f: 1046.50, d: 0.32 },
+    { f: 1318.51, d: 0.48 },
+    { f: 1046.50, d: 0.7 }
+  ];
+  notes.forEach(n => {
+    playTone({ type: 'triangle', freq: n.f, duration: 0.45, volume: 0.32, delay: n.d });
+  });
+  playTone({ type: 'sine', freq: 261.63, duration: 0.9, volume: 0.12, delay: 0.32 });
+  vibeWin();
 }
+
+
+/** Click UI nhẹ */
+function playUiClick(){
+  playTone({ type: 'sine', freq: 720, freqEnd: 400, duration: 0.06, volume: 0.12 });
+}
+
+/** Alias cũ để không phá code gọi playClickSound */
+function playClickSound(){
+  playTickSound(0.3);
+}
+
+/**
+ * Lịch tick giảm dần theo easing của vòng quay (4.5s).
+ * Tạo cảm giác bánh xe đang chậm lại thật.
+ */
+function scheduleSpinTicks(durationMs, onDone){
+  const start = performance.now();
+  let lastTickAt = -999;
+  let rafId = null;
+  let stopped = false;
+
+  function frame(now){
+    if(stopped) return;
+    const elapsed = now - start;
+    const p = Math.min(1, elapsed / durationMs);
+    // Easing gần với cubic-bezier(0.1, 0.82, 0.1, 1): nhanh đầu, chậm cuối
+    const ease = 1 - Math.pow(1 - p, 3);
+    // Khoảng cách giữa 2 tick tăng dần
+    const interval = 40 + ease * 280;
+
+    if(now - lastTickAt >= interval){
+      playTickSound(ease);
+      vibeTick(ease);
+      lastTickAt = now;
+    }
+
+
+    if(p < 1){
+      rafId = requestAnimationFrame(frame);
+    } else {
+      playLandSound();
+      if(onDone) onDone();
+    }
+  }
+  rafId = requestAnimationFrame(frame);
+  return () => { stopped = true; if(rafId) cancelAnimationFrame(rafId); };
+}
+
 
 let historyClicks = 0;
 document.getElementById('historyBox').addEventListener('click', async () => {
   historyClicks++;
   if(historyClicks >= 3){
     historyClicks = 0;
-    const pass = prompt("🔒 Nhập mật khẩu quản trị để xóa thống kê lịch sử:");
+    const pass = await showPasswordPrompt("Nhập mật khẩu quản trị để xóa thống kê lịch sử:", {
+      title: 'Xóa thống kê',
+      inputPlaceholder: 'Mật khẩu quản trị...'
+    });
     if(pass !== null){
       if(await checkAdminPass(pass)){
         let emptyStats = {};
@@ -1225,14 +1817,15 @@ document.getElementById('historyBox').addEventListener('click', async () => {
         roomRef.child("stats").set(serverStats);
         roomRef.child("resultLock").remove();
         renderStatsDisplay();
-        alert("✅ Đã đặt lại thống kê về 0 cho toàn phòng thành công!");
+        await showAlert("Đã đặt lại thống kê về 0 cho toàn phòng thành công!", { icon: '✅', title: 'Thành công' });
       } else {
-        alert("❌ Mật khẩu sai!");
+        await showAlert("Mật khẩu sai!", { icon: '❌', title: 'Sai mật khẩu', danger: true });
       }
     }
   }
   setTimeout(() => { historyClicks = 0; }, 1500);
 });
+
 
 const nameGrid = document.getElementById('nameGrid');
 const spinBtn = document.getElementById('spinBtn');
@@ -1328,9 +1921,15 @@ function showPersonalResult(winnerOption, isTieBreaker){
 // ===================== BÀN THẺ LẬT (chọn người khao cả team) =====================
 
 async function toggleWheelGame(){
-  const pass = prompt("🔒 Nhập mật khẩu quản trị:");
+  const pass = await showPasswordPrompt("Nhập mật khẩu quản trị:", {
+    title: 'Bật/Tắt vòng quay',
+    inputPlaceholder: 'Mật khẩu quản trị...'
+  });
   if(pass === null) return;
-  if(!(await checkAdminPass(pass))){ alert("❌ Mật khẩu không đúng!"); return; }
+  if(!(await checkAdminPass(pass))){
+    await showAlert("Mật khẩu không đúng!", { icon: '❌', title: 'Sai mật khẩu', danger: true });
+    return;
+  }
   await roomRef.child("wheelEnabled").set(!wheelEnabled);
 }
 
@@ -1347,23 +1946,36 @@ function applyWheelVisibility(){
 }
 
 async function toggleCardGame(){
-  const pass = prompt("🔒 Nhập mật khẩu quản trị:");
+  const pass = await showPasswordPrompt("Nhập mật khẩu quản trị:", {
+    title: 'Bật/Tắt bàn thẻ',
+    inputPlaceholder: 'Mật khẩu quản trị...'
+  });
   if(pass === null) return;
-  if(!(await checkAdminPass(pass))){ alert("❌ Mật khẩu không đúng!"); return; }
+  if(!(await checkAdminPass(pass))){
+    await showAlert("Mật khẩu không đúng!", { icon: '❌', title: 'Sai mật khẩu', danger: true });
+    return;
+  }
   await roomRef.child("cardGameEnabled").set(!cardGameEnabled);
 }
 
 async function resetCardGame(){
-  const pass = prompt("🔒 Nhập mật khẩu quản trị:");
+  const pass = await showPasswordPrompt("Nhập mật khẩu quản trị:", {
+    title: 'Làm mới bàn thẻ',
+    inputPlaceholder: 'Mật khẩu quản trị...'
+  });
   if(pass === null) return;
-  if(!(await checkAdminPass(pass))){ alert("❌ Mật khẩu không đúng!"); return; }
+  if(!(await checkAdminPass(pass))){
+    await showAlert("Mật khẩu không đúng!", { icon: '❌', title: 'Sai mật khẩu', danger: true });
+    return;
+  }
   await roomRef.child("cardSlots").remove();
   await roomRef.child("loserName").remove();
   cardGameTriggered = false;
   serverLoserName = null;
   revealedLoserName = null;
-  alert("✅ Đã làm mới bàn thẻ lật!");
+  await showAlert("Đã làm mới bàn thẻ lật!", { icon: '✅', title: 'Thành công' });
 }
+
 
 function updateCardGameToggleBtn(){
   const btn = document.getElementById('cardGameToggleBtn');
@@ -1413,7 +2025,7 @@ function renderCardGame(){
 
     card.onclick = async () => {
       if(!selectedName){
-        alert("⚠️ Vui lòng chọn tên của bạn ở danh sách bên trên trước khi nhận thẻ!");
+        await showAlert("Vui lòng chọn tên của bạn ở danh sách bên trên trước khi nhận thẻ!", { icon: '⚠️', title: 'Chưa chọn tên' });
         return;
       }
       let alreadySelectedIdx = -1;
@@ -1423,12 +2035,13 @@ function renderCardGame(){
 
       if(isClaimed && cardName !== selectedName){
         if(alreadySelectedIdx !== -1){
-          alert("⚠️ Bạn đã nhận 1 thẻ khác rồi!");
+          await showAlert("Bạn đã nhận 1 thẻ khác rồi!", { icon: '⚠️', title: 'Đã nhận thẻ' });
         } else {
-          alert("⚠️ Thẻ này đã có người khác chọn rồi, hãy chọn thẻ khác nhé!");
+          await showAlert("Thẻ này đã có người khác chọn rồi, hãy chọn thẻ khác nhé!", { icon: '⚠️', title: 'Thẻ đã có chủ' });
         }
         return;
       }
+
 
       if(isClaimed && cardName === selectedName){
         await roomRef.child("cardSlots/" + i).remove();
@@ -1617,9 +2230,15 @@ function renderNames(){
 }
 
 async function removePlayer(nameToRemove){
-  const pass = prompt("🔒 Nhập mật khẩu quản trị để xóa người chơi '" + nameToRemove + "':");
+  const pass = await showPasswordPrompt("Nhập mật khẩu quản trị để xóa người chơi \"" + nameToRemove + "\":", {
+    title: 'Xóa người chơi',
+    inputPlaceholder: 'Mật khẩu quản trị...'
+  });
   if(pass === null) return;
-  if(!(await checkAdminPass(pass))){ alert("❌ Mật khẩu không đúng!"); return; }
+  if(!(await checkAdminPass(pass))){
+    await showAlert("Mật khẩu không đúng!", { icon: '❌', title: 'Sai mật khẩu', danger: true });
+    return;
+  }
 
   let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
   cleanList = cleanList.filter(n => n !== nameToRemove);
@@ -1636,19 +2255,29 @@ async function removePlayer(nameToRemove){
   renderNames();
   renderResults();
   updateSpinButton();
-  alert("✅ Đã xóa thành công!");
+  await showAlert("Đã xóa thành công!", { icon: '✅', title: 'Thành công' });
 }
 
 async function addNewPlayerWithPassword(){
   const input = document.getElementById('newPlayerInput');
   const newName = input.value.trim();
-  if(!newName){ alert("Vui lòng nhập tên người chơi!"); return; }
-  if(namesList.some(n => String(n).trim().toLowerCase() === newName.toLowerCase())){
-    alert("Tên này đã có trong danh sách rồi!"); return;
+  if(!newName){
+    await showAlert("Vui lòng nhập tên người chơi!", { icon: '⚠️', title: 'Thiếu thông tin' });
+    return;
   }
-  const pass = prompt("🔒 Nhập mật khẩu để thêm người chơi:");
+  if(namesList.some(n => String(n).trim().toLowerCase() === newName.toLowerCase())){
+    await showAlert("Tên này đã có trong danh sách rồi!", { icon: '⚠️', title: 'Trùng tên' });
+    return;
+  }
+  const pass = await showPasswordPrompt("Nhập mật khẩu để thêm người chơi:", {
+    title: 'Thêm người chơi',
+    inputPlaceholder: 'Mật khẩu quản trị...'
+  });
   if(pass === null) return;
-  if(!(await checkAdminPass(pass))){ alert("❌ Mật khẩu không đúng!"); return; }
+  if(!(await checkAdminPass(pass))){
+    await showAlert("Mật khẩu không đúng!", { icon: '❌', title: 'Sai mật khẩu', danger: true });
+    return;
+  }
 
   let cleanList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
   cleanList.push(newName);
@@ -1660,8 +2289,9 @@ async function addNewPlayerWithPassword(){
   renderNames();
   renderResults();
   triggerMcVibe(`🎙️ MC: "Chào mừng thành viên mới <b>${escapeHtml(newName)}</b> nhập hội!"`);
-  alert("✅ Đã thêm thành công!");
+  await showAlert("Đã thêm thành công!", { icon: '✅', title: 'Thành công' });
 }
+
 
 function updateSpinButton(){
   const validList = namesList.map(n => String(n || "").trim()).filter(n => n.length > 0);
@@ -1952,9 +2582,16 @@ function setupRealtimeListener(){
 }
 
 async function resetData(){
-  const pass = prompt("Nhập mật khẩu quản trị để reset dữ liệu:");
+  const pass = await showPasswordPrompt("Nhập mật khẩu quản trị để reset dữ liệu:", {
+    title: 'Xóa toàn bộ dữ liệu',
+    inputPlaceholder: 'Mật khẩu quản trị...',
+    danger: true
+  });
   if(pass === null) return;
-  if(!(await checkAdminPass(pass))){ alert("❌ Mật khẩu không đúng!"); return; }
+  if(!(await checkAdminPass(pass))){
+    await showAlert("Mật khẩu không đúng!", { icon: '❌', title: 'Sai mật khẩu', danger: true });
+    return;
+  }
   
   await roomRef.remove();
   selectedName = null;
@@ -1965,13 +2602,19 @@ async function resetData(){
   wheelElement.style.transform = "rotate(0deg)";
   currentRotation = 0;
   stopWinnerHighlight();
-  alert("✅ Đã làm mới dữ liệu toàn phòng thành công!");
+  await showAlert("Đã làm mới dữ liệu toàn phòng thành công!", { icon: '✅', title: 'Thành công' });
 }
 
 async function newRound(){
-  const pass = prompt("🔒 Nhập mật khẩu quản trị để bắt đầu ván mới:");
+  const pass = await showPasswordPrompt("Nhập mật khẩu quản trị để bắt đầu ván mới:", {
+    title: 'Ván mới',
+    inputPlaceholder: 'Mật khẩu quản trị...'
+  });
   if(pass === null) return;
-  if(!(await checkAdminPass(pass))){ alert("❌ Mật khẩu không đúng!"); return; }
+  if(!(await checkAdminPass(pass))){
+    await showAlert("Mật khẩu không đúng!", { icon: '❌', title: 'Sai mật khẩu', danger: true });
+    return;
+  }
 
   const shopInputs = document.querySelectorAll('.shop-input-field');
   if(shopInputs.length){
@@ -2001,8 +2644,11 @@ async function newRound(){
   stopWinnerHighlight();
   triggerMcVibe("🎙️ MC: 'Ván mới bắt đầu! Mọi người điểm danh chọn tên và quay nào!'");
 
-  alert("✅ Đã bắt đầu ván mới! Danh sách người chơi và quán được giữ nguyên, mọi người có thể quay lại từ đầu.");
+  await showAlert("Đã bắt đầu ván mới!\nDanh sách người chơi và quán được giữ nguyên, mọi người có thể quay lại từ đầu.", {
+    icon: '✅', title: 'Ván mới'
+  });
 }
+
 
 function pickWinner(pool){
   const candidates = (pool && pool.length) ? pool : OPTIONS;
@@ -2017,7 +2663,7 @@ function startCountdownAndSpin(isTieBreaker = false){
   if(spinning) return;
   const targetName = selectedName;
   if(!targetName){
-    alert("⚠️ Vui lòng chọn tên của bạn trước đã!");
+    showAlert("Vui lòng chọn tên của bạn trước đã!", { icon: '⚠️', title: 'Chưa chọn tên' });
     return;
   }
 
@@ -2029,16 +2675,17 @@ function startCountdownAndSpin(isTieBreaker = false){
   if(!isTieBreaker){
     const normalDone = userSpins.filter(s => (s.round || 0) === 0).length;
     if(normalDone >= maxAllowedSpins){
-      alert("⚠️ Bạn đã quay đủ lượt cho phép rồi!");
+      showAlert("Bạn đã quay đủ lượt cho phép rồi!", { icon: '⚠️', title: 'Hết lượt' });
       return;
     }
   } else {
     const already = userSpins.some(s => s.isTieBreaker && s.round === tieRound);
     if(already){
-      alert("⚠️ Bạn đã sút luân lưu ở vòng này rồi, đang chờ mọi người!");
+      showAlert("Bạn đã sút luân lưu ở vòng này rồi, đang chờ mọi người!", { icon: '⚠️', title: 'Đã sút rồi' });
       return;
     }
   }
+
 
   if(!soundEnabled) forceUnlockSound();
   
@@ -2116,21 +2763,22 @@ async function executeSpinAction(isTieBreaker, targetName){
     if(isTieBreaker) tieBtn.disabled = false;
     renderNames();
     updateSpinButton();
-    alert("⚠️ Bạn (" + targetName + ") đã quay đủ lượt cho phép rồi (có thể vừa quay ở tab/máy khác)!");
+    showAlert("Bạn (" + targetName + ") đã quay đủ lượt cho phép rồi (có thể vừa quay ở tab/máy khác)!", { icon: '⚠️', title: 'Hết lượt' });
     return;
   }
 
   pointerEl.classList.add('shake');
   if(lightRing) lightRing.classList.add('fast');
+  playSpinStartSound();
 
-  let soundTimer = 0;
-  let drumInterval = setInterval(()=>{
-    playClickSound();
-    soundTimer += 90;
-    if(soundTimer >= 4500) clearInterval(drumInterval);
-  }, 90);
+  // Tick giảm dần theo easing – mượt & tiết kiệm hơn setInterval cố định
+  const SPIN_DURATION = 4500;
+  const cancelTicks = scheduleSpinTicks(SPIN_DURATION);
 
-  setTimeout(()=>{ pointerEl.classList.remove('shake'); if(lightRing) lightRing.classList.remove('fast'); }, 4500);
+  setTimeout(()=>{
+    pointerEl.classList.remove('shake');
+    if(lightRing) lightRing.classList.remove('fast');
+  }, SPIN_DURATION);
 
   const count = pool.length;
   const sliceDeg = 360 / count;
@@ -2139,8 +2787,11 @@ async function executeSpinAction(isTieBreaker, targetName){
   let targetMod = ((360 - segCenterDeg) % 360 + 360) % 360;
   const finalRotation = currentRotation - (currentRotation % 360) + 8 * 360 + targetMod;
 
+  // Force reflow để CSS transition luôn chạy mượt từ frame hiện tại
+  void wheelElement.offsetWidth;
   wheelElement.style.transform = "rotate(" + finalRotation + "deg)";
   currentRotation = finalRotation;
+
 
   // Sau khi vòng quay dừng hẳn (4.6 giây), tiếp tục bật màn hình đếm ngược 3, 2, 1 rồi mới hiện
   // popup kết quả. SỬA LỖI: trước đây nhánh "chưa xong ván" luôn gọi showCongrats(winner) —
@@ -2224,5 +2875,20 @@ async function executeSpinAction(isTieBreaker, targetName){
 
 spinBtn.addEventListener('click', ()=>startCountdownAndSpin(false));
 </script>
+
+<!-- ========== CUSTOM MODAL ========== -->
+<div class="modal-overlay" id="customModal">
+  <div class="modal-card">
+    <span class="modal-icon" id="modalIcon">💬</span>
+    <div class="modal-title" id="modalTitle">Thông báo</div>
+    <div class="modal-message" id="modalMessage"></div>
+    <input type="text" class="modal-input" id="modalInput" style="display:none;" autocomplete="off">
+    <div class="modal-btns" id="modalBtns">
+      <button class="modal-btn modal-btn-secondary" id="modalCancelBtn">Hủy</button>
+      <button class="modal-btn modal-btn-primary" id="modalConfirmBtn">OK</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
+
